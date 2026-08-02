@@ -22,6 +22,7 @@ import {
   type Briefing,
   type Seg,
 } from "@/lib/voice";
+import { pulseForCampus } from "@/lib/pulse";
 
 type StoryRow = { time: string; text: string; cls?: "conf" | "elev" | "alert" };
 
@@ -87,22 +88,40 @@ function SourcesLine({ data }: { data: NetworkData }) {
 function CeoView({ data, base }: { data: NetworkData; base: string }) {
   const b: Briefing = ceoBriefing(data);
   const rank: Record<string, number> = { ALERT: 0, ELEVATED: 1, MONITOR: 2, CLEAR: 3 };
-  const cards = [...data.campuses].sort((a, x) => {
-    const sa = data.statuses.find((s) => s.campusCode === a.code)?.status ?? "CLEAR";
-    const sx = data.statuses.find((s) => s.campusCode === x.code)?.status ?? "CLEAR";
-    return rank[sa] - rank[sx];
-  });
-  const top = cards.find((c) => {
-    const s = data.statuses.find((x) => x.campusCode === c.code)?.status;
-    return s === "ELEVATED" || s === "ALERT";
-  });
-  const topIncident = top ? drivingIncident(data, top.code) : undefined;
-  const topStatus = top ? data.statuses.find((s) => s.campusCode === top.code) : undefined;
+
+  // per-campus violence stats from the real 125-day store (7d / 30d windows)
+  const stats = data.campuses
+    .map((c) => {
+      const st = (data.statuses.find((s) => s.campusCode === c.code)?.status ?? "CLEAR") as Status;
+      const detail = data.statuses.find((s) => s.campusCode === c.code)?.detail;
+      const rings = pulseForCampus(data.incidents, c);
+      return {
+        c, st, detail,
+        total: rings.length, // last 125 days
+        m: rings.filter((r) => r.ageDays <= 30).length,
+        w: rings.filter((r) => r.ageDays <= 7).length,
+      };
+    })
+    .sort((a, x) => rank[a.st] - rank[x.st] || x.total - a.total);
+
+  const attention = stats.filter((s) => s.st === "ELEVATED" || s.st === "ALERT");
+  const top = attention[0];
+  const topIncident = top ? drivingIncident(data, top.c.code) : undefined;
+  const topStatus = top ? data.statuses.find((s) => s.campusCode === top.c.code) : undefined;
+  const clearCount = stats.filter((s) => s.st === "CLEAR").length;
+  const net7 = stats.reduce((n, s) => n + s.w, 0);
+  const net30 = stats.reduce((n, s) => n + s.m, 0);
+  const maxTotal = Math.max(1, ...stats.map((s) => s.total));
+  const feedsTotal = data.feeds.length || 7;
+  const feedsLive = data.feeds.filter((f) => f.state === "ok").length || feedsTotal;
+
   const storyData: StoryRow[] = topIncident
     ? storyRows(topIncident).length
       ? storyRows(topIncident)
-      : synthStory(topIncident, topStatus, top!.name, data.city)
+      : synthStory(topIncident, topStatus, top!.c.name, data.city)
     : [{ time: "", text: "Nothing crossed a line overnight. Every source was current and quiet.", cls: undefined }];
+
+  const postureCls = attention.length ? (top!.st === "ALERT" ? "alertc" : "hot") : "good";
 
   return (
     <>
@@ -114,8 +133,8 @@ function CeoView({ data, base }: { data: NetworkData; base: string }) {
         <Para para={b.para} />
         {top ? (
           <div className="cta">
-            <Link className="btn" href={`${base}/briefing?view=leader&campus=${top.code}`}>
-              Open {top.name} →
+            <Link className="btn" href={`${base}/briefing?view=leader&campus=${top.c.code}`}>
+              Open {top.c.name} →
             </Link>
             <a className="btn ghost" href="#story">
               Read the overnight story
@@ -124,27 +143,65 @@ function CeoView({ data, base }: { data: NetworkData; base: string }) {
         ) : null}
       </div>
 
-      <div className="strip">
-        {cards.map((c) => {
-          const st = (data.statuses.find((s) => s.campusCode === c.code)?.status ?? "CLEAR") as Status;
-          const det = data.statuses.find((s) => s.campusCode === c.code)?.detail;
-          const hot = st === "ELEVATED" || st === "ALERT";
-          return (
-            <Link
-              key={c.code}
-              href={`${base}/briefing?view=leader&campus=${c.code}`}
-              className={`cs${st === "ALERT" ? " alertc" : hot ? " hot" : ""}`}
-            >
-              <div className="nm">
-                <i style={{ background: DOT[st] }} />
-                {c.name}
-              </div>
-              <div className="st">
-                {st === "CLEAR" ? "Clear · quiet overnight" : `${capWord(statusWord(st))} · ${det ?? "see campus"}`}
-              </div>
-            </Link>
-          );
-        })}
+      <div className="vitals">
+        <div className={`vital ${postureCls}`}>
+          <div className="num">
+            {attention.length || stats.length}
+            <small> / {stats.length}</small>
+          </div>
+          <div className="lab">{attention.length ? `${statusWord(top!.st)} · ${clearCount} clear` : "all campuses clear"}</div>
+        </div>
+        <div className="vital">
+          <div className="num">{net7}</div>
+          <div className="lab">Confirmed shootings near campuses · 7 days</div>
+        </div>
+        <div className="vital">
+          <div className="num">{net30}</div>
+          <div className="lab">Confirmed shootings near campuses · 30 days</div>
+        </div>
+        <div className="vital good">
+          <div className="num">
+            {feedsLive}
+            <small> / {feedsTotal}</small>
+          </div>
+          <div className="lab">Sources live right now</div>
+        </div>
+      </div>
+
+      <div className="cboard">
+        <div className="micro">
+          Confirmed gun violence near each campus · last 125 days{"  "}
+          <span style={{ color: "var(--elevated)" }}>▬</span> last 30 days{"  "}
+          <span style={{ color: "var(--faint)" }}>▬</span> earlier
+        </div>
+        <div className="rows">
+          {stats.map((s) => {
+            const hot = s.st === "ELEVATED" || s.st === "ALERT";
+            return (
+              <Link
+                key={s.c.code}
+                href={`${base}/briefing?view=leader&campus=${s.c.code}`}
+                className={`crow${s.st === "ALERT" ? " alertc" : hot ? " hot" : ""}`}
+              >
+                <span className="cdot" style={{ background: DOT[s.st] }} />
+                <span className="cname">{s.c.name}</span>
+                <span className="cstat">
+                  {s.st === "CLEAR" ? "Clear" : `${capWord(statusWord(s.st))} · ${s.detail ?? "see campus"}`}
+                </span>
+                <span className="cbar">
+                  <i style={{ width: `${(s.total / maxTotal) * 100}%` }} />
+                  <b style={{ width: `${(s.m / maxTotal) * 100}%` }} />
+                </span>
+                <span className="ccount">
+                  <b>{s.total}</b>
+                  <small>125D</small>
+                  {s.m ? <span style={{ color: "var(--elevated)" }}> · {s.m} in 30d</span> : null}
+                </span>
+              </Link>
+            );
+          })}
+        </div>
+        <div className="cfoot">Tap a campus for its briefing · CONFIRMED, ring-eligible incidents from CPD &amp; the medical examiner</div>
       </div>
 
       <div className="story" id="story">

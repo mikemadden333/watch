@@ -561,6 +561,165 @@ a {
   flex-wrap: wrap;
 }
 
+/* CEO network vitals — dense KPI row */
+.vitals {
+  max-width: 1160px;
+  margin: 30px auto 0;
+  padding: 0 40px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+@media (max-width: 760px) {
+  .vitals {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+.vital {
+  border: 1px solid var(--line2);
+  border-radius: 12px;
+  background: var(--panel);
+  padding: 15px 17px;
+}
+.vital .num {
+  font-size: 32px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  line-height: 1;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+.vital .num small {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--faint);
+}
+.vital .lab {
+  font-family: Menlo, monospace;
+  font-size: 9.5px;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: var(--mut);
+  margin-top: 9px;
+}
+.vital.hot {
+  border-color: var(--elevated);
+  background: var(--elevatedbg);
+}
+.vital.hot .num {
+  color: var(--elevated);
+}
+.vital.alertc {
+  border-color: var(--alert);
+  background: var(--alertbg);
+}
+.vital.alertc .num {
+  color: var(--alert);
+}
+.vital.good .num {
+  color: var(--clear);
+}
+
+/* CEO campus board — status + 30-day violence bar per campus */
+.cboard {
+  max-width: 1160px;
+  margin: 28px auto 0;
+  padding: 0 40px;
+}
+.cboard .rows {
+  margin-top: 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--panel);
+}
+.crow {
+  display: grid;
+  grid-template-columns: 12px 1.5fr 1.7fr 2.2fr auto;
+  gap: 16px;
+  align-items: center;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--line);
+  text-decoration: none;
+  color: inherit;
+}
+.crow:last-child {
+  border-bottom: none;
+}
+.crow:hover {
+  background: var(--bg);
+}
+.crow.hot {
+  background: var(--elevatedbg);
+  box-shadow: inset 3px 0 0 var(--elevated);
+}
+.crow.alertc {
+  background: var(--alertbg);
+  box-shadow: inset 3px 0 0 var(--alert);
+}
+.crow .cdot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+.crow .cname {
+  font-size: 13.5px;
+  font-weight: 700;
+  letter-spacing: -0.1px;
+}
+.crow .cstat {
+  font-size: 11.5px;
+  color: var(--mut);
+  line-height: 1.4;
+}
+.crow .cbar {
+  height: 9px;
+  border-radius: 5px;
+  background: var(--line);
+  position: relative;
+  overflow: hidden;
+}
+.crow .cbar i {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  background: var(--faint);
+  border-radius: 5px;
+}
+.crow .cbar b {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  background: var(--elevated);
+  border-radius: 5px;
+}
+.crow .ccount {
+  white-space: nowrap;
+  text-align: right;
+  color: var(--ink);
+}
+.crow .ccount b {
+  font-size: 17px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+.crow .ccount small {
+  color: var(--mut);
+  font-size: 9px;
+  font-family: Menlo, monospace;
+  letter-spacing: 0.5px;
+  margin-left: 3px;
+}
+.cboard .cfoot {
+  font-size: 10.5px;
+  color: var(--mut);
+  margin-top: 10px;
+  font-family: Menlo, monospace;
+  letter-spacing: 0.4px;
+}
+
 /* CEO campus strip */
 .strip {
   max-width: 1160px;
@@ -620,7 +779,7 @@ a {
 /* CEO "while you slept" story timeline */
 .story {
   max-width: 880px;
-  margin: 56px auto 0;
+  margin: 38px auto 0;
   padding: 0 40px 90px;
 }
 .story .rows {
