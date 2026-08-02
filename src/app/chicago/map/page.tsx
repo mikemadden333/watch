@@ -1,17 +1,22 @@
 import MapView from "@/components/MapView";
-import FreshnessFooter from "@/components/FreshnessFooter";
-import { morningFeeds } from "@/lib/data/chicago";
+import LiveFooter from "@/components/live/LiveFooter";
+import { getNetworkData } from "@/lib/networkData";
+import { redirect } from "next/navigation";
 
-export default function MapPage() {
+export const dynamic = "force-dynamic";
+
+export default async function ChicagoMap() {
+  const data = await getNetworkData("veritas-charter");
+  if (!data) redirect("/chicago/briefing");
   return (
     <>
-      <MapView />
-      <FreshnessFooter
-        feeds={morningFeeds}
-        lastCycle="07:12:04"
-        right="STATUS CALC ON 6 OF 7 FEEDS · RULES v2.0"
-        base="/chicago"
+      <MapView
+        campuses={data.campuses}
+        incidents={data.incidents}
+        statuses={data.statuses}
+        nowIso={new Date().toISOString()}
       />
+      <LiveFooter data={data} />
     </>
   );
 }

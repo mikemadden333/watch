@@ -1,12 +1,16 @@
 import SourcesView from "@/components/SourcesView";
-import FreshnessFooter from "@/components/FreshnessFooter";
-import { morningFeeds, tenant } from "@/lib/data/chicago";
+import LiveFooter from "@/components/live/LiveFooter";
+import { getNetworkData } from "@/lib/networkData";
+import { tenant } from "@/lib/data/chicago";
 
-export default function ChicagoSources() {
+export const dynamic = "force-dynamic";
+
+export default async function ChicagoSources() {
+  const data = await getNetworkData("veritas-charter");
   return (
     <>
       <SourcesView city="chicago" network={tenant.name} />
-      <FreshnessFooter feeds={morningFeeds} lastCycle="07:12:04" right="STATUS CALC ON 6 OF 7 FEEDS · RULES v2.0" base="/chicago" />
+      {data && <LiveFooter data={data} />}
     </>
   );
 }

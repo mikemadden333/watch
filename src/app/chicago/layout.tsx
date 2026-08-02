@@ -1,5 +1,4 @@
 import Nav from "@/components/Nav";
-import SimulationBanner from "@/components/SimulationBanner";
 import { tenant } from "@/lib/data/chicago";
 
 export default function ChicagoLayout({
@@ -10,7 +9,6 @@ export default function ChicagoLayout({
   return (
     <>
       <Nav network={tenant.name} base="/chicago" mark="/veritas-mark.svg" />
-      <SimulationBanner />
       {children}
     </>
   );
