@@ -105,6 +105,13 @@ export function greeting(now: Date): string {
   const h = centralHour(now);
   return h < 12 ? "Good morning" : h < 17 ? "Good afternoon" : "Good evening";
 }
+/** time-of-day nouns so the voice never says "overnight" at 3 PM. */
+export function overnightWord(now: Date): string {
+  return centralHour(now) < 12 ? "overnight" : "so far today";
+}
+export function watchedWindow(now: Date): string {
+  return centralHour(now) < 12 ? "through the night" : "through the day";
+}
 export function briefingMicro(now: Date, tail: string): string {
   const date = new Intl.DateTimeFormat("en-US", {
     timeZone: "America/Chicago", weekday: "long", month: "long", day: "numeric",
@@ -181,7 +188,7 @@ export function ceoBriefing(data: NetworkData, now = new Date()): Briefing {
       key: `All ${numWord(n)} campuses are clear.`,
       keyClass: "clear",
       para: [
-        { t: "Nothing qualified overnight — I watched the public record around every campus and none of it crossed a line. " },
+        { t: `Nothing has qualified ${overnightWord(now)} — I watched the public record around every campus and none of it crossed a line. ` },
         { t: `${weather}. ` },
         { t: "Dismissal looks normal across the network.", b: true },
       ],
@@ -201,7 +208,7 @@ export function ceoBriefing(data: NetworkData, now = new Date()): Briefing {
   const para: Seg[] = [];
   if (top) {
     para.push({ t: `A ${incidentTypeWord(top)} was ` });
-    para.push({ t: `confirmed overnight ${blocksPhrase(top.distanceMi, top.bearing)} of ${cName}`, b: true });
+    para.push({ t: `confirmed ${centralHour(now) < 12 ? "overnight" : "earlier"} ${blocksPhrase(top.distanceMi, top.bearing)} of ${cName}`, b: true });
     para.push({ t: ` — ${cc.who} ${cc.verb} at ${clockOf(top.publishedAt)} ${whenWord(top.publishedAt, now)}. I've ${verbed} and prepared morning actions for ${principal}. ` });
   } else {
     para.push({ t: `${cName} needs a closer look this morning. ` });
@@ -231,9 +238,9 @@ export function leaderBriefing(data: NetworkData, code: string, now = new Date()
     return {
       micro, lead, key, keyClass,
       para: [
-        { t: `I watched the blocks around ${campus.name} through the night and nothing qualified. ` },
+        { t: `I watched the blocks around ${campus.name} ${watchedWindow(now)} and nothing qualified. ` },
         { t: "Nothing else is pending. ", b: false },
-        { t: "I'll check again before dismissal and say so if anything changes." },
+        { t: centralHour(now) < 15 ? "I'll check again before dismissal and say so if anything changes." : "I'll keep watching through the evening and say so if anything changes." },
       ],
     };
   }
@@ -246,7 +253,7 @@ export function leaderBriefing(data: NetworkData, code: string, now = new Date()
     para.push({ t: `confirmed at ${clockOf(top.occurredAt)} ${whenWord(top.occurredAt, now)}`, b: true });
     para.push({ t: ` on ${placeOf(top)} — ` });
     para.push({ t: `${milesPhrase(top.distanceMi, top.bearing)}`, b: true });
-    para.push({ t: ` of your front door. ${cc.who} ${cc.verb} at ${clockOf(top.publishedAt)} ${whenWord(top.publishedAt, now)}${top.victimNote ? "; " + top.victimNote : ""}. Nothing else qualified overnight. ` });
+    para.push({ t: ` of your front door. ${cc.who} ${cc.verb} at ${clockOf(top.publishedAt)} ${whenWord(top.publishedAt, now)}${top.victimNote ? "; " + top.victimNote : ""}. Nothing else qualified ${overnightWord(now)}. ` });
     para.push({ t: "I've prepared your morning", b: true });
     para.push({ t: " — it's below. Status clears at end of day unless something new qualifies." });
   } else {

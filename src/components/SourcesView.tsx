@@ -10,14 +10,14 @@ const roleColor: Record<SourceCard["role"], string> = {
 export default function SourcesView({ city, network }: { city: string; network: string }) {
   const cards = SOURCE_CATALOG[city] ?? [];
   return (
-    <div className="wrap" style={{ paddingTop: 20 }}>
+    <>
+    <div className="head">
+      <div className="sentence">Every claim traces to a public source.</div>
+      <span className="micro">{network} · {cards.length} sources · plain English · dataset IDs live in Audit evidence</span>
+    </div>
+    <div className="wrap" style={{ paddingTop: 4 }}>
       <div className="main">
-        <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
-          <b style={{ fontSize: 15 }}>Sources · {network}</b>
-          <span className="micro">plain English · dataset IDs live in Audit evidence</span>
-        </div>
-
-        <div style={{ marginTop: 12, display: "flex", flexDirection: "column", gap: 10 }}>
+        <div style={{ marginTop: 4, display: "flex", flexDirection: "column", gap: 10 }}>
           {cards.map((c) => (
             <div key={c.name} className="card" style={{ padding: "14px 16px" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
@@ -41,7 +41,7 @@ export default function SourcesView({ city, network }: { city: string; network: 
           ))}
         </div>
 
-        <div style={{ marginTop: 14, fontSize: 12, color: "#4A463D", lineHeight: 1.6, fontFamily: "var(--serif)", fontStyle: "italic", maxWidth: 720 }}>
+        <div style={{ marginTop: 14, fontSize: 12, color: "var(--ink2)", lineHeight: 1.6, fontFamily: "var(--serif)", fontStyle: "italic", maxWidth: 720 }}>
           {CONFIRMATION_NOTE[city]}
         </div>
       </div>
@@ -64,5 +64,6 @@ export default function SourcesView({ city, network }: { city: string; network: 
         </div>
       </div>
     </div>
+    </>
   );
 }

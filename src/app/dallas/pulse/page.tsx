@@ -1,4 +1,5 @@
 import PulseView from "@/components/PulseView";
+import LiveFooter from "@/components/live/LiveFooter";
 import { getNetworkData } from "@/lib/networkData";
 
 export const dynamic = "force-dynamic";
@@ -18,5 +19,10 @@ export default async function DallasPulse({
       </div>
     );
   }
-  return <PulseView data={data} base="/dallas" view={view} campus={sp.campus} />;
+  return (
+    <>
+      <PulseView data={data} base="/dallas" view={view} campus={sp.campus} />
+      <LiveFooter data={data} />
+    </>
+  );
 }

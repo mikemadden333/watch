@@ -32,10 +32,10 @@ export interface MapViewProps {
 const MI_TO_M = 1609.34;
 
 const STATUS_COLOR: Record<string, string> = {
-  CLEAR: "#1E6E4E",
-  MONITOR: "#B08A1E",
-  ELEVATED: "#C75B12",
-  ALERT: "#B3261E",
+  CLEAR: "#57c191",
+  MONITOR: "#d9a53a",
+  ELEVATED: "#e6864a",
+  ALERT: "#e5564b",
 };
 
 interface Layers {
@@ -114,7 +114,7 @@ export default function MapView(props: MapViewProps = {}) {
       });
       L.control.zoom({ position: "topleft" }).addTo(map);
       L.tileLayer(
-        "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
+        "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
         { maxZoom: 19, subdomains: "abcd" }
       ).addTo(map);
       mapRef.current = map;
@@ -147,21 +147,21 @@ export default function MapView(props: MapViewProps = {}) {
     // rings on selected campus only
     L.circle([sel.lat, sel.lon], {
       radius: sel.elevatedRingMi * MI_TO_M,
-      color: "#C75B12",
+      color: "#e6864a",
       weight: 2,
       dashArray: "6 6",
       fill: true,
-      fillColor: "#C75B12",
-      fillOpacity: 0.04,
+      fillColor: "#e6864a",
+      fillOpacity: 0.06,
     }).addTo(g);
     L.circle([sel.lat, sel.lon], {
       radius: sel.alertRingMi * MI_TO_M,
-      color: "#B3261E",
+      color: "#e5564b",
       weight: 2,
       dashArray: "6 6",
       fill: true,
-      fillColor: "#B3261E",
-      fillOpacity: 0.05,
+      fillColor: "#e5564b",
+      fillOpacity: 0.07,
     }).addTo(g);
 
     // safe-passage corridors (drawn under incidents): a translucent buffer
@@ -169,8 +169,8 @@ export default function MapView(props: MapViewProps = {}) {
     // distinct from the status palette.
     (props.corridors ?? []).forEach((cor) => {
       if (cor.path.length < 2) return;
-      L.polyline(cor.path, { color: "#4A6B8A", weight: 16, opacity: 0.14, lineCap: "round" }).addTo(g);
-      L.polyline(cor.path, { color: "#3A5A78", weight: 3, opacity: 0.9, dashArray: "1 7", lineCap: "round" })
+      L.polyline(cor.path, { color: "#5b78c0", weight: 16, opacity: 0.16, lineCap: "round" }).addTo(g);
+      L.polyline(cor.path, { color: "#93a9e6", weight: 3, opacity: 0.9, dashArray: "1 7", lineCap: "round" })
         .addTo(g)
         .bindTooltip(`Safe Passage · ${cor.name}`, { direction: "top" });
     });
@@ -192,10 +192,10 @@ export default function MapView(props: MapViewProps = {}) {
       const ageDays = (nowMs - new Date(inc.occurredAt).getTime()) / 86400000;
       if (ageDays > windowDays) return;
       const opacity = fadeByAge(ageDays);
-      const color = inc.tier === "CONFIRMED" ? "#1E6E4E" : "#B08A1E";
+      const color = inc.tier === "CONFIRMED" ? "#57c191" : "#d9a53a";
       L.circleMarker([inc.lat, inc.lon], {
         radius: 7,
-        color: "#fff",
+        color: "#0b0f1c",
         weight: 2,
         fillColor: color,
         fillOpacity: opacity,
@@ -211,7 +211,7 @@ export default function MapView(props: MapViewProps = {}) {
       const size = isSel ? 34 : 30;
       const icon = L.divIcon({
         className: "",
-        html: `<div class="campus-marker" style="width:${size}px;height:${size}px;background:${STATUS_COLOR[st.status]};${isSel ? "border-color:#1B1A17;" : ""}">${c.code}</div>`,
+        html: `<div class="campus-marker" style="width:${size}px;height:${size}px;background:${STATUS_COLOR[st.status]};${isSel ? "border-color:#f4bf63;box-shadow:0 0 0 2px rgba(244,191,99,.35),0 1px 6px rgba(0,0,0,.5);" : ""}">${c.code}</div>`,
         iconSize: [size, size],
         iconAnchor: [size / 2, size / 2],
       });
@@ -221,7 +221,17 @@ export default function MapView(props: MapViewProps = {}) {
     });
   }
 
+  const clearNow = campuses.filter((c) => (statusOf(morningStatuses, c.code)?.status ?? "CLEAR") === "CLEAR").length;
   return (
+    <>
+    <div className="head">
+      <div className="sentence">
+        {clearNow === campuses.length
+          ? `All ${campuses.length} campuses on one map — clear right now.`
+          : `${campuses.length} campuses on one map · ${clearNow} clear.`}
+      </div>
+      <span className="micro">Rings show the selected campus · markers fade with age · coarse-geo is never plotted</span>
+    </div>
     <div className="wrap">
       {/* rail (left on map screen) */}
       <div className="rail" style={{ width: 290 }}>
@@ -309,14 +319,14 @@ export default function MapView(props: MapViewProps = {}) {
 
           {/* selected popover */}
           <div
-            className="card"
+            className="card mappop"
             style={{
               position: "absolute",
               right: 18,
               top: 18,
               width: 290,
               padding: "14px 16px",
-              boxShadow: "0 3px 14px rgba(0,0,0,.08)",
+              boxShadow: "0 6px 22px rgba(0,0,0,.45)",
               zIndex: 500,
             }}
           >
@@ -348,7 +358,7 @@ export default function MapView(props: MapViewProps = {}) {
 
           {/* data-window scrubber */}
           <div
-            className="card"
+            className="card mapscrub"
             style={{
               position: "absolute",
               left: 18,
@@ -369,7 +379,7 @@ export default function MapView(props: MapViewProps = {}) {
               max={7}
               value={windowDays}
               onChange={(e) => setWindowDays(Number(e.target.value))}
-              style={{ flex: 1, accentColor: "#1B1A17" }}
+              style={{ flex: 1, accentColor: "#e8a13a" }}
             />
             <span className="mono" style={{ fontSize: 10, color: "var(--mut)", whiteSpace: "nowrap" }}>
               {windowDays} d ago —— latest data day
@@ -382,6 +392,7 @@ export default function MapView(props: MapViewProps = {}) {
         </div>
       </div>
     </div>
+    </>
   );
 }
 

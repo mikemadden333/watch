@@ -45,7 +45,7 @@ export default function PlaybookChecklist({
                 height: 18,
                 background: "var(--ink)",
                 borderRadius: 4,
-                color: "#fff",
+                color: "var(--bg)",
                 fontSize: 11,
                 display: "flex",
                 alignItems: "center",

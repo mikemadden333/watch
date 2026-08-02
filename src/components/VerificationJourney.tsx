@@ -29,7 +29,7 @@ export default function VerificationJourney({ steps }: { steps: VerificationStep
                   height: 10,
                   borderRadius: "50%",
                   background: DOT[s.kind],
-                  border: s.kind === "confirmed" || s.kind === "verified" ? "2px solid #fff" : "none",
+                  border: s.kind === "confirmed" || s.kind === "verified" ? "2px solid var(--panel)" : "none",
                   boxShadow: s.kind === "confirmed" ? "0 0 0 1.5px var(--clear)" : "none",
                   marginTop: 3,
                   flexShrink: 0,

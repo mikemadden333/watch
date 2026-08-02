@@ -138,12 +138,16 @@ function ceoTimeline(
     rows.push({ tm: "overnight", ok: true, text: "Medical-examiner feed refreshed. No new gun deaths in the network's areas." });
   }
 
-  const feedsTotal = data.feeds.length || 7;
-  const feedsLive = data.feeds.filter((f) => f.state === "ok").length || feedsTotal;
-  rows.push({
-    tm: "all night",
-    text: `${feedsLive >= feedsTotal ? `All ${feedsTotal}` : `${feedsLive} of ${feedsTotal}`} sources current. The quiet was verified, not assumed.`,
-  });
+  const feedsTotal = data.feeds.length;
+  const feedsLive = data.feeds.filter((f) => f.state === "ok").length;
+  rows.push(
+    feedsTotal === 0
+      ? { tm: "now", text: "Source health is not reporting — treat this quiet with caution until feeds confirm." }
+      : {
+          tm: "all night",
+          text: `${feedsLive >= feedsTotal ? `All ${feedsTotal}` : `${feedsLive} of ${feedsTotal}`} sources current. The quiet was verified, not assumed.`,
+        }
+  );
   return rows;
 }
 
@@ -170,8 +174,10 @@ function Para({ para }: { para: Seg[] }) {
 }
 
 function SourcesLine({ data }: { data: NetworkData }) {
-  const total = data.feeds.length || 7;
-  const current = data.feeds.filter((f) => f.state === "ok").length || total;
+  // Absence of health data is NOT full health — never fabricate an all-clear.
+  const total = data.feeds.length;
+  if (!total) return "Source health unavailable";
+  const current = data.feeds.filter((f) => f.state === "ok").length;
   return current >= total ? `All ${total} sources current` : `${current} of ${total} sources current`;
 }
 
@@ -199,11 +205,15 @@ function CeoView({ data, base }: { data: NetworkData; base: string }) {
     .sort((a, x) => rank[a.st] - rank[x.st] || x.total - a.total);
 
   const clearCount = stats.filter((s) => s.st === "CLEAR").length;
+  const hotCampus = stats.find((s) => s.st === "ELEVATED" || s.st === "ALERT");
   const net7 = stats.reduce((k, s) => k + s.w, 0);
   const net30 = stats.reduce((k, s) => k + s.m, 0);
   const maxTotal = Math.max(1, ...stats.map((s) => s.total));
-  const feedsTotal = data.feeds.length || 7;
-  const feedsLive = data.feeds.filter((f) => f.state === "ok").length || feedsTotal;
+  // Honest source health — an empty feed table is "unknown", never "all good".
+  const feedsTotal = data.feeds.length;
+  const feedsLive = data.feeds.filter((f) => f.state === "ok").length;
+  const feedsKnown = feedsTotal > 0;
+  const feedsAllLive = feedsKnown && feedsLive >= feedsTotal;
   const isDallas = /dallas/i.test(data.city);
 
   const when = new Intl.DateTimeFormat("en-US", {
@@ -240,9 +250,21 @@ function CeoView({ data, base }: { data: NetworkData; base: string }) {
               {b.lead} <span className={`sr-${b.keyClass}`}>{b.key}</span>
             </h1>
           </div>
-          <p className="sr-read">
-            {b.para.map((s, i) => (s.b ? <b key={i}>{s.t}</b> : <span key={i}>{s.t}</span>))}
-          </p>
+          <div>
+            <p className="sr-read">
+              {b.para.map((s, i) => (s.b ? <b key={i}>{s.t}</b> : <span key={i}>{s.t}</span>))}
+            </p>
+            {hotCampus ? (
+              <div className="sr-ctarow">
+                <Link className="sr-cta" href={`${base}/act?view=leader&campus=${hotCampus.c.code}`}>
+                  Open {hotCampus.c.name}&apos;s response →
+                </Link>
+                <Link className="sr-cta ghost" href={`${base}/briefing?view=leader&campus=${hotCampus.c.code}`}>
+                  See the evidence
+                </Link>
+              </div>
+            ) : null}
+          </div>
         </div>
 
         <div className="sr-vitals">
@@ -258,9 +280,9 @@ function CeoView({ data, base }: { data: NetworkData; base: string }) {
             <div className="sr-num">{net30}</div>
             <div className="sr-lab">Confirmed shootings<br />near campuses · 30 days</div>
           </div>
-          <div className={`sr-v${feedsLive >= feedsTotal ? " clr" : ""}`}>
-            <div className="sr-num">{feedsLive}<small> / {feedsTotal}</small></div>
-            <div className="sr-lab">Sources live<br />right now</div>
+          <div className={`sr-v${feedsAllLive ? " clr" : !feedsKnown ? " warnv" : ""}`}>
+            <div className="sr-num">{feedsKnown ? feedsLive : "—"}{feedsKnown ? <small> / {feedsTotal}</small> : null}</div>
+            <div className="sr-lab">{feedsKnown ? "Sources live" : "Source health"}<br />{feedsKnown ? "right now" : "not reporting"}</div>
           </div>
         </div>
 
@@ -342,6 +364,10 @@ function LeaderView({ data, base, code }: { data: NetworkData; base: string; cod
   return (
     <>
       <div className="v2hero">
+        <div className="v2top">
+          <span className="v2eyebrow">Campus briefing · {campus.name}</span>
+          <span className="v2live"><i />Live · watching</span>
+        </div>
         <div className="micro">{b.micro}</div>
         <div className="sentence">
           {b.lead} <span className={b.keyClass}>{b.key}</span>
@@ -445,6 +471,11 @@ function evidenceRows(incident: Incident, st: Status, base: string, statusObj?: 
         badge: tierBadge,
       },
       {
+        time: clockOf(incident.detectedAt),
+        detail: `Watch surfaced this${detectionGap(incident)}`,
+        badge: { cls: "badge-corr", text: "surfaced" },
+      },
+      {
         time: statusObj?.since ?? clockOf(incident.publishedAt),
         detail: `Campus ${statusWord(st)}${statusObj?.ruleId ? " · rule " + statusObj.ruleId : ""}`,
         badge: statusBadge,
@@ -466,6 +497,18 @@ function evidenceRows(incident: Incident, st: Status, base: string, statusObj?: 
 
 function cap(s: string): string {
   return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
+/** publish → surface latency clause — the "how fast we found out" promise, made concrete. */
+function detectionGap(i: Incident): string {
+  const pub = new Date(i.publishedAt).getTime();
+  const det = new Date(i.detectedAt).getTime();
+  if (!Number.isFinite(pub) || !Number.isFinite(det)) return "";
+  const min = Math.round((det - pub) / 60000);
+  if (min <= 0) return " · within a minute of publication";
+  if (min < 60) return ` · ${min} min after publication`;
+  const h = Math.round(min / 60);
+  return ` · ${h} h after publication`;
 }
 
 /* ---------------- entry ---------------- */

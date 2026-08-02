@@ -19,7 +19,7 @@ export default function NotificationContract() {
         <h1 className="serif" style={{ fontSize: 34, fontWeight: 400, marginTop: 20 }}>
           The Notification Contract
         </h1>
-        <p style={{ fontSize: 14, lineHeight: 1.7, color: "#4A463D", marginTop: 16 }}>
+        <p style={{ fontSize: 14, lineHeight: 1.7, color: "var(--ink2)", marginTop: 16 }}>
           Watch earns the right to be believed by sending you as little as possible. A company whose
           revenue grows with messages sent cannot credibly market restraint. Watch can. This is the
           promise, printed in the product:

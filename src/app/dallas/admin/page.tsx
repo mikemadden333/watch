@@ -18,7 +18,7 @@ export default async function DallasAdmin() {
         <div style={{ width: 200, flexShrink: 0 }}>
           <div style={{ display: "flex", flexDirection: "column", gap: 2, fontSize: 12.5 }}>
             {SUBNAV.map((s, i) => (
-              <div key={s} style={{ padding: "9px 12px", borderRadius: 6, background: i === 0 ? "var(--ink)" : undefined, color: i === 0 ? "#fff" : "var(--mut)", fontWeight: i === 0 ? 600 : 400 }}>
+              <div key={s} style={{ padding: "9px 12px", borderRadius: 6, background: i === 0 ? "var(--ink)" : undefined, color: i === 0 ? "var(--bg)" : "var(--mut)", fontWeight: i === 0 ? 600 : 400 }}>
                 {s}
               </div>
             ))}

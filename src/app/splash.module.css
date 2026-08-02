@@ -156,7 +156,7 @@
   font-family: var(--serif);
   font-style: italic;
   font-size: 23px;
-  color: #4a463d;
+  color: var(--ink2);
   margin-top: 18px;
   animation: rise 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) both 0.45s;
 }
@@ -272,20 +272,20 @@
 }
 .city:hover {
   transform: translateY(-5px);
-  box-shadow: 0 14px 40px rgba(27, 26, 23, 0.1);
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.5);
   border-color: var(--ink);
 }
 .art {
   height: 130px;
   border-radius: 8px;
-  background: #efece4;
+  background: #16203c;
   position: relative;
   overflow: hidden;
   margin-bottom: 18px;
 }
 .g {
   position: absolute;
-  background: #dfdace;
+  background: #2b3555;
 }
 .ringart {
   position: absolute;
@@ -303,7 +303,7 @@
   background: repeating-radial-gradient(
     circle at 50% 120%,
     transparent 0 34px,
-    #dfdace 34px 35.5px
+    #2b3555 34px 35.5px
   );
 }
 .live {
@@ -317,7 +317,7 @@
   font-size: 9px;
   letter-spacing: 1.2px;
   color: var(--clear);
-  background: #fff;
+  background: var(--panel);
   border: 1px solid var(--line);
   padding: 3px 8px;
   border-radius: 4px;
@@ -354,7 +354,7 @@
 .city p {
   font-size: 12.5px;
   line-height: 1.6;
-  color: #4a463d;
+  color: var(--ink2);
   margin-top: 12px;
 }
 .meta {

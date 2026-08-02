@@ -22,7 +22,7 @@ import {
 import { pulseHeader, numWord } from "@/lib/voice";
 import { distanceMi } from "@/lib/geo";
 
-const EL = "#C75B12"; // elevated / ring color
+const EL = "#e8a13a"; // gun-violence ring color (amber signal, matches the CEO board)
 
 /* ---------------- the schematic map ---------------- */
 
@@ -32,24 +32,24 @@ function RingMap({ campus, rings }: { campus: Campus; rings: PulseRing[] }) {
     <div className="mappane">
       <svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet" style={{ width: "100%", height: "100%", display: "block" }}>
         {/* faint schematic grid */}
-        <g stroke="#E0DCD2" strokeWidth="0.4">
+        <g stroke="#2b3555" strokeWidth="0.4">
           <line x1="0" y1="33" x2="100" y2="33" />
           <line x1="0" y1="66" x2="100" y2="66" />
           <line x1="33" y1="0" x2="33" y2="100" />
           <line x1="66" y1="0" x2="66" y2="100" />
         </g>
         {/* elevated ring radius, dashed */}
-        <circle cx="50" cy="50" r={er} fill="none" stroke="#B8B3A6" strokeWidth="0.4" strokeDasharray="1.6 1.4" />
+        <circle cx="50" cy="50" r={er} fill="none" stroke="#3a4566" strokeWidth="0.4" strokeDasharray="1.6 1.4" />
         {/* incident rings — oldest first so fresh sits on top */}
         {[...rings].reverse().map((r) => (
           <g key={r.id}>
             <circle cx={r.x} cy={r.y} r={r.rUnits} fill={EL} fillOpacity={r.fillOpacity} stroke={EL} strokeOpacity={r.strokeOpacity} strokeWidth="0.5" />
-            <circle cx={r.x} cy={r.y} r="0.9" fill={EL} fillOpacity={Math.max(0.4, r.decayFrac)} stroke="#fff" strokeWidth="0.4" />
+            <circle cx={r.x} cy={r.y} r="0.9" fill={EL} fillOpacity={Math.max(0.4, r.decayFrac)} stroke="#0b0f1c" strokeWidth="0.4" />
           </g>
         ))}
-        {/* campus mark */}
-        <circle cx="50" cy="50" r="3.1" fill={EL} stroke="#1B1A17" strokeWidth="0.7" />
-        <text x="50" y="50" textAnchor="middle" dominantBaseline="central" fontSize="2.5" fontFamily="Menlo, monospace" fontWeight="700" fill="#fff">
+        {/* campus mark — neutral ivory so "your campus" reads distinct from violence */}
+        <circle cx="50" cy="50" r="3.1" fill="#f3f1ea" stroke="#0b0f1c" strokeWidth="0.7" />
+        <text x="50" y="50" textAnchor="middle" dominantBaseline="central" fontSize="2.5" fontFamily="Menlo, monospace" fontWeight="700" fill="#0b0f1c">
           {campus.code}
         </text>
       </svg>
@@ -146,9 +146,9 @@ function MiniPulse({ data, base, campus }: { data: NetworkData; base: string; ca
     <Link className="pcard" href={`${base}/pulse?view=leader&campus=${campus.code}`} style={{ textDecoration: "none", color: "inherit", display: "block" }}>
       <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
         <svg width="26" height="26" viewBox="0 0 26 26" style={{ flex: "0 0 auto" }}>
-          <circle cx="13" cy="13" r="12" fill="none" stroke="#B8B3A6" strokeWidth="0.7" strokeDasharray="2 1.6" />
+          <circle cx="13" cy="13" r="12" fill="none" stroke="#3a4566" strokeWidth="0.7" strokeDasharray="2 1.6" />
           {top ? <circle cx="13" cy="13" r="7" fill={EL} fillOpacity={top.fillOpacity} stroke={EL} strokeOpacity={top.strokeOpacity} /> : null}
-          <circle cx="13" cy="13" r="2.4" fill={EL} stroke="#1B1A17" strokeWidth="0.6" />
+          <circle cx="13" cy="13" r="2.4" fill="#f3f1ea" stroke="#0b0f1c" strokeWidth="0.6" />
         </svg>
         <div style={{ fontSize: 13, fontWeight: 700 }}>{campus.name}</div>
       </div>

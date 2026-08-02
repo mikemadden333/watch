@@ -93,9 +93,9 @@ export default async function DallasCampusDetail({
         <div className="rail">
           <div className="card" style={{ padding: "14px 16px" }}>
             <div className="micro">Vicinity</div>
-            <div style={{ marginTop: 10, height: 150, background: "#EDEAE2", borderRadius: 6, position: "relative", overflow: "hidden" }}>
+            <div style={{ marginTop: 10, height: 150, background: "var(--panel2)", borderRadius: 6, position: "relative", overflow: "hidden" }}>
               <div style={{ position: "absolute", width: 110, height: 110, border: "2px dashed var(--elevated)", borderRadius: "50%", left: 55, top: 22, opacity: 0.6 }} />
-              <div style={{ position: "absolute", width: 26, height: 26, background: statusColorVar(status), border: "2px solid #1B1A17", borderRadius: "50%", left: 97, top: 64, color: "#fff", fontSize: 8, fontFamily: "Menlo,monospace", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700 }}>
+              <div style={{ position: "absolute", width: 26, height: 26, background: statusColorVar(status), border: "2px solid var(--ink)", borderRadius: "50%", left: 97, top: 64, color: "#fff", fontSize: 8, fontFamily: "Menlo,monospace", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700 }}>
                 {campus.code}
               </div>
             </div>

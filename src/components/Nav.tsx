@@ -64,6 +64,15 @@ export default function Nav({
   const campusCode = params.get("campus") ?? sorted[0]?.code ?? "";
   const campus = campuses.find((c) => c.code === campusCode) ?? sorted[0];
 
+  // ambient network posture — the one answer the product exists to give,
+  // visible on every screen (not just Briefing).
+  const worst = (sorted[0]?.status ?? "CLEAR") as keyof typeof DOT;
+  const hotCount = campuses.filter((c) => (c.status ?? "CLEAR") === worst && worst !== "CLEAR").length;
+  const PCLS: Record<string, string> = { ALERT: "p-alert", ELEVATED: "p-elevated", MONITOR: "p-monitor", CLEAR: "p-clear" };
+  const WORD: Record<string, string> = { ALERT: "on alert", ELEVATED: "elevated", MONITOR: "monitored" };
+  const netLabel = worst === "CLEAR" ? "Network clear" : `${hotCount} ${WORD[worst]}`;
+  const anyHot = worst !== "CLEAR";
+
   // build a query string preserving view + campus, overriding as asked
   function qs(next: { view?: string; campus?: string }): string {
     const p = new URLSearchParams(params.toString());
@@ -89,6 +98,9 @@ export default function Nav({
           {TABS.map((t) => (
             <Link key={t.href} href={tabHref(t.href)} className={`tab${current === t.href ? " on" : ""}`}>
               {t.label}
+              {anyHot && (t.href === "briefing" || t.href === "map") ? (
+                <span className="tabdot" style={{ background: DOT[worst] }} />
+              ) : null}
             </Link>
           ))}
         </div>
@@ -101,6 +113,11 @@ export default function Nav({
             School Leader
           </Link>
         </div>
+
+        <Link href={`${base}/briefing${qs({})}`} className={`pill ${PCLS[worst]} netpill`} title="Network posture" aria-label={`Network posture: ${netLabel}`}>
+          <span className="d" style={{ background: DOT[worst] }} />
+          {netLabel}
+        </Link>
 
         <div className="tenant">
           {mark ? (

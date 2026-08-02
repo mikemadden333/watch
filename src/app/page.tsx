@@ -19,7 +19,7 @@ export default function SplashPage() {
       {/* ================= NIGHTWATCH SPLASH (dark curtain) ================= */}
       <NightSplash gone={entered} onEnter={() => setEntered(true)} />
 
-      {/* ================= CITY SELECT (cream) ================= */}
+      {/* ================= CITY SELECT (dark) ================= */}
       <div className={`${s.select}${entered ? " " + s.on : ""}`}>
         <div className={s.selHead}>
           <div className={s.selBrand}>Watch<span className={s.dot}>.</span></div>
@@ -39,7 +39,7 @@ export default function SplashPage() {
               <div className={s.g} style={{ top: 0, bottom: 0, left: 168, width: 2.4 }} />
               <div className={s.g} style={{ top: 0, bottom: 0, left: 238, width: 1.6 }} />
               <div className={s.ringart} style={{ width: 74, height: 74, left: 96, top: 24 }} />
-              <div className={s.cdot} style={{ width: 16, height: 16, background: "var(--elevated)", border: "2px solid #1B1A17", left: 125, top: 53 }} />
+              <div className={s.cdot} style={{ width: 16, height: 16, background: "var(--elevated)", border: "2px solid #f3f1ea", left: 125, top: 53 }} />
               <div className={s.cdot} style={{ width: 9, height: 9, background: "var(--clear)", border: "1.5px solid #fff", left: 196, top: 34 }} />
               <div className={s.cdot} style={{ width: 9, height: 9, background: "var(--clear)", border: "1.5px solid #fff", left: 64, top: 92 }} />
               <div className={s.cdot} style={{ width: 9, height: 9, background: "var(--monitor)", border: "1.5px solid #fff", left: 246, top: 70 }} />
@@ -51,7 +51,7 @@ export default function SplashPage() {
               Veritas Charter Schools · Pilot
             </div>
             <p>
-              Six campuses across Englewood, Woodlawn, and Bronzeville. The
+              Six campuses across Englewood, North Lawndale, and Roseland. The
               hardest public-data city in America — where the integrity
               architecture proves itself.
             </p>
@@ -68,7 +68,7 @@ export default function SplashPage() {
             <div className={s.art}>
               <div className={s.radial} />
               <div className={s.live}><i />LIVE · 2 MIN</div>
-              <div className={s.cdot} style={{ width: 16, height: 16, background: "var(--clear)", border: "2px solid #1B1A17", left: 150, top: 62 }} />
+              <div className={s.cdot} style={{ width: 16, height: 16, background: "var(--clear)", border: "2px solid #f3f1ea", left: 150, top: 62 }} />
               <div className={s.cdot} style={{ width: 9, height: 9, background: "var(--clear)", border: "1.5px solid #fff", left: 88, top: 44 }} />
               <div className={s.cdot} style={{ width: 9, height: 9, background: "var(--monitor)", border: "1.5px solid #fff", left: 214, top: 38 }} />
               <div className={s.cdot} style={{ width: 9, height: 9, background: "var(--clear)", border: "1.5px solid #fff", left: 190, top: 96 }} />

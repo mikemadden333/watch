@@ -45,4 +45,4 @@ And on the many mornings when Watch has nothing to report — that is not the pr
 
 I did not build Watch alone. My daughter, Erin, has been my partner in it from the first sketch. She is a high-school student herself — and that is not a footnote, it is a qualification. She knows what it is to be one of the young people a building like this exists to protect: how a school feels when it is welcoming and when it is not, what students actually notice, what makes them feel safe rather than merely surveilled. She has been the student's voice in every room where adults were deciding what students need, and she keeps me honest about the thing that matters most — does this actually help the people in the building keep children safe, and does it treat those children, and their neighborhoods, with respect? Watch is sharper, and kinder, because her experience is in it. In the truest sense, it is a family's attempt to be useful.
 
-— Mike Madden, Founder &amp; Principal, Madden Education Advisory`;
+— Mike Madden, Founder & Principal, Madden Education Advisory`;
