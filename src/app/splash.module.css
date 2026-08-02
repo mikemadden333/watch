@@ -1,0 +1,427 @@
+/* Splash + city select — ported from wireframes/splash.html */
+
+.root {
+  height: 100vh;
+  overflow: hidden;
+  position: relative;
+}
+
+/* ============ SPLASH ============ */
+.splash {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: opacity 0.7s ease, visibility 0.7s;
+}
+.splash.gone {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.rings {
+  position: absolute;
+  width: 1200px;
+  height: 1200px;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+.rings svg {
+  width: 100%;
+  height: 100%;
+}
+.ringA {
+  animation: breathe 7s ease-in-out infinite;
+  transform-origin: center;
+}
+.ringB {
+  animation: breathe 7s ease-in-out infinite 1.4s;
+  transform-origin: center;
+}
+.ringC {
+  animation: breathe 7s ease-in-out infinite 2.8s;
+  transform-origin: center;
+}
+@keyframes breathe {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.55;
+  }
+  50% {
+    transform: scale(1.035);
+    opacity: 1;
+  }
+}
+
+.sweepline {
+  animation: rotate 9s linear infinite;
+  transform-box: view-box;
+  transform-origin: center;
+}
+@keyframes rotate {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.blip {
+  position: absolute;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  pointer-events: none;
+}
+.blip::after {
+  content: "";
+  position: absolute;
+  inset: -7px;
+  border-radius: 50%;
+  border: 1.5px solid currentColor;
+  opacity: 0;
+  animation: pulse 9s infinite;
+  animation-delay: inherit;
+}
+@keyframes pulse {
+  0%,
+  72% {
+    transform: scale(0.3);
+    opacity: 0;
+  }
+  76% {
+    transform: scale(0.6);
+    opacity: 0.9;
+  }
+  88% {
+    transform: scale(1.6);
+    opacity: 0;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+.blip i {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.25;
+  animation: blipglow 9s infinite;
+  animation-delay: inherit;
+}
+@keyframes blipglow {
+  0%,
+  72% {
+    opacity: 0.18;
+  }
+  76% {
+    opacity: 1;
+  }
+  90%,
+  100% {
+    opacity: 0.18;
+  }
+}
+
+.splashCore {
+  position: relative;
+  text-align: center;
+  z-index: 2;
+}
+.wordmark {
+  font-size: 128px;
+  font-weight: 800;
+  letter-spacing: -4px;
+  line-height: 0.95;
+  animation: rise 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) both 0.2s;
+}
+.wordmark .dot {
+  color: var(--elevated);
+}
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(26px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.subline {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 23px;
+  color: #4a463d;
+  margin-top: 18px;
+  animation: rise 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) both 0.45s;
+}
+.statusline {
+  display: flex;
+  gap: 26px;
+  justify-content: center;
+  margin-top: 38px;
+  animation: rise 0.9s both 0.65s;
+}
+.statusline span {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: Menlo, monospace;
+  font-size: 10px;
+  letter-spacing: 1.6px;
+  color: var(--mut);
+}
+.statusline i {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+}
+.enter {
+  margin-top: 54px;
+  animation: rise 0.9s both 0.85s;
+}
+.enterBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--ink);
+  color: var(--bg);
+  padding: 14px 30px;
+  border-radius: 7px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  border: none;
+  cursor: pointer;
+}
+.hint {
+  margin-top: 14px;
+}
+.splashFoot {
+  position: fixed;
+  bottom: 26px;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  gap: 34px;
+  z-index: 2;
+  animation: rise 0.9s both 1.05s;
+}
+
+/* ============ CITY SELECT ============ */
+.select {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.7s ease 0.15s, visibility 0.7s;
+  padding: 24px;
+}
+.select.on {
+  opacity: 1;
+  visibility: visible;
+}
+.selHead {
+  text-align: center;
+  margin-bottom: 44px;
+}
+.selBrand {
+  font-size: 30px;
+  font-weight: 800;
+  letter-spacing: -1px;
+}
+.selBrand .dot {
+  color: var(--elevated);
+}
+.selTitle {
+  font-family: var(--serif);
+  font-size: 34px;
+  margin-top: 20px;
+  font-weight: 400;
+}
+.selSub {
+  margin-top: 10px;
+}
+.cards {
+  display: flex;
+  gap: 22px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.city {
+  width: 330px;
+  background: var(--panel);
+  border: 1px solid var(--line2);
+  border-radius: 12px;
+  padding: 26px 26px 22px;
+  cursor: pointer;
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s;
+  position: relative;
+  overflow: hidden;
+  text-align: left;
+}
+.city:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 14px 40px rgba(27, 26, 23, 0.1);
+  border-color: var(--ink);
+}
+.art {
+  height: 130px;
+  border-radius: 8px;
+  background: #efece4;
+  position: relative;
+  overflow: hidden;
+  margin-bottom: 18px;
+}
+.g {
+  position: absolute;
+  background: #dfdace;
+}
+.ringart {
+  position: absolute;
+  border-radius: 50%;
+  border: 1.6px dashed var(--elevated);
+  opacity: 0.8;
+}
+.cdot {
+  position: absolute;
+  border-radius: 50%;
+}
+.radial {
+  position: absolute;
+  inset: -40px;
+  background: repeating-radial-gradient(
+    circle at 50% 120%,
+    transparent 0 34px,
+    #dfdace 34px 35.5px
+  );
+}
+.live {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: Menlo, monospace;
+  font-size: 9px;
+  letter-spacing: 1.2px;
+  color: var(--clear);
+  background: #fff;
+  border: 1px solid var(--line);
+  padding: 3px 8px;
+  border-radius: 4px;
+}
+.live i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--clear);
+  animation: liveblink 1.6s infinite;
+}
+@keyframes liveblink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  55% {
+    opacity: 0.25;
+  }
+}
+.city h3 {
+  font-size: 21px;
+  font-weight: 800;
+  letter-spacing: -0.3px;
+}
+.net {
+  font-family: Menlo, monospace;
+  font-size: 10px;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: var(--mut);
+  margin-top: 5px;
+}
+.city p {
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: #4a463d;
+  margin-top: 12px;
+}
+.meta {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-family: Menlo, monospace;
+  font-size: 10px;
+  color: var(--mut);
+}
+.meta b {
+  color: var(--ink);
+  font-weight: 600;
+}
+.go {
+  position: absolute;
+  top: 22px;
+  right: 22px;
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--line2);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  color: var(--mut);
+  transition: 0.25s;
+}
+.city:hover .go {
+  background: var(--ink);
+  color: var(--bg);
+  border-color: var(--ink);
+}
+.ghost {
+  border-style: dashed;
+  background: transparent;
+  cursor: default;
+}
+.ghost:hover {
+  transform: none;
+  box-shadow: none;
+  border-color: var(--line2);
+}
+.ghost .art {
+  background: transparent;
+  border: 1px dashed var(--line2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 30px;
+  color: var(--faint);
+}
+.selFoot {
+  position: fixed;
+  bottom: 26px;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+}
+
+@media (max-width: 760px) {
+  .wordmark {
+    font-size: 84px;
+  }
+}
