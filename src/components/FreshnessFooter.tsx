@@ -15,8 +15,10 @@ export default function FreshnessFooter({
   base?: string; // e.g. "/chicago" — enables the Sources link
 }) {
   return (
-    <>
-      <div className="foot">
+    // one fixed footer, two stacked rows (freshness chips, then the liability
+    // line) — never two overlapping fixed bars
+    <div className="foot" style={{ flexDirection: "column", alignItems: "stretch", gap: 4 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
         <span>LAST CYCLE {lastCycle}</span>
         {feeds.map((f) => (
           <span key={f.key} className="fchip">
@@ -33,13 +35,20 @@ export default function FreshnessFooter({
         )}
         <span style={{ marginLeft: base ? 12 : "auto" }}>{right}</span>
       </div>
-      {/* persistent liability line — every screen */}
       <div
-        className="foot"
-        style={{ borderTop: "none", paddingTop: 0, opacity: 0.85, fontSize: 10, lineHeight: 1.5 }}
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 8,
+          flexWrap: "wrap",
+          opacity: 0.8,
+          textTransform: "none",
+          letterSpacing: 0,
+          lineHeight: 1.4,
+        }}
       >
-        <span style={{ textTransform: "none", letterSpacing: 0 }}>
-          {FOOTER_DISCLAIMER} <span style={{ opacity: 0.75 }}>· {BRAND_CREDIT}</span>
+        <span>
+          {FOOTER_DISCLAIMER} <span style={{ opacity: 0.8 }}>· {BRAND_CREDIT}</span>
         </span>
         <Link
           href="/limitations"
@@ -48,6 +57,6 @@ export default function FreshnessFooter({
           Limits &amp; how to use →
         </Link>
       </div>
-    </>
+    </div>
   );
 }

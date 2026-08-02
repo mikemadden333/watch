@@ -50,6 +50,9 @@ body {
   font-size: 13px;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+  /* clear the fixed footer (freshness chips + liability line) so page
+     content is never hidden behind it */
+  padding-bottom: 84px;
 }
 
 a {
