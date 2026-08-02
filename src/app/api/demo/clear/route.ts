@@ -11,6 +11,9 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
+  if (process.env.DEMO_MODE !== "1") {
+    return NextResponse.json({ error: "demo mode disabled" }, { status: 403 });
+  }
   const { slug } = (await req.json().catch(() => ({}))) as { slug?: string };
   if (!slug) return NextResponse.json({ error: "slug required" }, { status: 400 });
 

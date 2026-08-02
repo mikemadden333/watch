@@ -18,6 +18,11 @@ const DEFAULT_CAMPUS: Record<string, string> = {
 };
 
 export async function POST(req: Request) {
+  // Gated so the public endpoint can't be abused (it inserts data and can
+  // fire real texts). Enabled only when DEMO_MODE=1 is set in the environment.
+  if (process.env.DEMO_MODE !== "1") {
+    return NextResponse.json({ error: "demo mode disabled" }, { status: 403 });
+  }
   const { slug, campus } = (await req.json().catch(() => ({}))) as { slug?: string; campus?: string };
   if (!slug) return NextResponse.json({ error: "slug required" }, { status: 400 });
 
