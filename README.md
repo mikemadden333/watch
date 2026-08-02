@@ -108,11 +108,42 @@ supabase/seed.sql
    `NWS_CONTACT_EMAIL`.
 3. Deploy. Every push to the working branch auto-deploys a preview.
 
-## Not in this milestone
+## Live data layer (adapters)
 
-Live adapters (NWS / CPD VR / ME / crimes / GDELT / RSS on Vercel cron), the
-retro-confirmation matcher, and the live Dallas pack are the next steps — the
-adapter contract and Citizen webhook slot are designed for but not wired here.
+One shared contract (`src/lib/adapters/contract.ts`):
+fetch → normalize → geocode/distance per campus → validate (rejects
+future-dated typos) → idempotent upsert on `source_record_id`, with
+source-health reporting and **graceful degrade** (works, and stays
+observable, even when Supabase isn't configured).
+
+Live and verified against real APIs:
+
+- **NWS** (`/api/cron/nws`, every 2 min) — per-campus point poll of
+  api.weather.gov. Warning → ALERT signal, Watch → ELEVATED signal,
+  Advisory/Statement → feed item. User-Agent carries a contact email; no
+  cache-busting.
+- **CPD Violence Reduction** (`/api/cron/cpd-vr`, every 30 min) — the
+  confirmation layer (`gumc-mgzr`). Freshness uses an
+  **ordered-desc-limit-1** query, never an aggregate (aggregates return
+  stale cache — verified ~18-day-stale bug). Persists only records inside a
+  campus's elevated ring.
+
+```bash
+npx esbuild scripts/verify-nws.mts   --bundle --platform=node --format=esm --external:@supabase/supabase-js | node --input-type=module
+npx esbuild scripts/verify-cpdvr.mts --bundle --platform=node --format=esm | node --input-type=module
+```
+
+Cron cadence is in `vercel.json`; sub-daily crons need a Vercel Pro plan.
+When `CRON_SECRET` is set, cron requests must send
+`Authorization: Bearer <secret>` (Vercel injects it).
+
+## Still to come
+
+CPD crimes (`ijzp-q8t2`) + Cook County ME (`cjeq-bs86`, with date
+validation) adapters, GDELT/RSS, the retro-confirmation matcher →
+accuracy ledger, wiring the screens to read live from Supabase, and the
+live Dallas / Solis pack (Dallas PD Active Calls `9fxf-t2tr`, archived per
+snapshot). The Citizen webhook slot is designed for but off until keys land.
 
 ---
 

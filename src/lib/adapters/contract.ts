@@ -1,0 +1,201 @@
+/* ============================================================
+   Watch — shared adapter contract
+   Every source adapter implements the same pipeline:
+     fetch → normalize → geocode/distance per campus → validate
+       → idempotent upsert on source_record_id
+   plus source-health reporting and graceful degradation.
+
+   Adapters are pure w.r.t. fetching/normalizing (testable against
+   live APIs without a database); persistence is a separate step so
+   the demo never hard-depends on Supabase being reachable.
+   ============================================================ */
+
+import type { Tier } from "../types";
+import { getServiceClient } from "../supabase";
+import { distanceMi, bearing } from "../geo";
+
+export interface AdapterCampus {
+  code: string;
+  lat: number;
+  lon: number;
+  alertRingMi: number;
+  elevatedRingMi: number;
+}
+
+/** A source record after normalization, before persistence. */
+export interface NormalizedIncident {
+  source: string;
+  sourceRecordId: string; // idempotency key — unique per source
+  headline: string;
+  kind: string; // 'shooting' | 'shots-fired' | 'weather-advisory' | 'dispatch' ...
+  tier: Tier;
+  lat?: number;
+  lon?: number;
+  occurredAt?: string; // ISO — clock 1
+  publishedAt?: string; // ISO — clock 2
+  victimNote?: string;
+  note?: string;
+  corroborating?: string[];
+  /** nearest campus (filled by attachGeometry) */
+  nearestCampusCode?: string;
+  distanceMi?: number;
+  bearing?: string;
+}
+
+/** A weather posture signal fed to the rules engine (NWS). */
+export interface NormalizedWeatherSignal {
+  campusCode: string;
+  kind: "watch" | "warning";
+  event: string; // 'Tornado Warning'
+  expiresAt?: string;
+  sourceRecordId: string;
+}
+
+export type HealthState = "ok" | "warn" | "late";
+
+export interface SourceHealth {
+  key: string;
+  label: string;
+  ageLabel: string; // 'live · 2 m'
+  expectedWindow?: string; // '≤48h window'
+  inWindow: boolean;
+  state: HealthState;
+}
+
+export interface AdapterResult {
+  source: string;
+  fetched: number;
+  incidents: NormalizedIncident[];
+  weatherSignals: NormalizedWeatherSignal[];
+  health: SourceHealth;
+  errors: string[];
+}
+
+/** Attach nearest-campus / distance / bearing to incidents that carry
+ *  coordinates. Incidents without coordinates pass through unchanged
+ *  (e.g. Dallas dispatch calls awaiting geocode). */
+export function attachGeometry(
+  incidents: NormalizedIncident[],
+  campuses: AdapterCampus[]
+): NormalizedIncident[] {
+  return incidents.map((inc) => {
+    if (inc.lat == null || inc.lon == null || campuses.length === 0) return inc;
+    let best: AdapterCampus | null = null;
+    let bestMi = Infinity;
+    for (const c of campuses) {
+      const d = distanceMi({ lat: inc.lat, lon: inc.lon }, c);
+      if (d < bestMi) {
+        bestMi = d;
+        best = c;
+      }
+    }
+    if (!best) return inc;
+    return {
+      ...inc,
+      nearestCampusCode: best.code,
+      distanceMi: Math.round(bestMi * 100) / 100,
+      bearing: bearing(best, { lat: inc.lat, lon: inc.lon }),
+    };
+  });
+}
+
+/** Date sanity — Cook County ME (and others) contain future-dated typos.
+ *  Reject records whose occurred/published clock is in the future beyond
+ *  a small skew, or absurdly old. */
+export function isPlausibleDate(iso?: string, now = new Date()): boolean {
+  if (!iso) return true; // absent clock is allowed; presence is validated
+  const t = new Date(iso).getTime();
+  if (Number.isNaN(t)) return false;
+  const skewMs = 6 * 60 * 60 * 1000; // 6h future skew tolerance
+  const tenYearsMs = 10 * 365 * 24 * 60 * 60 * 1000;
+  if (t > now.getTime() + skewMs) return false; // future-dated typo
+  if (t < now.getTime() - tenYearsMs) return false; // absurdly old
+  return true;
+}
+
+export function validate(incidents: NormalizedIncident[]): {
+  ok: NormalizedIncident[];
+  rejected: { record: NormalizedIncident; reason: string }[];
+} {
+  const ok: NormalizedIncident[] = [];
+  const rejected: { record: NormalizedIncident; reason: string }[] = [];
+  for (const inc of incidents) {
+    if (!inc.sourceRecordId) {
+      rejected.push({ record: inc, reason: "missing source_record_id" });
+      continue;
+    }
+    if (!isPlausibleDate(inc.occurredAt) || !isPlausibleDate(inc.publishedAt)) {
+      rejected.push({ record: inc, reason: "implausible date (future-dated typo?)" });
+      continue;
+    }
+    ok.push(inc);
+  }
+  return { ok, rejected };
+}
+
+/** Idempotent upsert into Supabase on (tenant_id, source, source_record_id).
+ *  Graceful degrade: if Supabase isn't configured or the table is missing,
+ *  returns { persisted: 0, degraded: true } instead of throwing. */
+export async function persistIncidents(
+  tenantId: string,
+  incidents: NormalizedIncident[]
+): Promise<{ persisted: number; degraded: boolean; error?: string }> {
+  if (incidents.length === 0) return { persisted: 0, degraded: false };
+  let sb;
+  try {
+    sb = getServiceClient();
+  } catch {
+    return { persisted: 0, degraded: true, error: "supabase not configured" };
+  }
+  const rows = incidents.map((i) => ({
+    tenant_id: tenantId,
+    source: i.source,
+    source_record_id: i.sourceRecordId,
+    headline: i.headline,
+    kind: i.kind,
+    tier: i.tier,
+    lat: i.lat ?? null,
+    lon: i.lon ?? null,
+    occurred_at: i.occurredAt ?? null,
+    published_at: i.publishedAt ?? null,
+    victim_note: i.victimNote ?? null,
+    corroborating: i.corroborating ?? [],
+    note: i.note ?? null,
+  }));
+  const { error } = await sb
+    .from("incidents")
+    .upsert(rows, { onConflict: "tenant_id,source,source_record_id", ignoreDuplicates: false });
+  if (error) {
+    // relation-missing / not-configured → degrade rather than fail the poll
+    return { persisted: 0, degraded: true, error: error.message };
+  }
+  return { persisted: rows.length, degraded: false };
+}
+
+/** Write/refresh a source_health row. Graceful degrade like persistIncidents. */
+export async function persistHealth(
+  tenantId: string,
+  health: SourceHealth
+): Promise<{ degraded: boolean }> {
+  let sb;
+  try {
+    sb = getServiceClient();
+  } catch {
+    return { degraded: true };
+  }
+  const { error } = await sb.from("source_health").upsert(
+    {
+      tenant_id: tenantId,
+      key: health.key,
+      label: health.label,
+      age_label: health.ageLabel,
+      expected_window: health.expectedWindow ?? null,
+      in_window: health.inWindow,
+      state: health.state,
+      last_success_at: new Date().toISOString(),
+      enabled: true,
+    },
+    { onConflict: "tenant_id,key" }
+  );
+  return { degraded: !!error };
+}
