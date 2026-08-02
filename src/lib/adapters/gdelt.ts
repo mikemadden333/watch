@@ -96,14 +96,17 @@ export async function runGdeltAdapter(
     fetched: articles.length,
     incidents,
     weatherSignals: [],
-    health: {
-      key: "gdelt",
-      label: "GDELT",
-      ageLabel: rateLimited ? "throttled" : incidents.length ? "live" : "no coverage",
-      expectedWindow: "≤90m window",
-      inWindow: !rateLimited,
-      state: rateLimited ? "warn" : "ok",
-    },
+    health: (() => {
+      const failed = errors.length > 0 && incidents.length === 0;
+      return {
+        key: "gdelt",
+        label: "GDELT",
+        ageLabel: rateLimited ? "throttled" : failed ? "unreachable" : incidents.length ? "live" : "no coverage",
+        expectedWindow: "≤90m window",
+        inWindow: !rateLimited && !failed,
+        state: rateLimited || failed ? "warn" : "ok",
+      };
+    })(),
     errors,
   };
 }

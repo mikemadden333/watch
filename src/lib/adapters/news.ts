@@ -79,14 +79,17 @@ export async function runNewsAdapter(city: string, pageSize = 15): Promise<Adapt
     fetched: articles.length,
     incidents,
     weatherSignals: [],
-    health: {
-      key: "news",
-      label: "News (licensed)",
-      ageLabel: incidents.length ? "live" : "no coverage",
-      expectedWindow: "≤60m window",
-      inWindow: true,
-      state: "ok",
-    },
+    health: (() => {
+      const failed = errors.length > 0 && incidents.length === 0;
+      return {
+        key: "news",
+        label: "News (licensed)",
+        ageLabel: failed ? "unreachable" : incidents.length ? "live" : "no coverage",
+        expectedWindow: "≤60m window",
+        inWindow: !failed,
+        state: failed ? "warn" : "ok",
+      };
+    })(),
     errors,
   };
 }

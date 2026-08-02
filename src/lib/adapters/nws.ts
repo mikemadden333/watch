@@ -120,6 +120,12 @@ export async function runNwsAdapter(
     ? Math.max(0, Math.round((Date.now() - mostRecentSentMs) / 60000))
     : 0;
 
+  // Distinguish "quiet · no active alerts" (healthy) from "every point fetch
+  // failed" (the feed is dark). Before this, a total NWS outage still reported
+  // "ok · live" — a silent failure that would hide the loss of the only
+  // real-time authoritative source, which drives the A-1/E-1 weather rules.
+  const allFailed = campuses.length > 0 && errors.length >= campuses.length;
+
   return {
     source: "NWS live",
     fetched,
@@ -128,10 +134,10 @@ export async function runNwsAdapter(
     health: {
       key: "nws",
       label: "NWS alerts",
-      ageLabel: mostRecentSentMs ? `live · ${ageMin} m` : "live · 2 m",
+      ageLabel: allFailed ? "unreachable" : mostRecentSentMs ? `live · ${ageMin} m` : "live · no active alerts",
       expectedWindow: "2 m",
-      inWindow: true,
-      state: "ok",
+      inWindow: !allFailed,
+      state: allFailed ? "late" : "ok",
     },
     errors,
   };

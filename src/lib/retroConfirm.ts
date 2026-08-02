@@ -107,8 +107,12 @@ export async function runRetroConfirm(
   const gapVals = (gaps ?? []).map((g) => Number(g.retro_gap_hours)).filter((n) => Number.isFinite(n)).sort((a, b) => a - b);
   const medianGapH = gapVals.length ? gapVals[Math.floor(gapVals.length / 2)] : null;
 
-  // publish to the ledger
-  if (rate != null) {
+  // publish to the ledger — but only when a confirmation source actually
+  // exists to score against. A tenant with fast signals and NO authoritative
+  // records (e.g. Dallas today, which has no daily incident feed yet) would
+  // otherwise publish a misleading "0%" that reads as "we're wrong" when the
+  // truth is "there's nothing to check against yet." Honesty over a number.
+  if (rate != null && confirmed.length > 0) {
     await upsertLedger(sb, tid, {
       metric_key: "corroborated_to_confirmed",
       label: "Corroborated → confirmed",

@@ -76,6 +76,11 @@ export default function MapView(props: MapViewProps = {}) {
     .sort((a, b) => distanceMi(sel, a) - distanceMi(sel, b))[0] as
     | (typeof incidents)[number]
     | undefined;
+  // the confirmed incident driving this campus's posture, nearest first —
+  // its real clocks feed the popover (no hardcoded scenario times)
+  const triggerInc = [...confirmedInRing].sort(
+    (a, b) => distanceMi(sel, a) - distanceMi(sel, b)
+  )[0] as (typeof incidents)[number] | undefined;
 
   // init map once
   useEffect(() => {
@@ -153,6 +158,12 @@ export default function MapView(props: MapViewProps = {}) {
     incidents.forEach((inc) => {
       if (inc.kind === "weather-advisory") return;
       if (!inc.lat || !inc.lon) return; // no geometry (e.g. dispatch awaiting geocode)
+      // INTEGRITY GATE: a precise dot on the map claims a precise location.
+      // Only exact/block incidents earn one. A neighborhood-centroid signal
+      // (coarse news) is context-only and must never render as a point — the
+      // same discipline the rules engine applies to ring eligibility.
+      const geo = inc.geoConfidence ?? "exact";
+      if (geo !== "exact" && geo !== "block") return;
       const show =
         (inc.tier === "CONFIRMED" && layers.confirmed) ||
         (inc.tier === "CORROBORATED" && layers.corroborated);
@@ -302,8 +313,8 @@ export default function MapView(props: MapViewProps = {}) {
                     : "none in range"
                 }
               />
-              <PopRow label="Occurred" value={selStatus.ruleId === "E-2" ? "yest 21:47" : "—"} />
-              <PopRow label="Published" value={selStatus.ruleId === "E-2" ? "06:40 today" : "—"} />
+              <PopRow label="Occurred" value={triggerInc ? hm(triggerInc.occurredAt) : "—"} />
+              <PopRow label="Published" value={triggerInc ? hm(triggerInc.publishedAt) : "—"} />
               <PopRow
                 label="Rule fired"
                 value={selStatus.ruleId ? `${selStatus.ruleId} · ${selStatus.ruleName}` : "CLEAR · none"}
@@ -355,6 +366,12 @@ export default function MapView(props: MapViewProps = {}) {
 
 function fadeByAge(ageDays: number): number {
   return Math.max(0.28, 1 - ageDays / 7);
+}
+function hm(iso?: string): string {
+  if (!iso) return "—";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "—";
+  return `${String(d.getUTCHours()).padStart(2, "0")}:${String(d.getUTCMinutes()).padStart(2, "0")}`;
 }
 
 function Dot({ c }: { c: string }) {
