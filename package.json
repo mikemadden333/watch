@@ -11,18 +11,18 @@
     "verify:rules": "esbuild scripts/verify-rules.mts --bundle --platform=node --format=cjs | node -"
   },
   "dependencies": {
-    "next": "15.1.6",
-    "react": "19.0.0",
-    "react-dom": "19.0.0",
     "@supabase/supabase-js": "2.48.1",
-    "leaflet": "1.9.4"
+    "leaflet": "1.9.4",
+    "next": "^15.5.22",
+    "react": "19.0.0",
+    "react-dom": "19.0.0"
   },
   "devDependencies": {
-    "esbuild": "0.24.2",
     "@types/leaflet": "1.9.16",
     "@types/node": "22.13.1",
     "@types/react": "19.0.8",
     "@types/react-dom": "19.0.3",
+    "esbuild": "0.24.2",
     "typescript": "5.7.3"
   }
 }
