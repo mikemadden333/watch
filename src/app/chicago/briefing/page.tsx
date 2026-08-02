@@ -27,9 +27,11 @@ export default async function ChicagoBriefing({
         campusNames={Object.fromEntries(data.campuses.map((c) => [c.code, c.name]))}
       />
       <BriefingV2 data={data} base="/chicago" view={view} campus={sp.campus} />
-      <div style={{ padding: "0 40px", maxWidth: 880, margin: "40px auto 0" }}>
-        <BreakingNews data={breaking} live={data.live} />
-      </div>
+      {view === "leader" ? (
+        <div style={{ padding: "0 40px", maxWidth: 880, margin: "40px auto 0" }}>
+          <BreakingNews data={breaking} live={data.live} />
+        </div>
+      ) : null}
     </>
   );
 }

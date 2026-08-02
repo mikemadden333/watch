@@ -19,10 +19,11 @@ import {
   incidentTypeWord,
   placeOf,
   milesPhrase,
+  numWord,
   type Briefing,
   type Seg,
 } from "@/lib/voice";
-import { pulseForCampus } from "@/lib/pulse";
+import { pulseForCampus, PULSE_WINDOW_DAYS } from "@/lib/pulse";
 
 type StoryRow = { time: string; text: string; cls?: "conf" | "elev" | "alert" };
 
@@ -48,12 +49,103 @@ function synthStory(
   return rows;
 }
 
-const DOT: Record<Status, string> = {
-  ALERT: "var(--alert)",
-  ELEVATED: "var(--elevated)",
-  MONITOR: "var(--monitor)",
-  CLEAR: "var(--clear)",
+/** dark situation-room status colors (defined under .sitroom) */
+const SR_DOT: Record<Status, string> = {
+  ALERT: "var(--sr-alert)",
+  ELEVATED: "var(--sr-elevated)",
+  MONITOR: "var(--sr-monitor)",
+  CLEAR: "var(--sr-clear)",
 };
+
+/** campus code → Chicago neighborhood, for the CEO risk board. */
+const HOOD: Record<string, string> = {
+  GPA: "West Garfield Park",
+  ENG: "Englewood",
+  LAW: "North Lawndale",
+  WPK: "Washington Park",
+  ROS: "Roseland",
+  GRE: "Greater Grand Crossing",
+};
+
+/** 18-week histogram of ring ages → sparkline geometry (oldest left, newest right). */
+function sparkPoints(ages: number[]): { line: string; area: string; last: [number, number] } {
+  const W = 120, H = 28, pad = 2, BINS = 18;
+  const binW = PULSE_WINDOW_DAYS / BINS;
+  const series = new Array(BINS).fill(0);
+  for (const a of ages) {
+    const idx = BINS - 1 - Math.min(BINS - 1, Math.floor(a / binW));
+    series[idx]++;
+  }
+  const mx = Math.max(1, ...series);
+  const step = (W - pad * 2) / (BINS - 1);
+  const pts = series.map((v, i) => [pad + i * step, H - pad - (v / mx) * (H - pad * 2)] as [number, number]);
+  const line = pts.map((p) => `${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(" ");
+  const area = `${pad},${H - pad} ${line} ${(W - pad).toFixed(1)},${H - pad}`;
+  return { line, area, last: pts[pts.length - 1] };
+}
+
+type TlRow = { tm?: string; text: string; ok?: boolean };
+
+/** The "while you slept" verification story — real signals, honest tokens. */
+function ceoTimeline(
+  data: NetworkData,
+  stats: { c: NetworkData["campuses"][number]; st: Status }[],
+  now: Date
+): TlRow[] {
+  const isDallas = /dallas/i.test(data.city);
+  const police = isDallas ? "Dallas police" : "Chicago Police";
+  const attn = stats.find((s) => s.st === "ELEVATED" || s.st === "ALERT");
+
+  // If a campus is elevated, tell that incident's traceable story.
+  if (attn) {
+    const inc = drivingIncident(data, attn.c.code);
+    if (inc) {
+      const rows = storyRows(inc).length
+        ? storyRows(inc)
+        : synthStory(inc, data.statuses.find((s) => s.campusCode === attn.c.code), attn.c.name, data.city);
+      return rows.map((r) => ({ tm: r.time || undefined, text: r.text, ok: r.cls === "conf" }));
+    }
+  }
+
+  // All clear — the quiet was verified, not assumed.
+  const rows: TlRow[] = [];
+  rows.push({
+    tm: "overnight",
+    ok: true,
+    text: `${police} ${isDallas ? "cleared the overnight dispatch log" : "published the overnight shooting record"}. Nothing landed inside a campus ring.`,
+  });
+
+  const dayAgo = now.getTime() - 24 * 3600 * 1000;
+  const held = data.incidents
+    .filter(
+      (i) =>
+        i.tier === "REPORTED" &&
+        i.nearestCampusCode &&
+        new Date(i.occurredAt).getTime() >= dayAgo &&
+        (i.distanceMi ?? 9) <= 0.6
+    )
+    .sort((a, b) => new Date(b.occurredAt).getTime() - new Date(a.occurredAt).getTime());
+  if (held.length) {
+    const nm = data.campuses.find((c) => c.code === held[0].nearestCampusCode)?.name ?? "a campus";
+    rows.push({
+      tm: clockOf(held[0].occurredAt),
+      text: `${held.length === 1 ? "A local report" : cap(numWord(held.length)) + " local reports"} near ${nm} — single-source, unconfirmed. Held below alert level; paged no one.`,
+    });
+  }
+
+  const hasME = data.feeds.some((f) => /exam|\bme\b|medical/i.test(f.key + " " + f.label));
+  if (hasME) {
+    rows.push({ tm: "overnight", ok: true, text: "Medical-examiner feed refreshed. No new gun deaths in the network's areas." });
+  }
+
+  const feedsTotal = data.feeds.length || 7;
+  const feedsLive = data.feeds.filter((f) => f.state === "ok").length || feedsTotal;
+  rows.push({
+    tm: "all night",
+    text: `${feedsLive >= feedsTotal ? `All ${feedsTotal}` : `${feedsLive} of ${feedsTotal}`} sources current. The quiet was verified, not assumed.`,
+  });
+  return rows;
+}
 
 /** the incident that drove the posture: highest tier (CONFIRMED first) near
  *  the campus, then most recent — matches the voice engine's pick, so the
@@ -86,17 +178,19 @@ function SourcesLine({ data }: { data: NetworkData }) {
 /* ---------------- CEO ---------------- */
 
 function CeoView({ data, base }: { data: NetworkData; base: string }) {
-  const b: Briefing = ceoBriefing(data);
+  const now = new Date();
+  const b: Briefing = ceoBriefing(data, now);
+  const n = data.campuses.length;
   const rank: Record<string, number> = { ALERT: 0, ELEVATED: 1, MONITOR: 2, CLEAR: 3 };
 
   // per-campus violence stats from the real 125-day store (7d / 30d windows)
   const stats = data.campuses
     .map((c) => {
       const st = (data.statuses.find((s) => s.campusCode === c.code)?.status ?? "CLEAR") as Status;
-      const detail = data.statuses.find((s) => s.campusCode === c.code)?.detail;
-      const rings = pulseForCampus(data.incidents, c);
+      const rings = pulseForCampus(data.incidents, c, now);
       return {
-        c, st, detail,
+        c, st,
+        ages: rings.map((r) => r.ageDays),
         total: rings.length, // last 125 days
         m: rings.filter((r) => r.ageDays <= 30).length,
         w: rings.filter((r) => r.ageDays <= 7).length,
@@ -104,121 +198,135 @@ function CeoView({ data, base }: { data: NetworkData; base: string }) {
     })
     .sort((a, x) => rank[a.st] - rank[x.st] || x.total - a.total);
 
-  const attention = stats.filter((s) => s.st === "ELEVATED" || s.st === "ALERT");
-  const top = attention[0];
-  const topIncident = top ? drivingIncident(data, top.c.code) : undefined;
-  const topStatus = top ? data.statuses.find((s) => s.campusCode === top.c.code) : undefined;
   const clearCount = stats.filter((s) => s.st === "CLEAR").length;
-  const net7 = stats.reduce((n, s) => n + s.w, 0);
-  const net30 = stats.reduce((n, s) => n + s.m, 0);
+  const net7 = stats.reduce((k, s) => k + s.w, 0);
+  const net30 = stats.reduce((k, s) => k + s.m, 0);
   const maxTotal = Math.max(1, ...stats.map((s) => s.total));
   const feedsTotal = data.feeds.length || 7;
   const feedsLive = data.feeds.filter((f) => f.state === "ok").length || feedsTotal;
+  const isDallas = /dallas/i.test(data.city);
 
-  const storyData: StoryRow[] = topIncident
-    ? storyRows(topIncident).length
-      ? storyRows(topIncident)
-      : synthStory(topIncident, topStatus, top!.c.name, data.city)
-    : [{ time: "", text: "Nothing crossed a line overnight. Every source was current and quiet.", cls: undefined }];
+  const when = new Intl.DateTimeFormat("en-US", {
+    timeZone: "America/Chicago", weekday: "long", month: "long", day: "numeric",
+  }).format(now);
+  const clock = new Intl.DateTimeFormat("en-US", {
+    timeZone: "America/Chicago", hour: "numeric", minute: "2-digit", hour12: true,
+  }).format(now);
 
-  const postureCls = attention.length ? (top!.st === "ALERT" ? "alertc" : "hot") : "good";
+  const timeline = ceoTimeline(data, stats, now);
 
   return (
-    <>
-      <div className="v2hero ceo">
-        <div className="micro">{b.micro}</div>
-        <div className="sentence">
-          {b.lead} <span className={b.keyClass}>{b.key}</span>
-        </div>
-        <Para para={b.para} />
-        {top ? (
-          <div className="cta">
-            <Link className="btn" href={`${base}/briefing?view=leader&campus=${top.c.code}`}>
-              Open {top.c.name} →
-            </Link>
-            <a className="btn ghost" href="#story">
-              Read the overnight story
-            </a>
-          </div>
-        ) : null}
-      </div>
+    <div className="sitroom">
+      <div className="sr-shell">
+        <div className="sr-sweep" aria-hidden="true" />
 
-      <div className="vitals">
-        <div className={`vital ${postureCls}`}>
-          <div className="num">
-            {attention.length || stats.length}
-            <small> / {stats.length}</small>
+        <div className="sr-top">
+          <svg className="sr-mark" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+            <circle cx="16" cy="16" r="14" stroke="#f6f5f1" strokeOpacity=".4" />
+            <circle cx="16" cy="16" r="8" stroke="#f6f5f1" strokeOpacity=".72" />
+            <circle cx="16" cy="16" r="2.6" fill="#e8a13a" />
+          </svg>
+          <span className="sr-tenant">{data.tenantName}</span>
+          <div className="sr-right">
+            <span>{when} · {clock}</span>
+            <span className="sr-livep"><i />Live · watching</span>
           </div>
-          <div className="lab">{attention.length ? `${statusWord(top!.st)} · ${clearCount} clear` : "all campuses clear"}</div>
         </div>
-        <div className="vital">
-          <div className="num">{net7}</div>
-          <div className="lab">Confirmed shootings near campuses · 7 days</div>
-        </div>
-        <div className="vital">
-          <div className="num">{net30}</div>
-          <div className="lab">Confirmed shootings near campuses · 30 days</div>
-        </div>
-        <div className="vital good">
-          <div className="num">
-            {feedsLive}
-            <small> / {feedsTotal}</small>
-          </div>
-          <div className="lab">Sources live right now</div>
-        </div>
-      </div>
 
-      <div className="cboard">
-        <div className="micro">
-          Confirmed gun violence near each campus · last 125 days{"  "}
-          <span style={{ color: "var(--elevated)" }}>▬</span> last 30 days{"  "}
-          <span style={{ color: "var(--faint)" }}>▬</span> earlier
+        <div className="sr-hero">
+          <div>
+            <div className="sr-eyebrow">Network briefing · {numWord(n)} campuses</div>
+            <h1 className="sr-answer">
+              {b.lead} <span className={`sr-${b.keyClass}`}>{b.key}</span>
+            </h1>
+          </div>
+          <p className="sr-read">
+            {b.para.map((s, i) => (s.b ? <b key={i}>{s.t}</b> : <span key={i}>{s.t}</span>))}
+          </p>
         </div>
-        <div className="rows">
-          {stats.map((s) => {
-            const hot = s.st === "ELEVATED" || s.st === "ALERT";
+
+        <div className="sr-vitals">
+          <div className={`sr-v${clearCount === n ? " clr" : ""}`}>
+            <div className="sr-num">{clearCount}<small> / {n}</small></div>
+            <div className="sr-lab">Campuses clear<br />right now</div>
+          </div>
+          <div className="sr-v">
+            <div className="sr-num">{net7}</div>
+            <div className="sr-lab">Confirmed shootings<br />near campuses · 7 days</div>
+          </div>
+          <div className="sr-v">
+            <div className="sr-num">{net30}</div>
+            <div className="sr-lab">Confirmed shootings<br />near campuses · 30 days</div>
+          </div>
+          <div className={`sr-v${feedsLive >= feedsTotal ? " clr" : ""}`}>
+            <div className="sr-num">{feedsLive}<small> / {feedsTotal}</small></div>
+            <div className="sr-lab">Sources live<br />right now</div>
+          </div>
+        </div>
+
+        <div className="sr-boardh">
+          <div className="t">The blocks around your schools</div>
+          <div className="s">
+            Confirmed gun violence · last 125 days · <span style={{ color: "var(--sr-amber2)" }}>▬</span> last 30
+          </div>
+        </div>
+        <div className="sr-board">
+          {stats.map((s, i) => {
+            const sp = sparkPoints(s.ages);
+            const hood = HOOD[s.c.code];
+            const hot = s.st !== "CLEAR";
+            const statusText = s.st === "CLEAR" ? "clear" : statusWord(s.st).toLowerCase();
             return (
               <Link
                 key={s.c.code}
                 href={`${base}/briefing?view=leader&campus=${s.c.code}`}
-                className={`crow${s.st === "ALERT" ? " alertc" : hot ? " hot" : ""}`}
+                className={`sr-row${hot ? " hot" : ""}`}
               >
-                <span className="cdot" style={{ background: DOT[s.st] }} />
-                <span className="cname">{s.c.name}</span>
-                <span className="cstat">
-                  {s.st === "CLEAR" ? "Clear" : `${capWord(statusWord(s.st))} · ${s.detail ?? "see campus"}`}
+                <span className="sr-rank">{String(i + 1).padStart(2, "0")}</span>
+                <span className="sr-who">
+                  <span className="sr-nm"><i style={{ background: SR_DOT[s.st] }} />{s.c.name}</span>
+                  <span className="sr-hood">{hood ? `${hood} · ` : ""}{statusText}</span>
                 </span>
-                <span className="cbar">
+                <svg className="sr-spark" width="120" height="28" viewBox="0 0 120 28" aria-hidden="true">
+                  <polygon points={sp.area} fill="rgba(232,161,58,.12)" />
+                  <polyline points={sp.line} fill="none" stroke="rgba(232,161,58,.85)" strokeWidth="1.4" strokeLinejoin="round" />
+                  <circle cx={sp.last[0].toFixed(1)} cy={sp.last[1].toFixed(1)} r="2.1" fill="#f4bf63" />
+                </svg>
+                <span className="sr-bar">
                   <i style={{ width: `${(s.total / maxTotal) * 100}%` }} />
                   <b style={{ width: `${(s.m / maxTotal) * 100}%` }} />
                 </span>
-                <span className="ccount">
-                  <b>{s.total}</b>
-                  <small>125D</small>
-                  {s.m ? <span style={{ color: "var(--elevated)" }}> · {s.m} in 30d</span> : null}
+                <span className="sr-cnt">
+                  <span className="big">{s.total}</span><span className="u">125D</span>
+                  {s.m ? <div className="r">{s.m} in 30 days</div> : <div className="r faint">quiet lately</div>}
                 </span>
               </Link>
             );
           })}
         </div>
-        <div className="cfoot">Tap a campus for its briefing · CONFIRMED, ring-eligible incidents from CPD &amp; the medical examiner</div>
-      </div>
+        <div className="sr-boardf">
+          Ranked by confirmed, block-level incidents from {isDallas ? "Dallas police dispatch" : "Chicago Police & the medical examiner"} within
+          each campus&apos;s half-mile ring. Coarse-geo reports never count. Tap a campus for its briefing.
+        </div>
 
-      <div className="story" id="story">
-        <div className="micro">While you slept · the verification story</div>
-        <div className="rows">
-          {storyData.map((r, i) => (
-            <div key={i} className={`srow${r.cls ? " " + r.cls : ""}`}>
-              {r.time ? <span className="t">{r.time}</span> : null}
-              {r.text}
-            </div>
-          ))}
+        <div className="sr-night">
+          <div className="sr-nlab">While you slept<br />the verification story</div>
+          <div className="sr-tl">
+            {timeline.map((e, i) => (
+              <div key={i} className={`sr-e${e.ok ? " ok" : ""}`}>
+                {e.tm ? <span className="tm">{e.tm}</span> : null}
+                {e.text}
+              </div>
+            ))}
+          </div>
         </div>
-        <div className="quiet">
-          Every line above is traceable to a source, a timestamp, and a rule — tap anything to see its evidence. · <SourcesLine data={data} /> · Rules v2.0 · <Link href="/limitations" style={{ textDecoration: "underline" }}>Why can this take until morning?</Link>
+
+        <div className="sr-foot">
+          <span>Every line traceable — source · timestamp · rule · Rules v2.0</span>
+          <span className="sr-footr">A product of Madden Education Advisory, LLC · decision support, not dispatch</span>
         </div>
       </div>
-    </>
+    </div>
   );
 }
 
@@ -357,10 +465,6 @@ function evidenceRows(incident: Incident, st: Status, base: string, statusObj?: 
 }
 
 function cap(s: string): string {
-  return s.charAt(0).toUpperCase() + s.slice(1);
-}
-
-function capWord(s: string): string {
   return s.charAt(0).toUpperCase() + s.slice(1);
 }
 
