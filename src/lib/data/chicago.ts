@@ -484,5 +484,5 @@ export const intelligenceFeed: FeedRow[] = [
   },
 ];
 
-export const PERMANENT_DISCLAIMER =
-  "Decision support, not dispatch. Watch never instructs lockdown. Defer to police and district protocol.";
+// Re-exported from the centralized legal copy so there is one source of truth.
+export { PERMANENT_DISCLAIMER } from "../legal";

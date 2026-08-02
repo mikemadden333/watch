@@ -164,8 +164,10 @@ export default function SplashPage() {
         </div>
         <div className={s.selFoot}>
           <span className="micro">
-            Decision support, not dispatch · Every status traceable to a source,
-            a timestamp, a rule
+            Decision support for school safety — not a guarantee ·{" "}
+            <a href="/limitations" style={{ textDecoration: "underline", color: "inherit" }}>
+              How Watch works, and its limits →
+            </a>
           </span>
         </div>
       </div>

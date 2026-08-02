@@ -11,6 +11,7 @@
 
 import type { AdapterResult, NormalizedIncident } from "./contract";
 import { socrataRecent } from "./socrata";
+import { centralWallToUtc } from "../time";
 
 const SRC = { host: "www.dallasopendata.com", dataset: "9fxf-t2tr" };
 export const DALLAS_ATTRIBUTION = "Contains information from Dallas OpenData, ODC-BY.";
@@ -88,5 +89,8 @@ export async function runDallasPdAdapter(limit = 500): Promise<{
 function combineDateTime(date?: string, time?: string): string | undefined {
   if (!date) return undefined;
   const d = date.split("T")[0];
-  return time ? `${d}T${time}` : date;
+  // `time` may be "HH:MM:SS" or (defensively) a full timestamp; handle both,
+  // then stamp the Central offset so the stored instant is true UTC.
+  const wall = time ? (time.includes("T") ? time : `${d}T${time}`) : date;
+  return centralWallToUtc(wall);
 }

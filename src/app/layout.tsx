@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import "leaflet/dist/leaflet.css";
+import FirstRunNotice from "@/components/FirstRunNotice";
 
 export const metadata: Metadata = {
   title: "Watch — Safety intelligence for K-12 school networks",
@@ -21,7 +22,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        {children}
+        <FirstRunNotice />
+      </body>
     </html>
   );
 }

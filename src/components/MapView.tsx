@@ -8,6 +8,7 @@ import {
   morningStatuses,
 } from "@/lib/data/chicago";
 import { distanceMi, bearing } from "@/lib/geo";
+import { fmtCentral } from "@/lib/time";
 import { StatusPill, statusColorVar } from "./ui";
 import type { Campus, CampusStatus, Incident } from "@/lib/types";
 
@@ -368,10 +369,7 @@ function fadeByAge(ageDays: number): number {
   return Math.max(0.28, 1 - ageDays / 7);
 }
 function hm(iso?: string): string {
-  if (!iso) return "—";
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return "—";
-  return `${String(d.getUTCHours()).padStart(2, "0")}:${String(d.getUTCMinutes()).padStart(2, "0")}`;
+  return fmtCentral(iso) || "—";
 }
 
 function Dot({ c }: { c: string }) {

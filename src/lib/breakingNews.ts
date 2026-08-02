@@ -16,6 +16,7 @@
 
 import { getServiceClient } from "./supabase";
 import { distanceMi, bearing } from "./geo";
+import { fmtCentral } from "./time";
 import type { Campus, Tier } from "./types";
 
 export type NewsGeo = "block" | "neighborhood" | "city";
@@ -137,6 +138,5 @@ function rank(i: BreakingItem): number {
 }
 
 function fmt(iso: string): string {
-  const d = new Date(iso);
-  return `${String(d.getUTCHours()).padStart(2, "0")}:${String(d.getUTCMinutes()).padStart(2, "0")}`;
+  return fmtCentral(iso);
 }

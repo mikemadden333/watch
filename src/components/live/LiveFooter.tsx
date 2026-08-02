@@ -1,11 +1,11 @@
 import FreshnessFooter from "@/components/FreshnessFooter";
+import { fmtCentral } from "@/lib/time";
 import type { NetworkData } from "@/lib/networkData";
 
 export default function LiveFooter({ data }: { data: NetworkData }) {
   const inWindow = data.feeds.filter((f) => f.state === "ok").length;
   const total = data.feeds.length;
-  const now = new Date();
-  const lastCycle = `${p(now.getUTCHours())}:${p(now.getUTCMinutes())}:${p(now.getUTCSeconds())}`;
+  const lastCycle = fmtCentral(new Date().toISOString(), true);
   return (
     <FreshnessFooter
       feeds={data.feeds}
@@ -14,8 +14,4 @@ export default function LiveFooter({ data }: { data: NetworkData }) {
       base={data.city === "Dallas" ? "/dallas" : "/chicago"}
     />
   );
-}
-
-function p(n: number): string {
-  return String(n).padStart(2, "0");
 }

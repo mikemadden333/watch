@@ -9,6 +9,7 @@
 
 import type { AdapterCampus, AdapterResult, NormalizedIncident } from "./contract";
 import { socrataRecent, socrataFreshness, freshnessHealth, num } from "./socrata";
+import { centralWallToUtc } from "../time";
 
 const SRC = { host: "data.cityofchicago.org", dataset: "gumc-mgzr" };
 const DATE_FIELD = "date";
@@ -89,10 +90,9 @@ export async function runCpdVrAdapter(
 }
 
 function isoOrUndef(s?: string): string | undefined {
-  if (!s) return undefined;
-  // Socrata floating timestamps have no zone; Chicago open data is local (CT)
-  const iso = s.includes("T") ? s : s.replace(" ", "T");
-  return iso;
+  // Socrata floating timestamps are Central wall-clock — stamp the correct
+  // DST-aware offset so the stored instant is true UTC.
+  return centralWallToUtc(s);
 }
 
 function titleCase(s: string): string {

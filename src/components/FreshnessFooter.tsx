@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { FeedHealth } from "@/lib/types";
 import { plainFootLabel } from "@/lib/sources";
+import { FOOTER_DISCLAIMER } from "@/lib/legal";
 
 export default function FreshnessFooter({
   feeds,
@@ -14,22 +15,37 @@ export default function FreshnessFooter({
   base?: string; // e.g. "/chicago" — enables the Sources link
 }) {
   return (
-    <div className="foot">
-      <span>LAST CYCLE {lastCycle}</span>
-      {feeds.map((f) => (
-        <span key={f.key} className="fchip">
-          {plainFootLabel(f.key)}{" "}
-          <span className={f.state === "ok" ? "ok" : f.state === "warn" ? "warn" : "late"}>
-            {f.footValue}
+    <>
+      <div className="foot">
+        <span>LAST CYCLE {lastCycle}</span>
+        {feeds.map((f) => (
+          <span key={f.key} className="fchip">
+            {plainFootLabel(f.key)}{" "}
+            <span className={f.state === "ok" ? "ok" : f.state === "warn" ? "warn" : "late"}>
+              {f.footValue}
+            </span>
           </span>
-        </span>
-      ))}
-      {base && (
-        <Link href={`${base}/sources`} style={{ marginLeft: "auto", textDecoration: "underline" }}>
-          Sources
+        ))}
+        {base && (
+          <Link href={`${base}/sources`} style={{ marginLeft: "auto", textDecoration: "underline" }}>
+            Sources
+          </Link>
+        )}
+        <span style={{ marginLeft: base ? 12 : "auto" }}>{right}</span>
+      </div>
+      {/* persistent liability line — every screen */}
+      <div
+        className="foot"
+        style={{ borderTop: "none", paddingTop: 0, opacity: 0.85, fontSize: 10, lineHeight: 1.5 }}
+      >
+        <span style={{ textTransform: "none", letterSpacing: 0 }}>{FOOTER_DISCLAIMER}</span>
+        <Link
+          href="/limitations"
+          style={{ marginLeft: "auto", textDecoration: "underline", whiteSpace: "nowrap" }}
+        >
+          Limits &amp; how to use →
         </Link>
-      )}
-      <span style={{ marginLeft: base ? 12 : "auto" }}>{right}</span>
-    </div>
+      </div>
+    </>
   );
 }

@@ -8,6 +8,7 @@
 
 import type { AdapterCampus, AdapterResult, NormalizedIncident } from "./contract";
 import { socrataFreshness, socrataRecent, freshnessHealth, num } from "./socrata";
+import { centralWallToUtc } from "../time";
 
 const SRC = { host: "data.cityofchicago.org", dataset: "ijzp-q8t2" };
 const DATE_FIELD = "date";
@@ -95,8 +96,7 @@ export async function runCpdCrimesAdapter(
 }
 
 function isoOrUndef(s?: string): string | undefined {
-  if (!s) return undefined;
-  return s.includes("T") ? s : s.replace(" ", "T");
+  return centralWallToUtc(s);
 }
 function titleCase(s: string): string {
   return s.toLowerCase().replace(/\b\w/g, (m) => m.toUpperCase());

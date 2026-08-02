@@ -13,6 +13,7 @@ import { resolveTenantId, logAuditEvent, persistHeldDelivery } from "./adapters/
 import { evaluateCampus, RULES_VERSION, type RuleIncident, type WeatherSignal } from "./rules";
 import { decideDelivery, DEFAULT_QUIET, type QuietWindowConfig } from "./delivery";
 import { buildResolutionHeadline } from "./resolution";
+import { fmtCentral } from "./time";
 import type { Status } from "./types";
 
 interface EngineCampus {
@@ -205,7 +206,7 @@ export async function evaluateTenant(
 }
 
 function hm(d: Date): string {
-  return `${String(d.getUTCHours()).padStart(2, "0")}:${String(d.getUTCMinutes()).padStart(2, "0")}`;
+  return fmtCentral(d.toISOString());
 }
 function releaseIso(now: Date, localHHMM: string): string {
   // approximate: today at the window-end local time, expressed as ISO

@@ -25,6 +25,7 @@ import type { AdapterResult, NormalizedIncident, GeoConfidence } from "./contrac
 import { fetchCityHeadlines } from "./rss";
 import { clusterHeadlines, type NewsCluster } from "../news/cluster";
 import { geocodeOneline } from "./geocode";
+import { inMetro } from "../geo/metro";
 import type { CityKey, EventType } from "../news/extract";
 
 const KIND: Record<EventType, string> = {
@@ -107,6 +108,14 @@ export async function runLocalNewsAdapter(city: string): Promise<AdapterResult> 
       geoConfidence = "city";
     }
 
+    // METRO-BOUNDS GATE: only surface incidents we can actually place inside
+    // the served city. An unplaceable item (geo "city") could be anywhere —
+    // including another metro a regional feed happened to carry — so it's
+    // dropped, not guessed at. A block that geocoded OUTSIDE the metro box
+    // (bad match, or a genuinely out-of-area street) is dropped too.
+    if (geoConfidence === "city") continue;
+    if (lat != null && lon != null && !inMetro(cityKey, lat, lon)) continue;
+
     incidents.push({
       source: "Local news (RSS)",
       sourceRecordId: recordId(c),
@@ -131,7 +140,7 @@ export async function runLocalNewsAdapter(city: string): Promise<AdapterResult> 
     weatherSignals: [],
     health: {
       ...health,
-      ageLabel: `${liveFeeds}/${totalFeeds} feeds · ${clusters.length} events`,
+      ageLabel: `${liveFeeds}/${totalFeeds} feeds · ${incidents.length} in-metro`,
     },
     errors,
   };

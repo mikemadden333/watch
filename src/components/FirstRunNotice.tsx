@@ -1,0 +1,112 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { FIRST_RUN } from "@/lib/legal";
+
+/* One-time, logged acknowledgment. Shown once per browser on first entry into
+   a network (never on the splash). Framed as "how to use Watch," not a legal
+   wall — calm, on-brand, honest. Accepting records the acknowledgment in
+   localStorage and, best-effort, server-side (an audit row), so there is a
+   record the user was informed. The primary liability shield is still the
+   customer contract; this supports it. */
+
+const KEY = "watch.ack.v1";
+
+function bold(text: string) {
+  return text.split("**").map((seg, i) =>
+    i % 2 === 1 ? <b key={i}>{seg}</b> : <span key={i}>{seg}</span>
+  );
+}
+
+export default function FirstRunNotice() {
+  const [show, setShow] = useState(false);
+
+  useEffect(() => {
+    const path = window.location.pathname;
+    if (path === "/" || path === "/limitations") return; // not on splash / the page itself
+    try {
+      if (!localStorage.getItem(KEY)) setShow(true);
+    } catch {
+      setShow(true);
+    }
+  }, []);
+
+  if (!show) return null;
+
+  function accept() {
+    try {
+      localStorage.setItem(KEY, new Date().toISOString());
+    } catch {
+      /* private mode — still proceed */
+    }
+    // best-effort server record; never blocks the user
+    try {
+      fetch("/api/ack", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ path: window.location.pathname }),
+        keepalive: true,
+      }).catch(() => {});
+    } catch {
+      /* ignore */
+    }
+    setShow(false);
+  }
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="frn-title"
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 9000,
+        background: "rgba(27,26,23,0.42)",
+        backdropFilter: "blur(3px)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: 20,
+      }}
+    >
+      <div
+        style={{
+          maxWidth: 440,
+          width: "100%",
+          background: "var(--panel)",
+          border: "1px solid var(--line2)",
+          borderRadius: 16,
+          padding: "26px 26px 22px",
+          boxShadow: "0 20px 60px rgba(27,26,23,0.28)",
+        }}
+      >
+        <div className="micro" style={{ letterSpacing: "0.16em" }}>◆ WATCH</div>
+        <h2 id="frn-title" className="serif" style={{ fontSize: 23, margin: "10px 0 16px", letterSpacing: "-0.01em" }}>
+          {FIRST_RUN.title}
+        </h2>
+        <div style={{ display: "flex", flexDirection: "column", gap: 13 }}>
+          {FIRST_RUN.points.map((p, i) => (
+            <p key={i} style={{ fontSize: 13.5, lineHeight: 1.55, color: "var(--ink)", margin: 0 }}>
+              {bold(p)}
+            </p>
+          ))}
+        </div>
+        <button
+          onClick={accept}
+          className="btn"
+          style={{ marginTop: 22, width: "100%", justifyContent: "center", padding: "12px", fontSize: 14 }}
+        >
+          {FIRST_RUN.accept}
+        </button>
+        <a
+          href="/limitations"
+          className="micro"
+          style={{ display: "block", textAlign: "center", marginTop: 12, textDecoration: "underline" }}
+        >
+          Read the full limitations
+        </a>
+      </div>
+    </div>
+  );
+}

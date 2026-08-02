@@ -11,6 +11,7 @@
 import type { AdapterCampus, AdapterResult, NormalizedIncident } from "./contract";
 import { isPlausibleDate } from "./contract";
 import { socrataRecent, freshnessHealth, num } from "./socrata";
+import { centralWallToUtc } from "../time";
 
 const SRC = { host: "datacatalog.cookcountyil.gov", dataset: "cjeq-bs86" };
 const EXPECTED_HOURS = 4 * 24; // ≤4d window (expected freshness of new records)
@@ -91,8 +92,7 @@ export async function runCookMeAdapter(
 }
 
 function isoOrUndef(s?: string | null): string | undefined {
-  if (!s) return undefined;
-  return s.includes("T") ? s : s.replace(" ", "T");
+  return centralWallToUtc(s);
 }
 function titleCase(s: string): string {
   return s.toLowerCase().replace(/\b\w/g, (m) => m.toUpperCase());

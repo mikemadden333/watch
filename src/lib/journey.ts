@@ -3,12 +3,10 @@
 
 import type { Incident, VerificationStep } from "./types";
 import { sourceDisplay } from "./sources";
+import { fmtCentral } from "./time";
 
 function hm(iso?: string): string {
-  if (!iso) return "—";
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return "—";
-  return `${String(d.getUTCHours()).padStart(2, "0")}:${String(d.getUTCMinutes()).padStart(2, "0")}`;
+  return fmtCentral(iso) || "—";
 }
 
 export function deriveJourney(inc: Incident): VerificationStep[] {

@@ -12,6 +12,7 @@
 
 import { getServiceClient } from "./supabase";
 import { distanceMi, bearing } from "./geo";
+import { fmtCentral } from "./time";
 import type {
   AuditEvent,
   Campus,
@@ -253,12 +254,7 @@ function mapLedger(r: Record<string, unknown>): LedgerMetric {
 /* ---------- helpers ---------- */
 
 function fmtTime(iso?: string, withSeconds = false): string {
-  if (!iso) return "";
-  const d = new Date(iso);
-  const hh = String(d.getUTCHours()).padStart(2, "0");
-  const mm = String(d.getUTCMinutes()).padStart(2, "0");
-  if (withSeconds) return `${hh}:${mm}:${String(d.getUTCSeconds()).padStart(2, "0")}`;
-  return `${hh}:${mm}`;
+  return fmtCentral(iso, withSeconds);
 }
 function shortLabel(key: string): string {
   const m: Record<string, string> = {
