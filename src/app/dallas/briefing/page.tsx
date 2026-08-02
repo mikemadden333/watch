@@ -1,6 +1,7 @@
 import Link from "next/link";
 import LiveBriefing from "@/components/live/LiveBriefing";
 import LiveFooter from "@/components/live/LiveFooter";
+import LiveLayer from "@/components/live/LiveLayer";
 import BreakingNews from "@/components/BreakingNews";
 import { getNetworkData } from "@/lib/networkData";
 import { getBreakingNews } from "@/lib/breakingNews";
@@ -15,6 +16,11 @@ export default async function DallasBriefing() {
   if (!data) return <NotConnected />;
   return (
     <>
+      <LiveLayer
+        slug="solis-academies"
+        initialStatuses={data.statuses.map((s) => ({ c: s.campusCode, s: s.status }))}
+        campusNames={Object.fromEntries(data.campuses.map((c) => [c.code, c.name]))}
+      />
       <LiveBriefing data={data} base="/dallas" />
       <div style={{ padding: "0 28px", maxWidth: 900, margin: "0 auto" }}>
         <BreakingNews data={breaking} live={data.live} />
