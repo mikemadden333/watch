@@ -1,5 +1,11 @@
-import TabPlaceholder from "@/components/TabPlaceholder";
+import RecordView from "@/components/RecordView";
+import { getNetworkData } from "@/lib/networkData";
+import { redirect } from "next/navigation";
 
-export default function ChiRecord() {
-  return <TabPlaceholder label="Record" sentence="Everything Watch has done, and how often it was right." />;
+export const dynamic = "force-dynamic";
+
+export default async function ChicagoRecord() {
+  const data = await getNetworkData("veritas-charter");
+  if (!data) redirect("/chicago/briefing");
+  return <RecordView data={data} />;
 }

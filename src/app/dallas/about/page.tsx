@@ -1,5 +1,10 @@
-import TabPlaceholder from "@/components/TabPlaceholder";
+import Markdown from "@/components/Markdown";
+import { ABOUT_WATCH } from "@/lib/aboutContent";
 
-export default function DalAbout() {
-  return <TabPlaceholder label="About" sentence="What Watch is, and what it is not." />;
+export default function DallasAbout() {
+  return (
+    <div className="v2prose">
+      <Markdown content={ABOUT_WATCH} />
+    </div>
+  );
 }
