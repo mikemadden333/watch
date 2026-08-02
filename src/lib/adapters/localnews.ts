@@ -46,8 +46,28 @@ const EVENT_LABEL: Record<EventType, string> = {
 /** Cap Census geocodes per run to stay a good citizen of a free service. */
 const MAX_GEOCODES = 12;
 
+/** Cities the intelligence layer is tuned for. Extraction hardcodes a
+ *  "Chicago, IL" geocode suffix and a Chicago neighborhood gazetteer, so
+ *  running it on another city would geocode headlines to the WRONG place —
+ *  an integrity failure. Until a Dallas gazetteer/suffix ships, other cities
+ *  fetch feeds for health but emit no located incidents. (Dallas already has
+ *  live PD dispatch, a stronger signal than clustered news.) */
+const TUNED = new Set(["chicago"]);
+
 export async function runLocalNewsAdapter(city: string): Promise<AdapterResult> {
   const { headlines, health, liveFeeds, totalFeeds, errors } = await fetchCityHeadlines(city);
+
+  if (!TUNED.has(city.toLowerCase())) {
+    return {
+      source: "Local-news intelligence",
+      fetched: headlines.length,
+      incidents: [],
+      weatherSignals: [],
+      health: { ...health, ageLabel: `${liveFeeds}/${totalFeeds} feeds · not tuned for ${city}` },
+      errors,
+    };
+  }
+
   const clusters = clusterHeadlines(headlines);
 
   const incidents: NormalizedIncident[] = [];

@@ -80,7 +80,7 @@ function parseFeed(xml: string, source: string): FeedItem[] {
 export async function fetchCityHeadlines(
   city: string
 ): Promise<{ headlines: RawHeadline[]; health: SourceHealth; liveFeeds: number; totalFeeds: number; errors: string[] }> {
-  const feeds = FEEDS[city] ?? [];
+  const feeds = FEEDS[city.toLowerCase()] ?? [];
   const errors: string[] = [];
   const all: FeedItem[] = [];
   let liveFeeds = 0;
