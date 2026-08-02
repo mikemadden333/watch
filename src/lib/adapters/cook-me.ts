@@ -9,6 +9,7 @@
    ============================================================ */
 
 import type { AdapterCampus, AdapterResult, NormalizedIncident } from "./contract";
+import { isPlausibleDate } from "./contract";
 import { socrataRecent, freshnessHealth, num } from "./socrata";
 
 const SRC = { host: "datacatalog.cookcountyil.gov", dataset: "cjeq-bs86" };
@@ -43,10 +44,12 @@ export async function runCookMeAdapter(
     errors.push(e instanceof Error ? e.message : String(e));
   }
 
-  // freshness from the newest plausible incident_date we actually got
+  // freshness from the newest PLAUSIBLE incident_date — the ME dataset
+  // carries future-dated typos (e.g. 9999-09-09) that would otherwise
+  // poison the age label even though validate() rejects the incidents.
   const newest = rows
     .map((r) => r.incident_date)
-    .filter((d): d is string => !!d)
+    .filter((d): d is string => !!d && isPlausibleDate(d))
     .sort()
     .at(-1) ?? null;
   const health = freshnessHealth(newest, EXPECTED_HOURS);
