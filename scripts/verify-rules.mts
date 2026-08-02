@@ -60,5 +60,31 @@ console.log(
   `${tOk ? "PASS" : "FAIL"}  WPK  -> ${tornado.status} rule=${tornado.ruleId} (tornado warning -> ALERT A-1)`
 );
 
+// M-2 · Dallas: an official dispatch call inside the ring → MONITOR only.
+const dispatchNow = new Date("2026-08-01T15:00:00-05:00");
+const dispatch = evaluateCampus({
+  campus: { lat: 32.755, lon: -96.832 },
+  incidents: [
+    {
+      id: "d1",
+      kind: "dispatch",
+      tier: "REPORTED",
+      lat: 32.7565,
+      lon: -96.8305,
+      occurredAt: "2026-08-01T14:40:00-05:00",
+      publishedAt: "2026-08-01T14:40:00-05:00",
+    },
+  ],
+  weather: [],
+  now: dispatchNow,
+  latestDataDay: LATEST_DATA_DAY,
+  thresholds: { elevatedRingMi: 0.5, alertRingMi: 0.25 },
+});
+const dOk = dispatch.status === "MONITOR" && dispatch.ruleId === "M-2";
+dOk ? pass++ : fail++;
+console.log(
+  `${dOk ? "PASS" : "FAIL"}  DAL  -> ${dispatch.status} rule=${dispatch.ruleId} (dispatch in ring -> MONITOR M-2, never ALERT)`
+);
+
 console.log(`\nrules ${RULES_VERSION} - ${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

@@ -211,6 +211,25 @@ export function evaluateCampus(ctx: RuleContext): RuleResult {
     };
   }
 
+  // M-2 · official dispatch call inside the elevated ring (e.g. Dallas PD
+  // active calls). Preliminary — drives MONITOR only, never ALERT.
+  const m2 = ctx.incidents.find(
+    (i) =>
+      i.kind === "dispatch" &&
+      distanceMi(ctx.campus, i) <= t.elevatedRingMi &&
+      minutesAgo(i.occurredAt, ctx.now) <= 36 * 60
+  );
+  if (m2) {
+    return {
+      status: "MONITOR",
+      ruleId: "M-2",
+      ruleName: "dispatch-in-ring",
+      incidentId: m2.id,
+      detail: "Active police dispatch inside 0.5 mi · preliminary",
+      rulesVersion: v,
+    };
+  }
+
   // ---------- CLEAR ----------
   return {
     status: "CLEAR",
@@ -219,4 +238,11 @@ export function evaluateCampus(ctx: RuleContext): RuleResult {
     detail: "No qualifying signals",
     rulesVersion: v,
   };
+}
+
+function minutesAgo(iso: string | undefined, now: Date): number {
+  if (!iso) return Infinity;
+  const t = new Date(iso).getTime();
+  if (Number.isNaN(t)) return Infinity;
+  return (now.getTime() - t) / 60000;
 }

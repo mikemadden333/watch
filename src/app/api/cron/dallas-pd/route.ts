@@ -8,7 +8,8 @@
 
 import { NextResponse } from "next/server";
 import { runDallasPdAdapter, DALLAS_ATTRIBUTION } from "@/lib/adapters/dallas-pd";
-import { persistHealth, persistIncidents, persistSnapshot, validate } from "@/lib/adapters/contract";
+import { attachGeometry, persistHealth, persistIncidents, persistSnapshot, validate } from "@/lib/adapters/contract";
+import { geocodePending } from "@/lib/adapters/geocode";
 import { adapterTenants } from "@/lib/adapters/registry";
 
 export const runtime = "nodejs";
@@ -32,8 +33,11 @@ export async function GET(req: Request) {
 
   // 1) archive every poll — the feed has no history of its own
   const archive = await persistSnapshot(dallas.id, result.source, snapshot);
-  // 2) upsert safety-relevant dispatch calls (idempotent on incident_number)
-  const { ok } = validate(result.incidents);
+  // 2) geocode dispatch addresses → campus-ring geometry
+  const geo = await geocodePending(result.incidents);
+  const withGeom = attachGeometry(result.incidents, dallas.campuses);
+  // 3) upsert safety-relevant dispatch calls (idempotent on incident_number)
+  const { ok } = validate(withGeom);
   const persisted = await persistIncidents(dallas.id, ok);
   await persistHealth(dallas.id, result.health);
 
@@ -44,6 +48,7 @@ export async function GET(req: Request) {
     tenant: dallas.name,
     fetched: result.fetched,
     archived: archive.archived,
+    geocoded: geo.geocoded,
     safetyRelevant: ok.length,
     persisted: persisted.persisted,
     degraded: archive.degraded || persisted.degraded,

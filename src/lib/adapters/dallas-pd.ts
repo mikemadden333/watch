@@ -51,15 +51,17 @@ export async function runDallasPdAdapter(limit = 500): Promise<{
     const nature = r.nature_of_call || "";
     if (!VIOLENT.test(nature)) continue; // only safety-relevant calls become incidents
     const occurredAt = combineDateTime(r.date, r.time);
+    const addr = [r.block, r.location].filter(Boolean).join(" ");
     incidents.push({
       source: "Dallas PD active calls 9fxf-t2tr",
       sourceRecordId: r.incident_number, // upsert tracks latest status per call
-      headline: `Dispatch · ${nature} · ${[r.block, r.location].filter(Boolean).join(" ")}`.trim(),
+      headline: `Dispatch · ${nature} · ${addr}`.trim(),
       kind: "dispatch",
       tier: "REPORTED", // preliminary — never confirms alone
       occurredAt,
       publishedAt: occurredAt,
-      note: `${r.division ?? ""} · priority ${r.priority ?? "?"} · ${r.status ?? ""} · geocode pending`.trim(),
+      geocodeQuery: addr ? `${addr}, Dallas, TX` : undefined,
+      note: `${r.division ?? ""} · priority ${r.priority ?? "?"} · ${r.status ?? ""}`.trim(),
     });
   }
 

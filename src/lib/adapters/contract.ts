@@ -40,6 +40,8 @@ export interface NormalizedIncident {
   nearestCampusCode?: string;
   distanceMi?: number;
   bearing?: string;
+  /** one-line address for later geocoding (e.g. Dallas dispatch) */
+  geocodeQuery?: string;
 }
 
 /** A weather posture signal fed to the rules engine (NWS). */
