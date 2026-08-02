@@ -123,6 +123,11 @@ function mapCampus(r: Record<string, unknown>): Campus {
     alertRingMi: Number(r.alert_ring_mi ?? 0.25),
     elevatedRingMi: Number(r.elevated_ring_mi ?? 0.5),
     geocodeVerified: Boolean(r.geocode_verified),
+    quietWindowsEnabled: r.quiet_windows_enabled == null ? true : Boolean(r.quiet_windows_enabled),
+    arrivalStart: r.arrival_start ? String(r.arrival_start) : undefined,
+    arrivalEnd: r.arrival_end ? String(r.arrival_end) : undefined,
+    dismissalStart: r.dismissal_start ? String(r.dismissal_start) : undefined,
+    dismissalEnd: r.dismissal_end ? String(r.dismissal_end) : undefined,
   };
 }
 

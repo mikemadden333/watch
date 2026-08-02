@@ -1,4 +1,5 @@
 import FreshnessFooter from "@/components/FreshnessFooter";
+import QuietWindowsCard from "@/components/QuietWindowsCard";
 import {
   campuses,
   dataSources,
@@ -138,6 +139,10 @@ export default function AdminPage() {
                 flagged, excluded from status calc, incident banner in footer.
               </div>
             </div>
+          </div>
+
+          <div style={{ marginTop: 16 }}>
+            <QuietWindowsCard campuses={campuses} />
           </div>
         </div>
       </div>

@@ -10,7 +10,7 @@
    the demo never hard-depends on Supabase being reachable.
    ============================================================ */
 
-import type { Tier } from "../types";
+import type { Status, Tier } from "../types";
 import { getServiceClient } from "../supabase";
 import { distanceMi, bearing } from "../geo";
 
@@ -223,6 +223,72 @@ export async function persistSnapshot(
     payload,
   });
   return { archived: !error, degraded: !!error };
+}
+
+/** Append an audit event (STATUS/DELIVERY/ACTION/INGEST/MUTE). The audit
+ *  log is append-only at the DB level; this only ever inserts. */
+export async function logAuditEvent(
+  tenantSlug: string,
+  e: { type: string; event: string; evidence?: string; campusId?: string; statusColor?: Status }
+): Promise<{ degraded: boolean }> {
+  let sb;
+  try {
+    sb = getServiceClient();
+  } catch {
+    return { degraded: true };
+  }
+  const tenantId = await resolveTenantId(tenantSlug);
+  if (!tenantId) return { degraded: true };
+  const { error } = await sb.from("audit_events").insert({
+    tenant_id: tenantId,
+    type: e.type,
+    event: e.event,
+    evidence: e.evidence ?? null,
+    campus_id: e.campusId ?? null,
+    status_color: e.statusColor ?? null,
+  });
+  return { degraded: !!error };
+}
+
+/** Record a notification held by a quiet window (v1.1). ALERT never lands
+ *  here — it always breaks through. Also writes a DELIVERY audit row. */
+export async function persistHeldDelivery(
+  tenantSlug: string,
+  h: {
+    campusId: string;
+    campusCode: string;
+    incidentId?: string;
+    status: Status; // MONITOR | ELEVATED
+    windowKind: "arrival" | "dismissal";
+    reason: string;
+    releaseAt: string; // ISO
+  }
+): Promise<{ degraded: boolean }> {
+  let sb;
+  try {
+    sb = getServiceClient();
+  } catch {
+    return { degraded: true };
+  }
+  const tenantId = await resolveTenantId(tenantSlug);
+  if (!tenantId) return { degraded: true };
+  const { error } = await sb.from("held_deliveries").insert({
+    tenant_id: tenantId,
+    campus_id: h.campusId,
+    incident_id: h.incidentId ?? null,
+    status: h.status,
+    window_kind: h.windowKind,
+    reason: h.reason,
+    release_at: h.releaseAt,
+  });
+  await logAuditEvent(tenantSlug, {
+    type: "DELIVERY",
+    event: `${h.campusCode} · ${h.status} notification HELD · ${h.windowKind} quiet window · releases ${h.releaseAt.slice(11, 16)}`,
+    evidence: "quiet-windows v1.1",
+    campusId: h.campusId,
+    statusColor: h.status,
+  });
+  return { degraded: !!error };
 }
 
 /** Write/refresh a source_health row. Graceful degrade like persistIncidents. */

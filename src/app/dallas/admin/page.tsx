@@ -1,4 +1,5 @@
 import LiveFooter from "@/components/live/LiveFooter";
+import QuietWindowsCard from "@/components/QuietWindowsCard";
 import { getNetworkData } from "@/lib/networkData";
 import { redirect } from "next/navigation";
 
@@ -93,6 +94,10 @@ export default async function DallasAdmin() {
                 every status change in Audit.
               </div>
             </div>
+          </div>
+
+          <div style={{ marginTop: 16 }}>
+            <QuietWindowsCard campuses={data.campuses} />
           </div>
         </div>
       </div>

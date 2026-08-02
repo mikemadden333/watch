@@ -33,6 +33,12 @@ export interface Campus {
   alertRingMi: number; // 0.25
   elevatedRingMi: number; // 0.5
   geocodeVerified: boolean;
+  /** v1.1 quiet windows (per-campus; default on). Times local HH:MM. */
+  quietWindowsEnabled?: boolean;
+  arrivalStart?: string;
+  arrivalEnd?: string;
+  dismissalStart?: string;
+  dismissalEnd?: string;
 }
 
 export interface Incident {
