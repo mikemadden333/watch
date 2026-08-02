@@ -67,7 +67,7 @@ async function _getNetworkData(slug: string): Promise<NetworkData | null> {
       .select("*")
       .eq("tenant_id", tid)
       .order("occurred_at", { ascending: false })
-      .limit(200),
+      .limit(1000),
     sb.from("source_health").select("*").eq("tenant_id", tid),
     sb.from("audit_events").select("*").eq("tenant_id", tid).order("occurred_at", { ascending: false }).limit(30),
     sb.from("accuracy_ledger").select("*").eq("tenant_id", tid),
