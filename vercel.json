@@ -6,6 +6,7 @@
     { "path": "/api/cron/evaluate", "schedule": "*/2 * * * *" },
     { "path": "/api/cron/cpd-vr", "schedule": "*/30 * * * *" },
     { "path": "/api/cron/cpd-crimes", "schedule": "0 * * * *" },
-    { "path": "/api/cron/cook-me", "schedule": "0 */6 * * *" }
+    { "path": "/api/cron/cook-me", "schedule": "0 */6 * * *" },
+    { "path": "/api/cron/retro-confirm", "schedule": "15,45 * * * *" }
   ]
 }
