@@ -27,10 +27,9 @@ begin
   insert into campuses (tenant_id, code, name, address, lat, lon, geocode_verified, students, grades, dismissal, principal, cpd_liaison, alert_ring_mi, elevated_ring_mi) values
     (tid,'GPA','Garfield Park Academy','2900 W Madison St',41.8817,-87.6966,true,604,'K-8','14:45','M. Reyes',null,0.25,0.50),
     (tid,'ENG','Englewood Prep','6201 S Stewart Ave',41.7817,-87.6360,true,612,'K-8','14:45','A. Okafor','Sgt. Diaz · ext 4271',0.25,0.50),
-    (tid,'WDL','Woodlawn Academy','6357 S Woodlawn Ave',41.7785,-87.5965,true,588,'6-12','14:45','T. Boyd',null,0.25,0.50),
-    (tid,'HYP','Hyde Park Lower','5235 S Kenwood Ave',41.7994,-87.5928,true,604,'K-5','14:45','S. Ruiz',null,0.25,0.40),
-    (tid,'BRZ','Bronzeville Middle','4644 S King Dr',41.8090,-87.6160,true,566,'6-8','14:45','M. Ellison',null,0.25,0.50),
+    (tid,'LAW','Lawndale Prep','3600 W Douglas Blvd',41.8646,-87.7156,true,574,'6-12','14:45','D. Harris',null,0.25,0.50),
     (tid,'WPK','Washington Park HS','5620 S King Dr',41.7930,-87.6170,true,631,'9-12','14:45','J. Carter',null,0.25,0.50),
+    (tid,'ROS','Roseland Collegiate','10701 S Indiana Ave',41.6949,-87.6188,true,588,'9-12','14:45','C. Bell',null,0.25,0.50),
     (tid,'GRE','Greater Grand K-8','7050 S South Chicago Ave',41.7625,-87.6150,true,598,'K-8','14:45','R. Nwosu',null,0.25,0.50)
   on conflict (tenant_id, code) do nothing;
 
