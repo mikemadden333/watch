@@ -81,6 +81,12 @@ function centralParts(d: Date): { hm: string; h24: number; ymd: string } {
 export function clockOf(iso: string): string {
   return centralParts(new Date(iso)).hm;
 }
+/** "Last night at 11:47" — for the Act comms drafts. */
+export function occurredPhrase(iso: string, now = new Date()): string {
+  const w = whenWord(iso, now);
+  const cap = w.charAt(0).toUpperCase() + w.slice(1);
+  return `${cap} at ${clockOf(iso)}`;
+}
 /** context word for when something happened relative to now, in Central. */
 function whenWord(iso: string, now: Date): string {
   const ev = new Date(iso);

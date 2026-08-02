@@ -1,5 +1,22 @@
-import TabPlaceholder from "@/components/TabPlaceholder";
+import ActView from "@/components/ActView";
+import { getNetworkData } from "@/lib/networkData";
 
-export default function ChiAct() {
-  return <TabPlaceholder label="Act" sentence="When something qualifies, your words are ready." />;
+export const dynamic = "force-dynamic";
+
+export default async function ChicagoAct({
+  searchParams,
+}: {
+  searchParams: Promise<{ view?: string; campus?: string }>;
+}) {
+  const sp = await searchParams;
+  const view = sp.view === "leader" ? "leader" : "ceo";
+  const data = await getNetworkData("veritas-charter");
+  if (!data) {
+    return (
+      <div className="v2hero">
+        <div className="sentence">This network isn&apos;t connected yet.</div>
+      </div>
+    );
+  }
+  return <ActView data={data} slug="veritas-charter" view={view} campus={sp.campus} />;
 }
