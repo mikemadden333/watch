@@ -39,6 +39,25 @@ export const LATEST_DATA_DAY = "2026-08-01";
 
 export const campuses: Campus[] = [
   {
+    id: "gpa",
+    code: "GPA",
+    name: "Garfield Park Academy",
+    address: "2900 W Madison St",
+    lat: 41.8817,
+    lon: -87.6966,
+    students: 604,
+    grades: "K-8",
+    dismissal: "14:45",
+    principal: "M. Reyes",
+    alertRingMi: 0.25,
+    elevatedRingMi: 0.5,
+    geocodeVerified: true,
+    arrivalStart: "07:30",
+    arrivalEnd: "08:00",
+    dismissalStart: "14:45",
+    dismissalEnd: "15:15",
+  },
+  {
     id: "eng",
     code: "ENG",
     name: "Englewood Prep",
@@ -262,6 +281,7 @@ export const morningStatuses: CampusStatus[] = [
     detail: "Corroborated news · unconfirmed",
     incidentId: "inc-wdl-shotsfired",
   },
+  { campusCode: "GPA", status: "CLEAR", since: "07:10", detail: "No qualifying signals" },
   { campusCode: "HYP", status: "CLEAR", since: "07:10", detail: "No qualifying signals" },
   { campusCode: "BRZ", status: "CLEAR", since: "07:10", detail: "No qualifying signals" },
   { campusCode: "WPK", status: "CLEAR", since: "07:10", detail: "No qualifying signals" },

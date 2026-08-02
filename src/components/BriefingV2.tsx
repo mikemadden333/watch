@@ -54,6 +54,20 @@ const DOT: Record<Status, string> = {
   CLEAR: "var(--clear)",
 };
 
+/** the incident that drove the posture: highest tier (CONFIRMED first) near
+ *  the campus, then most recent — matches the voice engine's pick, so the
+ *  evidence never shows a stray REPORTED news item instead of the confirmed one. */
+function drivingIncident(data: NetworkData, code: string): Incident | undefined {
+  const rank: Record<string, number> = { CONFIRMED: 0, CORROBORATED: 1, REPORTED: 2 };
+  return data.incidents
+    .filter((i) => i.nearestCampusCode === code)
+    .sort(
+      (a, b) =>
+        (rank[a.tier] ?? 3) - (rank[b.tier] ?? 3) ||
+        new Date(b.occurredAt).getTime() - new Date(a.occurredAt).getTime()
+    )[0];
+}
+
 function Para({ para }: { para: Seg[] }) {
   return (
     <p className="para">
@@ -82,9 +96,7 @@ function CeoView({ data, base }: { data: NetworkData; base: string }) {
     const s = data.statuses.find((x) => x.campusCode === c.code)?.status;
     return s === "ELEVATED" || s === "ALERT";
   });
-  const topIncident = top
-    ? data.incidents.find((i) => i.nearestCampusCode === top.code)
-    : undefined;
+  const topIncident = top ? drivingIncident(data, top.code) : undefined;
   const topStatus = top ? data.statuses.find((s) => s.campusCode === top.code) : undefined;
   const storyData: StoryRow[] = topIncident
     ? storyRows(topIncident).length
@@ -159,7 +171,7 @@ function LeaderView({ data, base, code }: { data: NetworkData; base: string; cod
   const campus = data.campuses.find((c) => c.code === code) ?? data.campuses[0];
   const st = (data.statuses.find((s) => s.campusCode === campus.code)?.status ?? "CLEAR") as Status;
   const b: Briefing = leaderBriefing(data, campus.code);
-  const incident = data.incidents.find((i) => i.nearestCampusCode === campus.code);
+  const incident = drivingIncident(data, campus.code);
   const active = st === "ELEVATED" || st === "ALERT" || st === "MONITOR";
 
   return (

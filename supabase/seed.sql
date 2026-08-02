@@ -23,13 +23,15 @@ begin
   select id into tid from tenants where slug = 'veritas-charter';
 
   -- ---------- campuses (real coordinates · rings · config) ----------
+  -- School-day config (directive §7): all Chicago campuses dismiss 14:45.
   insert into campuses (tenant_id, code, name, address, lat, lon, geocode_verified, students, grades, dismissal, principal, cpd_liaison, alert_ring_mi, elevated_ring_mi) values
-    (tid,'ENG','Englewood Prep','6201 S Stewart Ave',41.7817,-87.6360,true,612,'K-8','15:30','A. Okafor','Sgt. Diaz · ext 4271',0.25,0.50),
-    (tid,'WDL','Woodlawn Academy','6357 S Woodlawn Ave',41.7785,-87.5965,true,588,'6-12','15:45','T. Boyd',null,0.25,0.50),
-    (tid,'HYP','Hyde Park Lower','5235 S Kenwood Ave',41.7994,-87.5928,true,604,'K-5','15:15','S. Ruiz',null,0.25,0.40),
-    (tid,'BRZ','Bronzeville Middle','4644 S King Dr',41.8090,-87.6160,true,566,'6-8','15:30','M. Ellison',null,0.25,0.50),
-    (tid,'WPK','Washington Park HS','5620 S King Dr',41.7930,-87.6170,true,631,'9-12','15:40','J. Carter',null,0.25,0.50),
-    (tid,'GRE','Greater Grand K-8','7050 S South Chicago Ave',41.7625,-87.6150,true,598,'K-8','15:20','R. Nwosu',null,0.25,0.50)
+    (tid,'GPA','Garfield Park Academy','2900 W Madison St',41.8817,-87.6966,true,604,'K-8','14:45','M. Reyes',null,0.25,0.50),
+    (tid,'ENG','Englewood Prep','6201 S Stewart Ave',41.7817,-87.6360,true,612,'K-8','14:45','A. Okafor','Sgt. Diaz · ext 4271',0.25,0.50),
+    (tid,'WDL','Woodlawn Academy','6357 S Woodlawn Ave',41.7785,-87.5965,true,588,'6-12','14:45','T. Boyd',null,0.25,0.50),
+    (tid,'HYP','Hyde Park Lower','5235 S Kenwood Ave',41.7994,-87.5928,true,604,'K-5','14:45','S. Ruiz',null,0.25,0.40),
+    (tid,'BRZ','Bronzeville Middle','4644 S King Dr',41.8090,-87.6160,true,566,'6-8','14:45','M. Ellison',null,0.25,0.50),
+    (tid,'WPK','Washington Park HS','5620 S King Dr',41.7930,-87.6170,true,631,'9-12','14:45','J. Carter',null,0.25,0.50),
+    (tid,'GRE','Greater Grand K-8','7050 S South Chicago Ave',41.7625,-87.6150,true,598,'K-8','14:45','R. Nwosu',null,0.25,0.50)
   on conflict (tenant_id, code) do nothing;
 
   -- ---------- response playbook template (config, not incident data) ----------
