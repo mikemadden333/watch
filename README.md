@@ -127,6 +127,16 @@ Live and verified against real APIs:
   **ordered-desc-limit-1** query, never an aggregate (aggregates return
   stale cache — verified ~18-day-stale bug). Persists only records inside a
   campus's elevated ring.
+- **CPD Crimes** (`/api/cron/cpd-crimes`, hourly) — 8-day backfill/context
+  layer (`ijzp-q8t2`), violent/weapon offenses only.
+- **Cook County ME** (`/api/cron/cook-me`, every 6 h) — gun-related deaths
+  (`cjeq-bs86`). **Date validation is mandatory** — production data
+  contains future-dated typos and null dates; the contract's `validate()`
+  rejects them on ingest.
+- **Dallas PD Active Calls** (`/api/cron/dallas-pd`, every 2 min) —
+  `9fxf-t2tr`, ODC-BY. Preliminary dispatch (REPORTED tier only). The feed
+  keeps no history, so every poll is archived verbatim to
+  `dispatch_snapshots`.
 
 ```bash
 npx esbuild scripts/verify-nws.mts   --bundle --platform=node --format=esm --external:@supabase/supabase-js | node --input-type=module
@@ -139,11 +149,11 @@ When `CRON_SECRET` is set, cron requests must send
 
 ## Still to come
 
-CPD crimes (`ijzp-q8t2`) + Cook County ME (`cjeq-bs86`, with date
-validation) adapters, GDELT/RSS, the retro-confirmation matcher →
-accuracy ledger, wiring the screens to read live from Supabase, and the
-live Dallas / Solis pack (Dallas PD Active Calls `9fxf-t2tr`, archived per
-snapshot). The Citizen webhook slot is designed for but off until keys land.
+GDELT/RSS headline layer, the retro-confirmation matcher → accuracy
+ledger, wiring the screens to read live from Supabase, geocoding the
+Dallas dispatch archive to campus rings, and the Dallas UI (the six
+screens rendered for the Solis tenant). The Citizen webhook slot is
+designed for but off until keys land.
 
 ---
 
