@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { FeedHealth } from "@/lib/types";
 import { plainFootLabel } from "@/lib/sources";
-import { FOOTER_DISCLAIMER } from "@/lib/legal";
+import { FOOTER_DISCLAIMER, BRAND_CREDIT } from "@/lib/legal";
 
 export default function FreshnessFooter({
   feeds,
@@ -38,7 +38,9 @@ export default function FreshnessFooter({
         className="foot"
         style={{ borderTop: "none", paddingTop: 0, opacity: 0.85, fontSize: 10, lineHeight: 1.5 }}
       >
-        <span style={{ textTransform: "none", letterSpacing: 0 }}>{FOOTER_DISCLAIMER}</span>
+        <span style={{ textTransform: "none", letterSpacing: 0 }}>
+          {FOOTER_DISCLAIMER} <span style={{ opacity: 0.75 }}>· {BRAND_CREDIT}</span>
+        </span>
         <Link
           href="/limitations"
           style={{ marginLeft: "auto", textDecoration: "underline", whiteSpace: "nowrap" }}

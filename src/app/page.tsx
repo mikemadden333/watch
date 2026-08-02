@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import s from "./splash.module.css";
+import { BRAND_LINE } from "@/lib/legal";
 
 export default function SplashPage() {
   const [entered, setEntered] = useState(false);
@@ -69,9 +70,7 @@ export default function SplashPage() {
           </div>
         </div>
         <div className={s.splashFoot}>
-          <span className="micro">Madden Education Advisory, LLC</span>
-          <span className="micro" style={{ color: "var(--faint)" }}>·</span>
-          <span className="micro">Decision support, not dispatch</span>
+          <span className="micro">{BRAND_LINE}</span>
         </div>
       </div>
 

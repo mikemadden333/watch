@@ -12,6 +12,10 @@
 
 export const COMPANY = "Madden Education Advisory, LLC";
 
+/** Ownership / exclusivity line. */
+export const BRAND_LINE = "A product developed by and exclusive to Madden Education Advisory, LLC.";
+export const BRAND_CREDIT = "© Madden Education Advisory, LLC · All rights reserved.";
+
 /** One line, always visible in the footer of every screen. */
 export const FOOTER_DISCLAIMER =
   "Decision support, not a safety system. Publicly sourced — may be incomplete or delayed; the absence of an incident is not a guarantee of safety. In an emergency, call 911 and follow district protocol.";

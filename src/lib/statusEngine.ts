@@ -14,6 +14,7 @@ import { evaluateCampus, RULES_VERSION, type RuleIncident, type WeatherSignal } 
 import { decideDelivery, DEFAULT_QUIET, type QuietWindowConfig } from "./delivery";
 import { buildResolutionHeadline } from "./resolution";
 import { fmtCentral } from "./time";
+import { sendAlertSms, alertSmsBody, smsConfigured } from "./notify/sms";
 import type { Status } from "./types";
 
 interface EngineCampus {
@@ -188,14 +189,22 @@ export async function evaluateTenant(
         });
         deliveryLabel = `held · ${decision.windowKind} window`;
       } else {
+        // real SMS fires on the ALERT tier (channels include "sms"), when
+        // Twilio is configured. Dark/no-op otherwise. Never throws.
+        let smsNote = "";
+        if (decision.channels.includes("sms") && smsConfigured()) {
+          const body = alertSmsBody(c.name, r.detail, fmtCentral(now.toISOString()));
+          const sms = await sendAlertSms(body).catch(() => ({ sent: 0, recipients: 0, degraded: true }));
+          smsNote = sms.sent ? ` · SMS ${sms.sent}/${sms.recipients}` : "";
+        }
         await logAuditEvent(tenantSlug, {
           type: "DELIVERY",
-          event: `${c.code} · ${r.status} · ${decision.reason}`,
+          event: `${c.code} · ${r.status} · ${decision.reason}${smsNote}`,
           evidence: "delivery v1.1",
           campusId: c.id,
           statusColor: r.status,
         });
-        deliveryLabel = decision.action === "in-app" ? "in-app only" : decision.channels.join(" + ");
+        deliveryLabel = (decision.action === "in-app" ? "in-app only" : decision.channels.join(" + ")) + smsNote;
       }
     }
 

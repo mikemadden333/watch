@@ -95,15 +95,16 @@ export default function LiveLayer({
     refreshTimer.current = setTimeout(() => router.refresh(), 1200);
   }, [router]);
 
-  // polling + diff
-  useEffect(() => {
-    let alive = true;
-    async function tick() {
+  // polling + diff. tick lives in a ref (always the latest closure) so both
+  // the interval and a manual "watch:poll" event (fired by the demo drill)
+  // run the same up-to-date logic.
+  const tickRef = useRef<() => void>(() => {});
+  tickRef.current = async function tick() {
       try {
         const res = await fetch(`/api/state/${slug}`, { cache: "no-store" });
         if (!res.ok) return;
         const snap = (await res.json()) as Snapshot;
-        if (!alive || !snap.live) return;
+        if (!snap.live) return;
 
         let topEsc: { st: StatusLite; level: Level } | null = null;
         let anyDeesc: StatusLite | null = null;
@@ -139,11 +140,14 @@ export default function LiveLayer({
         }
         setPulse(snap.worst);
       } catch { /* network blip — try next tick */ }
-    }
-    const id = setInterval(tick, POLL_MS);
-    return () => { alive = false; clearInterval(id); };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [slug]);
+  };
+
+  useEffect(() => {
+    const run = () => tickRef.current();
+    const id = setInterval(run, POLL_MS);
+    window.addEventListener("watch:poll", run);
+    return () => { clearInterval(id); window.removeEventListener("watch:poll", run); };
+  }, []);
 
   // ambient feed tick — feels awake without nagging
   useEffect(() => {

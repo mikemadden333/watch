@@ -46,10 +46,13 @@ export async function runRetroConfirm(
   const since = new Date(now.getTime() - 30 * 24 * 3600 * 1000).toISOString();
   const { data } = await sb
     .from("incidents")
-    .select("id,tier,kind,lat,lon,occurred_at,published_at,detected_at,retro_confirmed_by")
+    .select("id,tier,kind,lat,lon,occurred_at,published_at,detected_at,retro_confirmed_by,source")
     .eq("tenant_id", tid)
     .gte("occurred_at", since);
-  const rows = (data ?? []) as Row[];
+  // exclude simulated DRILL rows — they must never touch the accuracy ledger
+  const rows = ((data ?? []) as (Row & { source?: string })[]).filter(
+    (r) => !String(r.source ?? "").startsWith("DRILL")
+  );
 
   const confirmed = rows.filter(
     (r) => r.tier === "CONFIRMED" && r.lat != null && r.lon != null && r.occurred_at
