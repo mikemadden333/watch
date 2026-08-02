@@ -133,11 +133,30 @@ export function validate(incidents: NormalizedIncident[]): {
   return { ok, rejected };
 }
 
+/** Resolve a tenant slug (e.g. "veritas-charter") to its DB UUID. The
+ *  fixtures/registry carry slugs; the database keys on UUID. Cached per
+ *  process. Returns null when Supabase is unreachable or the tenant is
+ *  absent (callers then degrade gracefully). */
+const tenantIdCache = new Map<string, string>();
+export async function resolveTenantId(slug: string): Promise<string | null> {
+  if (tenantIdCache.has(slug)) return tenantIdCache.get(slug)!;
+  let sb;
+  try {
+    sb = getServiceClient();
+  } catch {
+    return null;
+  }
+  const { data, error } = await sb.from("tenants").select("id").eq("slug", slug).maybeSingle();
+  if (error || !data) return null;
+  tenantIdCache.set(slug, data.id as string);
+  return data.id as string;
+}
+
 /** Idempotent upsert into Supabase on (tenant_id, source, source_record_id).
  *  Graceful degrade: if Supabase isn't configured or the table is missing,
  *  returns { persisted: 0, degraded: true } instead of throwing. */
 export async function persistIncidents(
-  tenantId: string,
+  tenantSlug: string,
   incidents: NormalizedIncident[]
 ): Promise<{ persisted: number; degraded: boolean; error?: string }> {
   if (incidents.length === 0) return { persisted: 0, degraded: false };
@@ -147,7 +166,15 @@ export async function persistIncidents(
   } catch {
     return { persisted: 0, degraded: true, error: "supabase not configured" };
   }
-  const rows = incidents.map((i) => ({
+  const tenantId = await resolveTenantId(tenantSlug);
+  if (!tenantId) return { persisted: 0, degraded: true, error: "tenant not found (apply seed?)" };
+  // dedupe within the batch on the conflict key — Postgres rejects an upsert
+  // that would touch the same (tenant, source, source_record_id) twice
+  // (e.g. one dispatch call with several units). Keep the last occurrence.
+  const byKey = new Map<string, NormalizedIncident>();
+  for (const i of incidents) byKey.set(`${i.source}::${i.sourceRecordId}`, i);
+  const deduped = [...byKey.values()];
+  const rows = deduped.map((i) => ({
     tenant_id: tenantId,
     source: i.source,
     source_record_id: i.sourceRecordId,
@@ -176,7 +203,7 @@ export async function persistIncidents(
  *  the feed is a live-only window — so every poll is archived verbatim to
  *  reconstruct history later. Graceful degrade like persistIncidents. */
 export async function persistSnapshot(
-  tenantId: string,
+  tenantSlug: string,
   source: string,
   payload: unknown[]
 ): Promise<{ archived: boolean; degraded: boolean }> {
@@ -186,6 +213,8 @@ export async function persistSnapshot(
   } catch {
     return { archived: false, degraded: true };
   }
+  const tenantId = await resolveTenantId(tenantSlug);
+  if (!tenantId) return { archived: false, degraded: true };
   const { error } = await sb.from("dispatch_snapshots").insert({
     tenant_id: tenantId,
     source,
@@ -198,7 +227,7 @@ export async function persistSnapshot(
 
 /** Write/refresh a source_health row. Graceful degrade like persistIncidents. */
 export async function persistHealth(
-  tenantId: string,
+  tenantSlug: string,
   health: SourceHealth
 ): Promise<{ degraded: boolean }> {
   let sb;
@@ -207,6 +236,8 @@ export async function persistHealth(
   } catch {
     return { degraded: true };
   }
+  const tenantId = await resolveTenantId(tenantSlug);
+  if (!tenantId) return { degraded: true };
   const { error } = await sb.from("source_health").upsert(
     {
       tenant_id: tenantId,
