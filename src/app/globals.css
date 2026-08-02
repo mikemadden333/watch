@@ -1125,6 +1125,65 @@ a {
   margin-top: 30px;
 }
 
+/* about colophon (team credit) */
+.colophon {
+  margin-top: 48px;
+  padding-top: 28px;
+  border-top: 1px solid var(--line2);
+}
+.colophon .micro {
+  color: var(--amber, var(--elevated));
+  margin-bottom: 12px;
+}
+.colophon .colo-org {
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: #4a463d;
+  max-width: 58ch;
+  margin-bottom: 22px;
+}
+.colophon .colo-org b {
+  color: var(--ink);
+}
+.colophon .person {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 14px;
+}
+.colophon .mono-av {
+  width: 42px;
+  height: 42px;
+  border-radius: 11px;
+  background: var(--ink);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+}
+.colophon .mono-av.alt {
+  background: #eceae3;
+  color: var(--ink);
+  border: 1px solid var(--line2);
+}
+.colophon .pn {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.1px;
+}
+.colophon .pr {
+  font-family: Menlo, monospace;
+  font-size: 10.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--elevated);
+  margin-top: 3px;
+}
+
 /* --- act --- */
 .actwrap {
   max-width: 880px;

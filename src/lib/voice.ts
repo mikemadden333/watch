@@ -98,6 +98,13 @@ function whenWord(iso: string, now: Date): string {
   if (evP.ymd === yest) return evP.h24 >= 18 || evP.h24 < 5 ? "last night" : "yesterday";
   return "earlier";
 }
+export function centralHour(now: Date): number {
+  return Number(new Intl.DateTimeFormat("en-GB", { timeZone: "America/Chicago", hour: "2-digit", hour12: false }).format(now));
+}
+export function greeting(now: Date): string {
+  const h = centralHour(now);
+  return h < 12 ? "Good morning" : h < 17 ? "Good afternoon" : "Good evening";
+}
 export function briefingMicro(now: Date, tail: string): string {
   const date = new Intl.DateTimeFormat("en-US", {
     timeZone: "America/Chicago", weekday: "long", month: "long", day: "numeric",
@@ -162,14 +169,15 @@ export function ceoBriefing(data: NetworkData, now = new Date()): Briefing {
     .filter((s) => s.status === "ELEVATED" || s.status === "ALERT")
     .sort((a, b) => rank[a.status] - rank[b.status]);
   const clearCount = data.statuses.filter((s) => s.status === "CLEAR").length;
-  const micro = briefingMicro(now, "Morning briefing");
+  const h = centralHour(now);
+  const micro = briefingMicro(now, h < 12 ? "Morning briefing" : "Today's briefing");
   const hasWeather = data.incidents.some((i) => /weather|advisory|nws/i.test(i.kind + " " + i.source));
   const weather = hasWeather ? "There is a weather advisory in effect — outdoor guidance applies" : "No weather concerns";
 
   if (attention.length === 0) {
     return {
       micro,
-      lead: "Good morning.",
+      lead: `${greeting(now)}.`,
       key: `All ${numWord(n)} campuses are clear.`,
       keyClass: "clear",
       para: [
@@ -204,7 +212,7 @@ export function ceoBriefing(data: NetworkData, now = new Date()): Briefing {
   } else {
     para.push({ t: `${weather}. I'll brief you again before dismissal.` });
   }
-  return { micro, lead: "Good morning.", key, keyClass: statusClass(worst), para };
+  return { micro, lead: `${greeting(now)}.`, key, keyClass: statusClass(worst), para };
 }
 
 /* ============================================================
@@ -214,8 +222,8 @@ export function ceoBriefing(data: NetworkData, now = new Date()): Briefing {
 export function leaderBriefing(data: NetworkData, code: string, now = new Date()): Briefing {
   const campus = data.campuses.find((c) => c.code === code) ?? data.campuses[0];
   const st = data.statuses.find((s) => s.campusCode === campus.code)?.status ?? "CLEAR";
-  const lead = `Good morning, ${campus.principal ? "Principal " + surname(campus.principal) : "Principal"}.`;
-  const micro = briefingMicro(now, "Your campus this morning");
+  const lead = `${greeting(now)}, ${campus.principal ? "Principal " + surname(campus.principal) : "Principal"}.`;
+  const micro = briefingMicro(now, centralHour(now) < 12 ? "Your campus this morning" : "Your campus today");
   const key = `Your campus is ${statusWord(st)}.`;
   const keyClass = statusClass(st);
 
