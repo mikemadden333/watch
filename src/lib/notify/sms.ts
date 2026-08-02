@@ -14,8 +14,9 @@ export function smsConfigured(): boolean {
   return !!(
     process.env.TWILIO_ACCOUNT_SID &&
     process.env.TWILIO_AUTH_TOKEN &&
-    process.env.TWILIO_FROM &&
-    process.env.WATCH_ALERT_SMS_TO
+    process.env.WATCH_ALERT_SMS_TO &&
+    // send via an A2P Messaging Service (preferred) or a raw From number
+    (process.env.TWILIO_MESSAGING_SERVICE_SID || process.env.TWILIO_FROM)
   );
 }
 
@@ -25,14 +26,19 @@ export async function sendAlertSms(
   if (!smsConfigured()) return { sent: 0, recipients: 0, degraded: true };
   const sid = process.env.TWILIO_ACCOUNT_SID!;
   const token = process.env.TWILIO_AUTH_TOKEN!;
-  const from = process.env.TWILIO_FROM!;
+  const messagingServiceSid = process.env.TWILIO_MESSAGING_SERVICE_SID;
+  const from = process.env.TWILIO_FROM;
   const tos = (process.env.WATCH_ALERT_SMS_TO || "").split(",").map((s) => s.trim()).filter(Boolean);
   const auth = Buffer.from(`${sid}:${token}`).toString("base64");
   let sent = 0;
   let error: string | undefined;
   for (const to of tos) {
     try {
-      const params = new URLSearchParams({ To: to, From: from, Body: body.slice(0, 600) });
+      // prefer the A2P Messaging Service; fall back to a raw From number
+      const fields: Record<string, string> = { To: to, Body: body.slice(0, 600) };
+      if (messagingServiceSid) fields.MessagingServiceSid = messagingServiceSid;
+      else if (from) fields.From = from;
+      const params = new URLSearchParams(fields);
       const res = await fetch(`https://api.twilio.com/2010-04-01/Accounts/${sid}/Messages.json`, {
         method: "POST",
         headers: {
