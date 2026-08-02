@@ -8,7 +8,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "verify:rules": "esbuild scripts/verify-rules.mts --bundle --platform=node --format=cjs | node -"
+    "verify:rules": "esbuild scripts/verify-rules.mts --bundle --platform=node --format=cjs | node -",
+    "verify:news": "esbuild scripts/verify-news.mts --bundle --platform=node --format=cjs | node -"
   },
   "dependencies": {
     "@supabase/supabase-js": "2.48.1",

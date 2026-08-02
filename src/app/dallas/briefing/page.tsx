@@ -1,16 +1,24 @@
 import Link from "next/link";
 import LiveBriefing from "@/components/live/LiveBriefing";
 import LiveFooter from "@/components/live/LiveFooter";
+import BreakingNews from "@/components/BreakingNews";
 import { getNetworkData } from "@/lib/networkData";
+import { getBreakingNews } from "@/lib/breakingNews";
 
 export const dynamic = "force-dynamic"; // always read fresh live data
 
 export default async function DallasBriefing() {
-  const data = await getNetworkData("solis-academies");
+  const [data, breaking] = await Promise.all([
+    getNetworkData("solis-academies"),
+    getBreakingNews("solis-academies"),
+  ]);
   if (!data) return <NotConnected />;
   return (
     <>
       <LiveBriefing data={data} base="/dallas" />
+      <div style={{ padding: "0 28px", maxWidth: 900, margin: "0 auto" }}>
+        <BreakingNews data={breaking} live={data.live} />
+      </div>
       <LiveFooter data={data} />
     </>
   );

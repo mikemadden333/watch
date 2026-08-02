@@ -1,7 +1,9 @@
 import Link from "next/link";
 import FreshnessFooter from "@/components/FreshnessFooter";
 import IntelligenceFeed, { type FeedItem } from "@/components/IntelligenceFeed";
+import BreakingNews from "@/components/BreakingNews";
 import { StatusPill } from "@/components/ui";
+import { getBreakingNews } from "@/lib/breakingNews";
 import {
   campuses,
   incidents,
@@ -10,6 +12,8 @@ import {
   morningStatuses,
   statusOf,
 } from "@/lib/data/chicago";
+
+export const dynamic = "force-dynamic"; // the breaking-news monitor reads live
 
 const engJourney = incidents.find((i) => i.id === "inc-eng-shooting")?.journey;
 
@@ -22,7 +26,8 @@ const feedItems: FeedItem[] = intelligenceFeed.map((row) => ({
   journey: row.title.includes("63rd & Halsted") ? engJourney : undefined,
 }));
 
-export default function BriefingPage() {
+export default async function BriefingPage() {
+  const breaking = await getBreakingNews("veritas-charter");
   return (
     <>
       {/* posture banner */}
@@ -168,6 +173,13 @@ export default function BriefingPage() {
             <span className="micro">Tap a row for its verification journey</span>
           </div>
           <IntelligenceFeed items={feedItems} />
+
+          <div style={{ marginTop: 20 }}>
+            <div style={{ fontSize: 10.5, color: "var(--mut)", marginBottom: 8, letterSpacing: 0.3 }}>
+              ↓ The scenario above is scripted. The monitor below is <b>live right now</b>.
+            </div>
+            <BreakingNews data={breaking} live={!!breaking} />
+          </div>
         </div>
 
         {/* rail */}

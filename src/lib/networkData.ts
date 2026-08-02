@@ -186,6 +186,7 @@ function mapIncident(r: Record<string, unknown>, campuses: Campus[]): Incident {
     distanceMi: dist,
     bearing: bear,
     note: r.note ? String(r.note) : undefined,
+    geoConfidence: r.geo_confidence ? (String(r.geo_confidence) as Incident["geoConfidence"]) : undefined,
     verifiedBy: r.verified_by ? String(r.verified_by) : undefined,
     verifiedAt: r.verified_at ? fmtTime(String(r.verified_at)) : undefined,
     verifierNote: r.verifier_note ? String(r.verifier_note) : undefined,

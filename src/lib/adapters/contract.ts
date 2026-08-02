@@ -42,7 +42,16 @@ export interface NormalizedIncident {
   bearing?: string;
   /** one-line address for later geocoding (e.g. Dallas dispatch) */
   geocodeQuery?: string;
+  /** How precise is this incident's location?
+   *   exact/block  — a real point or a block/cross-street: ring-eligible.
+   *   neighborhood — a community-area centroid: coarse, context-only,
+   *                  NEVER allowed to trigger a distance-ring rule.
+   *   city         — no location at all: network-scope only.
+   *  Absent ⇒ treated as 'exact' (authoritative feeds carry true points). */
+  geoConfidence?: GeoConfidence;
 }
+
+export type GeoConfidence = "exact" | "block" | "neighborhood" | "city";
 
 /** A weather posture signal fed to the rules engine (NWS). */
 export interface NormalizedWeatherSignal {
@@ -190,6 +199,7 @@ export async function persistIncidents(
     victim_note: i.victimNote ?? null,
     corroborating: i.corroborating ?? [],
     note: i.note ?? null,
+    geo_confidence: i.geoConfidence ?? null,
   }));
   const { error } = await sb
     .from("incidents")

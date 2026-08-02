@@ -6,6 +6,7 @@
     { "path": "/api/cron/evaluate", "schedule": "*/2 * * * *" },
     { "path": "/api/cron/gdelt", "schedule": "*/10 * * * *" },
     { "path": "/api/cron/news", "schedule": "*/10 * * * *" },
+    { "path": "/api/cron/rss", "schedule": "*/10 * * * *" },
     { "path": "/api/cron/cpd-vr", "schedule": "*/30 * * * *" },
     { "path": "/api/cron/cpd-crimes", "schedule": "0 * * * *" },
     { "path": "/api/cron/cook-me", "schedule": "0 */6 * * *" },

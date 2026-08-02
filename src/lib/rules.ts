@@ -47,6 +47,20 @@ export interface RuleIncident {
   corroborationSpreadMin?: number;
   /** Citizen-verified fast signal (A-3) */
   citizenVerified?: boolean;
+  /** Location precision. INTEGRITY GATE: only "exact"/"block" incidents may
+   *  enter a distance-ring rule. A "neighborhood" centroid can be a mile off
+   *  its true point, so testing it against a 0.5 mi ring is meaningless — and
+   *  dangerous: it would drive a status on a location we don't actually know.
+   *  Coarse signals surface in the briefing as context, never on the map,
+   *  never in a ring. Absent ⇒ "exact" (authoritative feeds carry points). */
+  geoConfidence?: "exact" | "block" | "neighborhood" | "city";
+}
+
+/** The integrity gate. A location must be precise (a real point or a
+ *  block/cross-street) to be tested against a campus ring. */
+function ringEligible(i: RuleIncident): boolean {
+  const g = i.geoConfidence ?? "exact";
+  return g === "exact" || g === "block";
 }
 
 export interface WeatherSignal {
@@ -106,6 +120,7 @@ export function evaluateCampus(ctx: RuleContext): RuleResult {
       CONFIRMED_SOURCES.includes(i.tier) &&
       (i.kind === "shooting" || i.kind === "homicide") &&
       onLatestDataDay(i, ctx.latestDataDay) &&
+      ringEligible(i) &&
       distanceMi(ctx.campus, i) <= t.alertRingMi
   );
   if (a2) {
@@ -122,7 +137,7 @@ export function evaluateCampus(ctx: RuleContext): RuleResult {
   // A-3 · Citizen-verified in alert ring — ONLY if Citizen contracted
   if (t.citizenContracted) {
     const a3 = ctx.incidents.find(
-      (i) => i.citizenVerified && distanceMi(ctx.campus, i) <= t.alertRingMi
+      (i) => i.citizenVerified && ringEligible(i) && distanceMi(ctx.campus, i) <= t.alertRingMi
     );
     if (a3) {
       return {
@@ -157,6 +172,7 @@ export function evaluateCampus(ctx: RuleContext): RuleResult {
       CONFIRMED_SOURCES.includes(i.tier) &&
       VIOLENT.has(i.kind) &&
       onLatestDataDay(i, ctx.latestDataDay) &&
+      ringEligible(i) &&
       distanceMi(ctx.campus, i) <= t.elevatedRingMi
   );
   if (e2) {
@@ -176,6 +192,7 @@ export function evaluateCampus(ctx: RuleContext): RuleResult {
       i.tier === "CORROBORATED" &&
       VIOLENT.has(i.kind) &&
       (i.outletCount ?? 0) >= t.e3OutletCount &&
+      ringEligible(i) &&
       distanceMi(ctx.campus, i) <= t.elevatedRingMi &&
       (i.corroborationSpreadMin ?? 0) <= t.m1WindowMin
   );
@@ -197,6 +214,7 @@ export function evaluateCampus(ctx: RuleContext): RuleResult {
       i.tier === "CORROBORATED" &&
       VIOLENT.has(i.kind) &&
       (i.outletCount ?? 0) >= t.m1OutletCount &&
+      ringEligible(i) &&
       distanceMi(ctx.campus, i) <= t.elevatedRingMi &&
       (i.corroborationSpreadMin ?? 0) <= t.m1WindowMin
   );
@@ -216,6 +234,7 @@ export function evaluateCampus(ctx: RuleContext): RuleResult {
   const m2 = ctx.incidents.find(
     (i) =>
       i.kind === "dispatch" &&
+      ringEligible(i) &&
       distanceMi(ctx.campus, i) <= t.elevatedRingMi &&
       minutesAgo(i.occurredAt, ctx.now) <= 36 * 60
   );

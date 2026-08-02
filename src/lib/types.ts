@@ -76,6 +76,9 @@ export interface Incident {
   distanceMi?: number; // to nearest campus
   bearing?: string; // "NE"
   note?: string; // "outside all rings, logged"
+  /** location precision — 'exact'/'block' are ring-eligible, 'neighborhood'
+   *  is coarse (context only), 'city' has no location. See rules integrity gate. */
+  geoConfidence?: "exact" | "block" | "neighborhood" | "city";
   /** v1.1 verifier seat — a named human confirms significant incidents */
   verifiedBy?: string; // "M. Reese · Safety Director"
   verifiedAt?: string; // display time

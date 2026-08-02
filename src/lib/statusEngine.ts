@@ -53,7 +53,7 @@ export async function evaluateTenant(
     sb.from("campus_status").select("*").eq("tenant_id", tid),
     sb
       .from("incidents")
-      .select("id,kind,tier,lat,lon,occurred_at,published_at,corroborating")
+      .select("id,kind,tier,lat,lon,occurred_at,published_at,corroborating,geo_confidence")
       .eq("tenant_id", tid)
       .gte("occurred_at", new Date(now.getTime() - 48 * 3600 * 1000).toISOString()),
   ]);
@@ -91,6 +91,7 @@ export async function evaluateTenant(
         publishedAt: String(i.published_at ?? i.occurred_at ?? ""),
         outletCount: outlets || (i.tier === "CORROBORATED" ? 2 : 1),
         corroborationSpreadMin: 10,
+        geoConfidence: (i.geo_confidence as RuleIncident["geoConfidence"]) ?? "exact",
       };
     });
 
