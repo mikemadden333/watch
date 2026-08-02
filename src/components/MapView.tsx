@@ -12,12 +12,21 @@ import { fmtCentral } from "@/lib/time";
 import { StatusPill, statusColorVar } from "./ui";
 import type { Campus, CampusStatus, Incident } from "@/lib/types";
 
+export interface MapCorridor {
+  campusCode: string;
+  name: string;
+  path: [number, number][];
+  bufferMi: number;
+}
+
 export interface MapViewProps {
   campuses?: Campus[];
   incidents?: Incident[];
   statuses?: CampusStatus[];
   /** age reference for the 7-day fade; defaults to the seeded morning. */
   nowIso?: string;
+  /** Safe Passage walking corridors to overlay */
+  corridors?: MapCorridor[];
 }
 
 const MI_TO_M = 1609.34;
@@ -154,6 +163,17 @@ export default function MapView(props: MapViewProps = {}) {
       fillColor: "#B3261E",
       fillOpacity: 0.05,
     }).addTo(g);
+
+    // safe-passage corridors (drawn under incidents): a translucent buffer
+    // band + a crisp centerline. Walking routes read in a calm route-blue,
+    // distinct from the status palette.
+    (props.corridors ?? []).forEach((cor) => {
+      if (cor.path.length < 2) return;
+      L.polyline(cor.path, { color: "#4A6B8A", weight: 16, opacity: 0.14, lineCap: "round" }).addTo(g);
+      L.polyline(cor.path, { color: "#3A5A78", weight: 3, opacity: 0.9, dashArray: "1 7", lineCap: "round" })
+        .addTo(g)
+        .bindTooltip(`Safe Passage · ${cor.name}`, { direction: "top" });
+    });
 
     // incidents
     incidents.forEach((inc) => {
