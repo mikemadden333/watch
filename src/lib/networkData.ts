@@ -10,6 +10,7 @@
    the browser; there it simply returns null).
    ============================================================ */
 
+import { cache } from "react";
 import { getServiceClient } from "./supabase";
 import { distanceMi, bearing } from "./geo";
 import { fmtCentral } from "./time";
@@ -40,7 +41,9 @@ export interface NetworkData {
 
 const STATUS_ORDER: Record<Status, number> = { ALERT: 0, ELEVATED: 1, MONITOR: 2, CLEAR: 3 };
 
-export async function getNetworkData(slug: string): Promise<NetworkData | null> {
+export const getNetworkData = cache(_getNetworkData);
+
+async function _getNetworkData(slug: string): Promise<NetworkData | null> {
   let sb;
   try {
     sb = getServiceClient();

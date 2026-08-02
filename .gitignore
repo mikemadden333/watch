@@ -31,3 +31,4 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 .env*
+_v2pkg/

@@ -365,3 +365,603 @@ a {
   border: 2.5px solid #fff;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
 }
+
+/* ============================================================
+   V2 SURFACE — ported from the wireframes (design source of truth).
+   Three-layer voice: ANSWER (Georgia serif) → STORY → EVIDENCE.
+   Reuses the v1 palette tokens; adds the new nav, briefing, pulse,
+   act, record, and about layouts. Cream/ink throughout.
+   ============================================================ */
+
+/* --- nav (tabs + view toggle + tenant mark) --- */
+.nav2 {
+  height: 56px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 40px;
+  border-bottom: 1px solid var(--line);
+  background: var(--panel);
+  position: sticky;
+  top: 0;
+  z-index: 40;
+}
+.nav2 .tabs {
+  display: flex;
+  gap: 4px;
+  margin-left: 26px;
+}
+.nav2 .tab {
+  color: var(--mut);
+  text-decoration: none;
+  font-size: 13px;
+  padding: 7px 13px;
+  border-radius: 6px;
+  transition: color 0.15s, background 0.15s;
+}
+.nav2 .tab:hover {
+  color: var(--ink);
+}
+.nav2 .tab.on {
+  color: #fff;
+  background: var(--ink);
+  font-weight: 600;
+}
+.nav2 .gear {
+  color: var(--mut);
+  display: inline-flex;
+  align-items: center;
+  padding: 6px;
+  border-radius: 6px;
+}
+.nav2 .gear:hover {
+  color: var(--ink);
+  background: var(--bg);
+}
+.toggle {
+  margin-left: auto;
+  display: flex;
+  border: 1px solid var(--line2);
+  border-radius: 7px;
+  overflow: hidden;
+  font-size: 11.5px;
+  font-weight: 600;
+}
+.toggle a,
+.toggle span {
+  padding: 7px 14px;
+  text-decoration: none;
+  cursor: pointer;
+}
+.toggle .sel {
+  background: var(--ink);
+  color: var(--bg);
+}
+.toggle .un {
+  color: var(--mut);
+}
+.toggle .un:hover {
+  color: var(--ink);
+}
+.tenant {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-left: 18px;
+}
+
+/* --- campus picker (leader view sub-bar) --- */
+.campuspick {
+  max-width: 880px;
+  margin: 26px auto 0;
+  padding: 0 40px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+  color: var(--mut);
+  flex-wrap: wrap;
+}
+.campuspick .pill2 {
+  border: 1px solid var(--line2);
+  background: #fff;
+  border-radius: 6px;
+  padding: 5px 12px;
+  font-weight: 600;
+  color: var(--ink);
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  cursor: pointer;
+}
+.campuspick .pill2 i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+.campusmenu {
+  position: relative;
+}
+.campusmenu .menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 50;
+  background: var(--panel);
+  border: 1px solid var(--line2);
+  border-radius: 8px;
+  box-shadow: 0 10px 30px rgba(27, 26, 23, 0.16);
+  padding: 5px;
+  min-width: 240px;
+}
+.campusmenu .menu a {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  font-size: 13px;
+  color: var(--ink);
+  font-weight: 500;
+}
+.campusmenu .menu a:hover {
+  background: var(--bg);
+}
+.campusmenu .menu a i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* --- briefing: the three-layer front door --- */
+.v2hero {
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 34px 40px 0;
+}
+.v2hero.ceo {
+  padding-top: 64px;
+}
+.sentence {
+  font-family: Georgia, serif;
+  font-size: 34px;
+  line-height: 1.25;
+  letter-spacing: -0.2px;
+  margin-top: 14px;
+  text-wrap: balance;
+}
+.sentence .elev {
+  color: var(--elevated);
+}
+.sentence .alert {
+  color: var(--alert);
+}
+.sentence .clear {
+  color: var(--clear);
+}
+.sentence .monitor {
+  color: var(--monitor);
+}
+.para {
+  font-size: 16.5px;
+  line-height: 1.65;
+  color: #3d3a33;
+  margin-top: 18px;
+  max-width: 760px;
+}
+.para b {
+  color: var(--ink);
+}
+.cta {
+  display: flex;
+  gap: 12px;
+  margin-top: 26px;
+  flex-wrap: wrap;
+}
+
+/* CEO campus strip */
+.strip {
+  max-width: 1160px;
+  margin: 52px auto 0;
+  padding: 0 40px;
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 10px;
+}
+@media (max-width: 1080px) {
+  .strip {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+@media (max-width: 620px) {
+  .strip {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+.cs {
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--panel);
+  padding: 13px 14px;
+  text-decoration: none;
+  color: inherit;
+  display: block;
+}
+.cs .nm {
+  font-size: 12.5px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.cs .nm i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.cs .st {
+  font-size: 10.5px;
+  color: var(--mut);
+  margin-top: 5px;
+  line-height: 1.45;
+}
+.cs.hot {
+  border-color: var(--elevated);
+  background: var(--elevatedbg);
+}
+.cs.alertc {
+  border-color: var(--alert);
+  background: var(--alertbg);
+}
+
+/* CEO "while you slept" story timeline */
+.story {
+  max-width: 880px;
+  margin: 56px auto 0;
+  padding: 0 40px 90px;
+}
+.story .rows {
+  margin-top: 16px;
+  border-left: 2px solid var(--line2);
+  padding-left: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+.srow {
+  position: relative;
+  font-size: 13.5px;
+  color: #3d3a33;
+  line-height: 1.5;
+}
+.srow::before {
+  content: "";
+  position: absolute;
+  left: -27.5px;
+  top: 5px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--faint);
+}
+.srow.conf::before {
+  background: var(--clear);
+}
+.srow.elev::before {
+  background: var(--elevated);
+}
+.srow.alert::before {
+  background: var(--alert);
+}
+.srow .t {
+  font-family: Menlo, monospace;
+  font-size: 10.5px;
+  color: var(--mut);
+  margin-right: 10px;
+}
+.quiet {
+  font-size: 11px;
+  color: var(--mut);
+  margin-top: 34px;
+  line-height: 1.6;
+}
+.quiet a,
+.quiet u {
+  cursor: pointer;
+}
+
+/* leader action cards */
+.acts {
+  max-width: 880px;
+  margin: 40px auto 0;
+  padding: 0 40px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+@media (max-width: 720px) {
+  .acts {
+    grid-template-columns: 1fr;
+  }
+}
+.ac {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--panel);
+  padding: 16px 17px;
+  text-decoration: none;
+  color: inherit;
+  display: block;
+}
+.ac .k {
+  font-family: Menlo, monospace;
+  font-size: 9.5px;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  color: var(--mut);
+}
+.ac .v {
+  font-size: 14.5px;
+  font-weight: 700;
+  margin-top: 7px;
+  line-height: 1.4;
+}
+.ac .s {
+  font-size: 11.5px;
+  color: var(--mut);
+  margin-top: 6px;
+  line-height: 1.5;
+}
+.ac.primary {
+  border-color: var(--ink);
+}
+
+/* leader evidence timeline */
+.evi {
+  max-width: 880px;
+  margin: 48px auto 0;
+  padding: 0 40px 60px;
+}
+.evi .rows {
+  margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--panel);
+  overflow: hidden;
+}
+.erow {
+  display: flex;
+  gap: 14px;
+  padding: 12px 18px;
+  border-bottom: 1px solid var(--line);
+  font-size: 13px;
+  color: #3d3a33;
+  align-items: baseline;
+  text-decoration: none;
+}
+.erow:last-child {
+  border-bottom: none;
+}
+.erow:hover {
+  background: var(--bg);
+}
+.erow .t {
+  font-family: Menlo, monospace;
+  font-size: 10.5px;
+  color: var(--mut);
+  width: 74px;
+  flex-shrink: 0;
+}
+.erow .badge {
+  margin-left: auto;
+}
+
+/* dismissal outlook line */
+.dismissal {
+  max-width: 880px;
+  margin: 44px auto 0;
+  padding: 0 40px;
+}
+.dline {
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--monitor);
+  border-radius: 9px;
+  background: var(--panel);
+  padding: 14px 18px;
+  font-size: 13.5px;
+  color: #3d3a33;
+  line-height: 1.55;
+}
+
+/* --- pulse --- */
+.head {
+  max-width: 1160px;
+  margin: 30px auto 0;
+  padding: 0 40px;
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.head .sentence {
+  font-family: Georgia, serif;
+  font-size: 26px;
+  letter-spacing: -0.2px;
+  margin-top: 0;
+}
+.wrap2 {
+  max-width: 1160px;
+  margin: 26px auto 0;
+  padding: 0 40px 60px;
+  display: flex;
+  gap: 22px;
+}
+@media (max-width: 900px) {
+  .wrap2 {
+    flex-direction: column;
+  }
+}
+.mappane {
+  flex: 1.6;
+  position: relative;
+  background: #edeae2;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  height: 560px;
+  overflow: hidden;
+}
+.ringp {
+  position: absolute;
+  border-radius: 50%;
+}
+.ipoint {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+  z-index: 4;
+}
+.radius {
+  position: absolute;
+  border: 1.5px dashed #b8b3a6;
+  border-radius: 50%;
+}
+.pcampus {
+  position: absolute;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--elevated);
+  border: 2.5px solid #1b1a17;
+  color: #fff;
+  font-family: Menlo, monospace;
+  font-size: 8px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 5;
+}
+.rail2 {
+  flex: 1;
+  min-width: 0;
+}
+.pcard {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--panel);
+  padding: 16px 18px;
+}
+.pnum {
+  font-size: 30px;
+  font-weight: 800;
+}
+.plist {
+  margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--panel);
+  overflow: hidden;
+}
+.prow {
+  padding: 13px 16px;
+  border-bottom: 1px solid var(--line);
+}
+.prow:last-child {
+  border-bottom: none;
+}
+.prow .top {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 12.5px;
+  font-weight: 700;
+}
+.prow .sub {
+  font-size: 11px;
+  color: var(--mut);
+  margin-top: 4px;
+}
+.fade {
+  height: 5px;
+  border-radius: 3px;
+  background: var(--line);
+  margin-top: 8px;
+  position: relative;
+  overflow: hidden;
+}
+.fade i {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  border-radius: 3px;
+  background: var(--elevated);
+}
+.note {
+  font-size: 11.5px;
+  color: var(--mut);
+  line-height: 1.6;
+  margin-top: 14px;
+}
+
+/* CEO pulse grid */
+.pulsegrid {
+  max-width: 1160px;
+  margin: 26px auto 0;
+  padding: 0 40px 60px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+@media (max-width: 900px) {
+  .pulsegrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (max-width: 620px) {
+  .pulsegrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* --- shared prose (act / about / record intros) --- */
+.v2prose {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 40px 40px 80px;
+}
+.v2prose p {
+  font-size: 15.5px;
+  line-height: 1.72;
+  color: #3d3a33;
+  margin-top: 16px;
+}
+.v2prose h2 {
+  font-family: Georgia, serif;
+  font-weight: 400;
+  font-size: 23px;
+  margin-top: 40px;
+  letter-spacing: -0.2px;
+}
+.v2prose h2:first-child {
+  margin-top: 0;
+}
+.v2prose .sig {
+  font-family: Georgia, serif;
+  font-style: italic;
+  font-size: 16px;
+  color: var(--ink);
+  margin-top: 30px;
+}
