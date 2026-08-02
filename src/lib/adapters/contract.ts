@@ -172,6 +172,30 @@ export async function persistIncidents(
   return { persisted: rows.length, degraded: false };
 }
 
+/** Archive a full source snapshot. Dallas PD Active Calls keeps NO history —
+ *  the feed is a live-only window — so every poll is archived verbatim to
+ *  reconstruct history later. Graceful degrade like persistIncidents. */
+export async function persistSnapshot(
+  tenantId: string,
+  source: string,
+  payload: unknown[]
+): Promise<{ archived: boolean; degraded: boolean }> {
+  let sb;
+  try {
+    sb = getServiceClient();
+  } catch {
+    return { archived: false, degraded: true };
+  }
+  const { error } = await sb.from("dispatch_snapshots").insert({
+    tenant_id: tenantId,
+    source,
+    captured_at: new Date().toISOString(),
+    record_count: payload.length,
+    payload,
+  });
+  return { archived: !error, degraded: !!error };
+}
+
 /** Write/refresh a source_health row. Graceful degrade like persistIncidents. */
 export async function persistHealth(
   tenantId: string,

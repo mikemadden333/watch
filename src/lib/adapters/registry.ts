@@ -3,6 +3,7 @@
 
 import type { AdapterCampus } from "./contract";
 import { campuses as chicagoCampuses, tenant as chicagoTenant } from "../data/chicago";
+import { campuses as dallasCampuses, tenant as dallasTenant } from "../data/dallas";
 
 export interface AdapterTenant {
   id: string;
@@ -30,6 +31,12 @@ export function adapterTenants(): AdapterTenant[] {
       name: chicagoTenant.name,
       city: chicagoTenant.city,
       campuses: toAdapterCampuses(chicagoCampuses),
+    },
+    {
+      id: dallasTenant.id,
+      name: dallasTenant.name,
+      city: dallasTenant.city,
+      campuses: toAdapterCampuses(dallasCampuses),
     },
   ];
   return tenants;
