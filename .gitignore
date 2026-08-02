@@ -32,3 +32,14 @@ yarn-error.log*
 next-env.d.ts
 .env*
 _v2pkg/
+V2_DIRECTIVE.md
+about_watch.md
+act_comms_templates.md
+act_response_plan_template.md
+/styles.css
+v2-briefing-ceo.html
+v2-briefing-ceo.png
+v2-briefing-leader.html
+v2-briefing-leader.png
+v2-pulse.html
+v2-pulse.png

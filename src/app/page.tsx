@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import s from "./splash.module.css";
-import { BRAND_LINE } from "@/lib/legal";
+import NightSplash from "@/components/NightSplash";
 
 export default function SplashPage() {
   const [entered, setEntered] = useState(false);
@@ -16,65 +16,10 @@ export default function SplashPage() {
 
   return (
     <div className={s.root}>
-      {/* ================= SPLASH ================= */}
-      <div
-        className={`${s.splash}${entered ? " " + s.gone : ""}`}
-        onClick={() => setEntered(true)}
-      >
-        <div className={s.rings}>
-          <svg viewBox="0 0 1200 1200">
-            <g fill="none" stroke="#1B1A17">
-              <circle className={s.ringA} cx="600" cy="600" r="170" strokeOpacity=".14" strokeWidth="1.4" />
-              <circle className={s.ringB} cx="600" cy="600" r="310" strokeOpacity=".10" strokeWidth="1.2" />
-              <circle className={s.ringC} cx="600" cy="600" r="460" strokeOpacity=".07" strokeWidth="1" />
-              <circle cx="600" cy="600" r="590" strokeOpacity=".05" strokeWidth="1" />
-            </g>
-            <g fill="none" stroke="#C75B12">
-              <circle cx="600" cy="600" r="240" strokeOpacity=".28" strokeWidth="1.3" strokeDasharray="3 9" />
-            </g>
-            <g className={s.sweepline}>
-              <defs>
-                <linearGradient id="fade" x1="0" y1="1" x2="0" y2="0">
-                  <stop offset="0" stopColor="#C75B12" stopOpacity=".38" />
-                  <stop offset="1" stopColor="#C75B12" stopOpacity="0" />
-                </linearGradient>
-              </defs>
-              <line x1="600" y1="455" x2="600" y2="55" stroke="url(#fade)" strokeWidth="1.6" />
-              <circle cx="600" cy="360" r="4" fill="#C75B12" fillOpacity=".85" />
-              <circle cx="600" cy="360" r="9" fill="none" stroke="#C75B12" strokeOpacity=".3" />
-            </g>
-          </svg>
-        </div>
-        <div className={s.blip} style={{ left: "calc(50% + 205px)", top: "calc(50% - 128px)", color: "var(--elevated)", animationDelay: "0s" }}><i /></div>
-        <div className={s.blip} style={{ left: "calc(50% - 268px)", top: "calc(50% + 158px)", color: "var(--monitor)", animationDelay: "2.9s" }}><i /></div>
-        <div className={s.blip} style={{ left: "calc(50% - 148px)", top: "calc(50% - 262px)", color: "var(--clear)", animationDelay: "5.6s" }}><i /></div>
+      {/* ================= NIGHTWATCH SPLASH (dark curtain) ================= */}
+      <NightSplash gone={entered} onEnter={() => setEntered(true)} />
 
-        <div className={s.splashCore}>
-          <div className={s.wordmark}>
-            Watch<span className={s.dot}>.</span>
-          </div>
-          <div className={s.subline}>Know first. Act fast.</div>
-          <div className={s.statusline}>
-            <span><i style={{ background: "var(--clear)" }} />CLEAR</span>
-            <span><i style={{ background: "var(--monitor)" }} />MONITOR</span>
-            <span><i style={{ background: "var(--elevated)" }} />ELEVATED</span>
-            <span><i style={{ background: "var(--alert)" }} />ALERT</span>
-          </div>
-          <div className={s.enter}>
-            <button className={s.enterBtn} onClick={(e) => { e.stopPropagation(); setEntered(true); }}>
-              Enter Watch →
-            </button>
-            <div className={`${s.hint} micro`}>
-              Safety intelligence for K-12 school networks · 24x7
-            </div>
-          </div>
-        </div>
-        <div className={s.splashFoot}>
-          <span className="micro">{BRAND_LINE}</span>
-        </div>
-      </div>
-
-      {/* ================= CITY SELECT ================= */}
+      {/* ================= CITY SELECT (cream) ================= */}
       <div className={`${s.select}${entered ? " " + s.on : ""}`}>
         <div className={s.selHead}>
           <div className={s.selBrand}>Watch<span className={s.dot}>.</span></div>
