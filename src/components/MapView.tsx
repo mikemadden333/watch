@@ -3,14 +3,21 @@
 import { useEffect, useRef, useState } from "react";
 import type { Map as LeafletMap, LayerGroup } from "leaflet";
 import {
-  campuses,
-  incidents,
+  campuses as chicagoCampuses,
+  incidents as chicagoIncidents,
   morningStatuses,
-  statusOf,
 } from "@/lib/data/chicago";
 import { distanceMi, bearing } from "@/lib/geo";
 import { StatusPill, statusColorVar } from "./ui";
-import type { Incident } from "@/lib/types";
+import type { Campus, CampusStatus, Incident } from "@/lib/types";
+
+export interface MapViewProps {
+  campuses?: Campus[];
+  incidents?: Incident[];
+  statuses?: CampusStatus[];
+  /** age reference for the 7-day fade; defaults to the seeded morning. */
+  nowIso?: string;
+}
 
 const MI_TO_M = 1609.34;
 
@@ -28,11 +35,24 @@ interface Layers {
   allCrimes: boolean;
 }
 
-export default function MapView() {
+export default function MapView(props: MapViewProps = {}) {
+  const campuses = props.campuses ?? chicagoCampuses;
+  const incidents = props.incidents ?? chicagoIncidents;
+  const statuses = props.statuses ?? morningStatuses;
+  const statusOf = (_list: unknown, code: string) =>
+    statuses.find((s) => s.campusCode === code) ?? {
+      campusCode: code,
+      status: "CLEAR" as const,
+      since: "",
+    };
+  const nowMs = props.nowIso
+    ? new Date(props.nowIso).getTime()
+    : new Date("2026-08-01T07:12:00-05:00").getTime();
+
   const mapEl = useRef<HTMLDivElement>(null);
   const mapRef = useRef<LeafletMap | null>(null);
   const overlayRef = useRef<LayerGroup | null>(null);
-  const [selected, setSelected] = useState("ENG");
+  const [selected, setSelected] = useState(campuses[0]?.code ?? "");
   const [windowDays, setWindowDays] = useState(7);
   const [layers, setLayers] = useState<Layers>({
     confirmed: true,
@@ -52,8 +72,10 @@ export default function MapView() {
       distanceMi(sel, i) <= sel.elevatedRingMi
   );
   const nearest = [...incidents]
-    .filter((i) => i.kind !== "weather-advisory")
-    .sort((a, b) => distanceMi(sel, a) - distanceMi(sel, b))[0];
+    .filter((i) => i.kind !== "weather-advisory" && i.lat && i.lon)
+    .sort((a, b) => distanceMi(sel, a) - distanceMi(sel, b))[0] as
+    | (typeof incidents)[number]
+    | undefined;
 
   // init map once
   useEffect(() => {
@@ -130,11 +152,12 @@ export default function MapView() {
     // incidents
     incidents.forEach((inc) => {
       if (inc.kind === "weather-advisory") return;
+      if (!inc.lat || !inc.lon) return; // no geometry (e.g. dispatch awaiting geocode)
       const show =
         (inc.tier === "CONFIRMED" && layers.confirmed) ||
         (inc.tier === "CORROBORATED" && layers.corroborated);
       if (!show) return;
-      const ageDays = incidentAgeDays(inc);
+      const ageDays = (nowMs - new Date(inc.occurredAt).getTime()) / 86400000;
       if (ageDays > windowDays) return;
       const opacity = fadeByAge(ageDays);
       const color = inc.tier === "CONFIRMED" ? "#1E6E4E" : "#B08A1E";
@@ -273,7 +296,11 @@ export default function MapView() {
               <PopRow label="Confirmed in ring · 7 d" value={String(confirmedInRing.length)} />
               <PopRow
                 label="Nearest confirmed"
-                value={`${distanceMi(sel, nearest).toFixed(2)} mi · ${bearing(sel, nearest)}`}
+                value={
+                  nearest
+                    ? `${distanceMi(sel, nearest).toFixed(2)} mi · ${bearing(sel, nearest)}`
+                    : "none in range"
+                }
               />
               <PopRow label="Occurred" value={selStatus.ruleId === "E-2" ? "yest 21:47" : "—"} />
               <PopRow label="Published" value={selStatus.ruleId === "E-2" ? "06:40 today" : "—"} />
@@ -326,11 +353,6 @@ export default function MapView() {
   );
 }
 
-function incidentAgeDays(inc: Incident): number {
-  // Age relative to the scenario "now" (morning of Aug 1, 07:12).
-  const now = new Date("2026-08-01T07:12:00-05:00").getTime();
-  return (now - new Date(inc.occurredAt).getTime()) / 86400000;
-}
 function fadeByAge(ageDays: number): number {
   return Math.max(0.28, 1 - ageDays / 7);
 }

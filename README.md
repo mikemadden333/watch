@@ -147,13 +147,22 @@ Cron cadence is in `vercel.json`; sub-daily crons need a Vercel Pro plan.
 When `CRON_SECRET` is set, cron requests must send
 `Authorization: Bearer <secret>` (Vercel injects it).
 
+## Live UI
+
+- **Chicago (Veritas)** — the authored seeded spine, the demo backbone
+  (`/chicago/*`), rendered from fixtures. Labeled a simulation.
+- **Dallas (Solis)** — **fully live** (`/dallas/*`): the same six screens
+  read from Supabase via `src/lib/networkData.ts` (server-only service
+  read, filtered by tenant), showing real Dallas PD dispatch, live NWS,
+  and live feed freshness. Same components, live data, zero fork — the
+  "adapter pack, not a rebuild" thesis in one product.
+
 ## Still to come
 
 GDELT/RSS headline layer, the retro-confirmation matcher → accuracy
-ledger, wiring the screens to read live from Supabase, geocoding the
-Dallas dispatch archive to campus rings, and the Dallas UI (the six
-screens rendered for the Solis tenant). The Citizen webhook slot is
-designed for but off until keys land.
+ledger, running the rules engine against live incidents to drive status
+changes, and geocoding the Dallas dispatch archive to campus rings. The
+Citizen webhook slot is designed for but off until keys land.
 
 ---
 
