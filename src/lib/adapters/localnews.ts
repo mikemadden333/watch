@@ -31,6 +31,7 @@ const KIND: Record<EventType, string> = {
   homicide: "homicide",
   shooting: "shooting",
   stabbing: "stabbing",
+  "sexual-assault": "sexual-assault",
   robbery: "robbery",
   violent: "violent",
 };
@@ -39,6 +40,7 @@ const EVENT_LABEL: Record<EventType, string> = {
   homicide: "Reported homicide",
   shooting: "Reported shooting",
   stabbing: "Reported stabbing",
+  "sexual-assault": "Reported sexual assault",
   robbery: "Reported armed robbery",
   violent: "Reported violent incident",
 };

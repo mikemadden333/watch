@@ -11,6 +11,7 @@
    ============================================================ */
 
 import type { AdapterResult, NormalizedIncident } from "./contract";
+import { classifyCrime } from "../news/extract";
 
 const BASE = "https://api.gdeltproject.org/api/v2/doc/doc";
 const VIOLENCE = "(shooting OR shot OR homicide OR \"shots fired\" OR stabbing)";
@@ -22,13 +23,6 @@ interface GdeltArticle {
   domain?: string;
   language?: string;
   sourcecountry?: string;
-}
-
-function classify(title: string): string {
-  const t = title.toLowerCase();
-  if (t.includes("homicide") || t.includes("killed") || t.includes("fatal")) return "homicide";
-  if (t.includes("stab")) return "stabbing";
-  return "shooting";
 }
 
 function parseSeen(s?: string): string | undefined {
@@ -78,12 +72,19 @@ export async function runGdeltAdapter(
   for (const a of articles) {
     if (!a.url || !a.title) continue;
     if (seen.has(a.url)) continue;
+    // GDELT matches full article text, so it surfaces sports ("Brewers down
+    // Angels"), history ("today in history: shot and killed"), court coverage
+    // and policy — any article that merely mentions "shot"/"Chicago". Gate on
+    // the HEADLINE with the shared serious-violent-crime filter. No serious
+    // crime in the title → drop it.
+    const kind = classifyCrime(a.title);
+    if (!kind) continue;
     seen.add(a.url);
     incidents.push({
       source: `GDELT · ${a.domain ?? "news wire"}`,
       sourceRecordId: `gdelt:${a.url}`,
       headline: `News · ${a.title.slice(0, 120)}`,
-      kind: classify(a.title),
+      kind,
       tier: "REPORTED", // single-source, headline-level — never confirms, never on the map
       occurredAt: parseSeen(a.seendate),
       publishedAt: parseSeen(a.seendate),

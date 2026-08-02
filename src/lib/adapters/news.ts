@@ -7,6 +7,7 @@
    ============================================================ */
 
 import type { AdapterResult, NormalizedIncident } from "./contract";
+import { classifyCrime } from "../news/extract";
 
 interface NewsArticle {
   title?: string;
@@ -61,12 +62,15 @@ export async function runNewsAdapter(city: string, pageSize = 15): Promise<Adapt
   const incidents: NormalizedIncident[] = [];
   for (const a of articles) {
     if (!a.url || !a.title || seen.has(a.url)) continue;
+    // same serious-violent-crime gate as GDELT / local news
+    const kind = classifyCrime(a.title);
+    if (!kind) continue;
     seen.add(a.url);
     incidents.push({
       source: `News · ${a.source?.name ?? "licensed"}`,
       sourceRecordId: `news:${a.url}`,
       headline: `News · ${a.title.slice(0, 120)}`,
-      kind: /homicide|killed|fatal/i.test(a.title) ? "homicide" : "shooting",
+      kind,
       tier: "CORROBORATED", // licensed outlet — corroborates, never confirms
       occurredAt: a.publishedAt,
       publishedAt: a.publishedAt,

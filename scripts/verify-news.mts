@@ -29,6 +29,33 @@ check("extract: non-violent ignored", !e3.isViolent && e3.eventType === null);
 const e4 = extract("Film crew stages fake shooting for movie downtown");
 check("extract: negative context suppresses", !e4.isViolent);
 
+/* ---------- serious-crime filter: adds rape/sexual assault, drops noise ---------- */
+const rape = extract("Woman raped in the 6300 block of South Halsted");
+check("filter: sexual assault detected + classified", rape.isViolent && rape.eventType === "sexual-assault", rape.eventType);
+const sa = extract("Teen sexually assaulted near Englewood park");
+check("filter: 'sexually assaulted' detected", sa.isViolent && sa.eventType === "sexual-assault", sa.eventType);
+
+// GDELT-style noise that must NOT pass the filter
+const noise = [
+  "Today in History : August 2 , Wild Bill shot and killed during poker game",
+  "MLB roundup : Brewers down Angels , move atop MLB standings",
+  "Robert Lewandowski scores twice in his Chicago Fire home debut",
+  "Today in History : verdict in Black Sox trial",
+  "City debates new gun control law after rally",
+  "Man killed in three-car crash on I-90",
+  "Police recover stolen catalytic converter in theft ring",
+  "Suspect sentenced to 20 years in prison for 2019 murder",
+];
+for (const n of noise) {
+  const x = extract(n);
+  check(`filter drops noise: "${n.slice(0, 42)}…"`, !x.isViolent, x.eventType);
+}
+// real incidents that must STILL pass
+for (const y of ["Two men shot in Englewood overnight", "Fatal stabbing reported in Woodlawn", "Person killed in Auburn Gresham shooting"]) {
+  const x = extract(y);
+  check(`filter keeps real: "${y.slice(0, 34)}…"`, x.isViolent, x.eventType);
+}
+
 /* ---------- cluster: multi-outlet same event → 1 CORROBORATED ---------- */
 const base = "2026-08-01T22:40:00Z";
 const sameEvent: RawHeadline[] = [
