@@ -14,7 +14,7 @@
    window. When in doubt, we leave items apart (under-count, never over).
    ============================================================ */
 
-import { extract, type EventType, type Extracted } from "./extract";
+import { extract, type CityKey, type EventType, type Extracted } from "./extract";
 import type { Place } from "./gazetteer";
 
 export interface RawHeadline {
@@ -102,10 +102,10 @@ interface Candidate {
 /** Cluster a batch of raw headlines into corroboration-scored events.
  *  Non-violent or location-less items are dropped (network-scope noise is
  *  handled elsewhere; clustering is only for locatable violent events). */
-export function clusterHeadlines(raw: RawHeadline[]): NewsCluster[] {
+export function clusterHeadlines(raw: RawHeadline[], city: CityKey = "chicago"): NewsCluster[] {
   const cands: Candidate[] = [];
   for (const r of raw) {
-    const ex = extract(r.title, r.summary);
+    const ex = extract(r.title, r.summary, city);
     if (!ex.isViolent || !ex.eventType) continue;
     // must have SOME location to be clusterable/placeable
     if (!ex.blockCue && !ex.place) continue;

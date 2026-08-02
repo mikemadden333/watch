@@ -51,15 +51,20 @@ export const CHICAGO_PLACES: Place[] = [
   { name: "Rogers Park", lat: 42.0090, lon: -87.6690 },
 ];
 
-/** Longest-name-first so "West Englewood" beats "Englewood". */
-const BY_LEN = [...CHICAGO_PLACES].sort((a, b) => b.name.length - a.name.length);
-
-export function findPlace(text: string): Place | null {
+/** Generic finder — longest-name-first so "West Englewood" beats
+ *  "Englewood". City-agnostic: pass whichever gazetteer applies. */
+export function findPlaceIn(places: Place[], text: string): Place | null {
+  const byLen = [...places].sort((a, b) => b.name.length - a.name.length);
   const t = text.toLowerCase();
-  for (const p of BY_LEN) {
+  for (const p of byLen) {
     // word-boundary match to avoid partial hits
     const re = new RegExp(`\\b${p.name.toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`);
     if (re.test(t)) return p;
   }
   return null;
+}
+
+/** Chicago convenience wrapper (back-compat). */
+export function findPlace(text: string): Place | null {
+  return findPlaceIn(CHICAGO_PLACES, text);
 }

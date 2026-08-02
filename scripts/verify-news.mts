@@ -61,6 +61,24 @@ const twoBlocks: RawHeadline[] = [
 const c3 = clusterHeadlines(twoBlocks);
 check("cluster: distinct blocks in same nbhd stay separate", c3.length === 2, c3.length);
 
+/* ---------- Dallas: city-aware extraction + clustering ---------- */
+const d1 = extract("Man shot in the 1200 block of North Beckley Ave, Oak Cliff", "", "dallas");
+check("dallas: violent shooting detected", d1.isViolent && d1.eventType === "shooting");
+check("dallas: block cue carries Dallas, TX suffix", !!d1.blockCue && /Dallas, TX$/.test(d1.blockCue!), d1.blockCue);
+check("dallas: Dallas neighborhood found", d1.place?.name === "Oak Cliff", d1.place?.name);
+
+// same headline under Chicago context must NOT geocode to Dallas
+const d1chi = extract("Man shot in the 1200 block of North Beckley Ave, Oak Cliff", "", "chicago");
+check("city isolation: Chicago context → Chicago, IL suffix", !!d1chi.blockCue && /Chicago, IL$/.test(d1chi.blockCue!), d1chi.blockCue);
+check("city isolation: Oak Cliff not in Chicago gazetteer", d1chi.place === null, d1chi.place?.name);
+
+const dallasSame: RawHeadline[] = [
+  { outlet: "NBC5 DFW", title: "Shooting in 3400 block of Malcolm X Blvd, South Dallas", url: "x", publishedAt: base },
+  { outlet: "FOX 4 Dallas", title: "Police investigate shooting on 3400 block of Malcolm X Boulevard", url: "y", publishedAt: "2026-08-01T22:55:00Z" },
+];
+const dc = clusterHeadlines(dallasSame, "dallas");
+check("dallas cluster: 2 outlets same block → 1 CORROBORATED", dc.length === 1 && dc[0]?.tier === "CORROBORATED", `${dc.length}/${dc[0]?.tier}`);
+
 /* ---------- rules integrity gate: coarse geo can never trigger a ring ---------- */
 const now = new Date("2026-08-01T23:30:00Z");
 const campus = { lat: 41.7796, lon: -87.6444 }; // Englewood Prep-ish

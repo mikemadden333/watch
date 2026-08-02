@@ -25,7 +25,7 @@ import type { AdapterResult, NormalizedIncident, GeoConfidence } from "./contrac
 import { fetchCityHeadlines } from "./rss";
 import { clusterHeadlines, type NewsCluster } from "../news/cluster";
 import { geocodeOneline } from "./geocode";
-import type { EventType } from "../news/extract";
+import type { CityKey, EventType } from "../news/extract";
 
 const KIND: Record<EventType, string> = {
   homicide: "homicide",
@@ -52,12 +52,13 @@ const MAX_GEOCODES = 12;
  *  an integrity failure. Until a Dallas gazetteer/suffix ships, other cities
  *  fetch feeds for health but emit no located incidents. (Dallas already has
  *  live PD dispatch, a stronger signal than clustered news.) */
-const TUNED = new Set(["chicago"]);
+const TUNED = new Set<CityKey>(["chicago", "dallas"]);
 
 export async function runLocalNewsAdapter(city: string): Promise<AdapterResult> {
   const { headlines, health, liveFeeds, totalFeeds, errors } = await fetchCityHeadlines(city);
+  const cityKey = city.toLowerCase() as CityKey;
 
-  if (!TUNED.has(city.toLowerCase())) {
+  if (!TUNED.has(cityKey)) {
     return {
       source: "Local-news intelligence",
       fetched: headlines.length,
@@ -68,7 +69,7 @@ export async function runLocalNewsAdapter(city: string): Promise<AdapterResult> 
     };
   }
 
-  const clusters = clusterHeadlines(headlines);
+  const clusters = clusterHeadlines(headlines, cityKey);
 
   const incidents: NormalizedIncident[] = [];
   let geocodes = 0;
@@ -143,7 +144,7 @@ function recordId(c: NewsCluster): string {
 
 function headlineFor(c: NewsCluster): string {
   const where = c.blockCue
-    ? c.blockCue.replace(/, Chicago, IL$/, "")
+    ? c.blockCue.replace(/,\s*(?:Chicago, IL|Dallas, TX)$/, "")
     : c.place
       ? c.place.name
       : "location unspecified";

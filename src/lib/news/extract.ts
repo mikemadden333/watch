@@ -9,10 +9,20 @@
    No location → the item is network-scope only.
    ============================================================ */
 
-import { findPlace, type Place } from "./gazetteer";
+import { findPlaceIn, CHICAGO_PLACES, type Place } from "./gazetteer";
+import { DALLAS_PLACES } from "./gazetteer-dallas";
 
 export type EventType = "homicide" | "shooting" | "stabbing" | "robbery" | "violent";
 export type GeoGrade = "block" | "neighborhood" | "city";
+
+/** A city the news-intelligence layer is tuned for: its geocode suffix and
+ *  neighborhood gazetteer. Adding a city is adding one entry here. */
+export type CityKey = "chicago" | "dallas";
+
+const CITY_CTX: Record<CityKey, { suffix: string; places: Place[] }> = {
+  chicago: { suffix: "Chicago, IL", places: CHICAGO_PLACES },
+  dallas: { suffix: "Dallas, TX", places: DALLAS_PLACES },
+};
 
 export interface Extracted {
   isViolent: boolean;
@@ -41,8 +51,10 @@ function classify(text: string): EventType | null {
 // "63rd and Halsted", "63rd & Halsted" — the numbered street must carry an
 // ordinal suffix (so a bare "1 and Dec" can't masquerade as a cross-street).
 const CROSS_RE = /\b(\d{1,3}(?:st|nd|rd|th))\s*(?:street\s*)?(?:and|&|at)\s*([A-Z][a-z]+)\b/;
-// "6300 block of South Halsted", "1400 block of W 79th"
-const BLOCK_RE = /\b(\d{3,5})\s*block\s+of\s+([NSEW]\.?\s*[A-Za-z0-9 ]{3,24})/i;
+// "6300 block of South Halsted", "1400 block of W 79th", "3400 block of
+// Malcolm X Blvd" — the directional prefix is optional (Dallas and many
+// cities have named streets without N/S/E/W). Comma/period bound the street.
+const BLOCK_RE = /\b(\d{3,5})\s*block\s+of\s+((?:[NSEW]\.?\s+)?[A-Za-z0-9][A-Za-z0-9 ]{2,28})/i;
 // street name shouldn't be a month/day/common non-street word
 const NOT_STREET = new Set([
   "jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec",
@@ -56,27 +68,28 @@ function cleanStreet(s: string): string {
   return s.replace(STREET_END, "").replace(/\s{2,}/g, " ").trim();
 }
 
-function blockCue(text: string): string | null {
+function blockCue(text: string, suffix: string): string | null {
   const b = text.match(BLOCK_RE);
   if (b) {
     const street = cleanStreet(b[2]);
-    if (street.length >= 3) return `${b[1]} ${street}, Chicago, IL`;
+    if (street.length >= 3) return `${b[1]} ${street}, ${suffix}`;
   }
   const c = text.match(CROSS_RE);
   if (c && !NOT_STREET.has(c[2].toLowerCase())) {
-    return `${c[1]} and ${c[2]}, Chicago, IL`;
+    return `${c[1]} and ${c[2]}, ${suffix}`;
   }
   return null;
 }
 
 const STOP = new Set(["the", "a", "an", "in", "of", "on", "at", "to", "and", "for", "with", "after", "near", "chicago", "police", "news", "man", "woman", "boy", "girl", "say", "says"]);
 
-export function extract(headline: string, summary = ""): Extracted {
+export function extract(headline: string, summary = "", city: CityKey = "chicago"): Extracted {
+  const ctx = CITY_CTX[city] ?? CITY_CTX.chicago;
   const text = `${headline} ${summary}`;
   const isViolent = VIOLENT_RE.test(text) && !NEG_RE.test(text);
   const eventType = isViolent ? classify(text) : null;
-  const block = isViolent ? blockCue(text) : null;
-  const place = isViolent ? findPlace(text) : null;
+  const block = isViolent ? blockCue(text, ctx.suffix) : null;
+  const place = isViolent ? findPlaceIn(ctx.places, text) : null;
 
   const tokens = headline
     .toLowerCase()
