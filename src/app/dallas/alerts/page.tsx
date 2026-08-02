@@ -1,3 +1,4 @@
+import Link from "next/link";
 import LiveFooter from "@/components/live/LiveFooter";
 import { getNetworkData } from "@/lib/networkData";
 import { redirect } from "next/navigation";
@@ -59,6 +60,10 @@ export default async function DallasAlerts() {
               </div>
             </div>
           </div>
+
+          <Link href="/contract" className="btn ghost" style={{ marginTop: 14, fontSize: 11 }}>
+            Read the Notification Contract →
+          </Link>
         </div>
 
         <div className="rail">

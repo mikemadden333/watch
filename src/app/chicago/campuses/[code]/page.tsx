@@ -1,6 +1,10 @@
 import { notFound } from "next/navigation";
 import FreshnessFooter from "@/components/FreshnessFooter";
 import PlaybookChecklist from "@/components/PlaybookChecklist";
+import VerificationJourney from "@/components/VerificationJourney";
+import TierBadge from "@/components/TierBadge";
+import { deriveJourney } from "@/lib/journey";
+import { buildResolutionMessage } from "@/lib/resolution";
 import { StatusPill, statusColorVar } from "@/components/ui";
 import {
   campusByCode,
@@ -91,38 +95,21 @@ export default async function CampusDetail({
             <div className="card" style={{ padding: "16px 18px" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <b style={{ fontSize: 14 }}>{incident.headline}</b>
-                <span className={`pill badge-${incident.tier === "CONFIRMED" ? "conf" : incident.tier === "CORROBORATED" ? "corr" : "rep"}`}>
-                  {incident.tier}
-                </span>
+                <TierBadge tier={incident.tier} />
               </div>
-              <div style={{ marginTop: 4, fontSize: 11.5, color: "var(--mut)" }}>
-                {isEng
-                  ? "Occurred yesterday 21:47 · published by CPD 06:40 today · 1 victim, non-fatal"
-                  : `${incident.note ?? ""}`}
-              </div>
-              <div style={{ display: "flex", gap: 26, marginTop: 12, flexWrap: "wrap" }}>
+              <div style={{ display: "flex", gap: 26, marginTop: 12, marginBottom: 4, flexWrap: "wrap" }}>
                 <Field label="Distance" value={`${incident.distanceMi} mi ${incident.bearing ?? ""}`} />
-                <Field label="Within ring" value={incident.tier === "CONFIRMED" ? "ELEVATED (0.5)" : "ELEVATED (0.5)"} />
-                <Field label="Occurred" value={isEng ? "yest 21:47" : "05:35 today"} />
-                <Field label="Published" value={isEng ? "06:40 · CPD VR" : "06:33 · news"} />
-                <Field label="Corroboration" value={isEng ? "Block Club · 22:40 yest" : "GDELT · 06:31"} />
+                <Field label="Within ring" value="ELEVATED (0.5)" />
+                {incident.verifiedBy && <Field label="Verified by" value={incident.verifiedBy} />}
               </div>
-              <div style={{ marginTop: 12, display: "flex", gap: 6, flexWrap: "wrap" }}>
-                {isEng ? (
-                  <>
-                    <Chip cls="c-conf" label="CPD VR gumc-mgzr" />
-                    <Chip cls="c-conf" label="Geocode verified" />
-                    <Chip cls="c-corr" label="Block Club Chicago" />
-                    <Chip cls="c-corr" label="GDELT" />
-                  </>
-                ) : (
-                  <>
-                    <Chip cls="c-corr" label="News ×2" />
-                    <Chip cls="c-corr" label="GDELT" />
-                    <Chip cls="c-conf" label="Geocode verified" />
-                  </>
-                )}
-              </div>
+              <hr className="hr" style={{ margin: "12px 0" }} />
+              <div className="micro" style={{ marginBottom: 10 }}>Verification journey</div>
+              <VerificationJourney steps={deriveJourney(incident)} />
+              {incident.verifierNote && (
+                <div style={{ marginTop: 12, fontSize: 11, color: "var(--mut)", fontStyle: "italic", fontFamily: "var(--serif)" }}>
+                  Verifier note — {incident.verifierNote}
+                </div>
+              )}
             </div>
           ) : (
             <div className="card" style={{ padding: "16px 18px" }}>
@@ -155,6 +142,33 @@ export default async function CampusDetail({
               No active playbook — status {st.status}. Playbooks activate on
               ELEVATED and ALERT posture and are role-filtered per user.
             </div>
+          )}
+
+          {(st.status === "ELEVATED" || st.status === "ALERT") && (
+            <>
+              <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginTop: 18 }}>
+                <b style={{ fontSize: 14 }}>Closing notice · on de-escalation</b>
+                <span className="micro">template-filled · never generated</span>
+              </div>
+              <div className="card" style={{ marginTop: 10, padding: "14px 16px" }}>
+                <div style={{ fontSize: 12.5, lineHeight: 1.6 }}>
+                  {buildResolutionMessage({
+                    campusName: campus.name,
+                    fromStatus: st.status,
+                    ruleId: st.ruleId,
+                    ruleName: st.ruleName,
+                    incidentHeadline: incident?.headline,
+                    occurredLabel: isEng ? "yesterday 21:47" : undefined,
+                    publishedLabel: isEng ? "06:40 today" : undefined,
+                    reason: "ring clear + data-day window expiry",
+                    resolvedLabel: campus.dismissal,
+                  })}
+                </div>
+                <div className="micro" style={{ marginTop: 10 }}>
+                  Sent automatically when {campus.code} returns to CLEAR · every elevation ends with one
+                </div>
+              </div>
+            </>
           )}
 
           <div style={{ marginTop: 10, fontSize: 10.5, color: "var(--mut)", fontFamily: "Menlo,monospace", textTransform: "uppercase", letterSpacing: 0.6 }}>
@@ -219,6 +233,7 @@ export default async function CampusDetail({
         feeds={morningFeeds}
         lastCycle="07:12:04"
         right="STATUS CALC ON 6 OF 7 FEEDS · RULES v2.0"
+        base="/chicago"
       />
     </>
   );

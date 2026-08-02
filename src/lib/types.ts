@@ -41,6 +41,22 @@ export interface Campus {
   dismissalEnd?: string;
 }
 
+/** One step in an incident's provenance story (design clarity directive). */
+export interface VerificationStep {
+  kind:
+    | "occurred"
+    | "reported"
+    | "corroborated"
+    | "confirmed"
+    | "verified"
+    | "status"
+    | "notified";
+  label: string; // "First report"
+  detail: string; // plain language, plain source names
+  time: string; // real timestamp, e.g. "22:40 yest"
+  tier?: Tier;
+}
+
 export interface Incident {
   id: string;
   sourceRecordId: string; // idempotency / dedupe key
@@ -60,6 +76,12 @@ export interface Incident {
   distanceMi?: number; // to nearest campus
   bearing?: string; // "NE"
   note?: string; // "outside all rings, logged"
+  /** v1.1 verifier seat — a named human confirms significant incidents */
+  verifiedBy?: string; // "M. Reese · Safety Director"
+  verifiedAt?: string; // display time
+  verifierNote?: string;
+  /** provenance story, plain language (design clarity directive) */
+  journey?: VerificationStep[];
 }
 
 export interface CampusStatus {

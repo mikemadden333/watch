@@ -1,6 +1,8 @@
 import Link from "next/link";
 import type { NetworkData } from "@/lib/networkData";
 import { StatusPill } from "@/components/ui";
+import IntelligenceFeed, { type FeedItem } from "@/components/IntelligenceFeed";
+import { deriveJourney } from "@/lib/journey";
 import type { Status } from "@/lib/types";
 
 const TOP: Status[] = ["ALERT", "ELEVATED", "MONITOR", "CLEAR"];
@@ -128,48 +130,27 @@ export default function LiveBriefing({ data, base }: { data: NetworkData; base: 
 
           <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginTop: 20 }}>
             <b style={{ fontSize: 14 }}>Intelligence feed</b>
-            <span className="micro">Live layer · network scope</span>
+            <span className="micro">Tap a row for its verification journey</span>
           </div>
-          <div className="card" style={{ marginTop: 10 }}>
-            {feedIncidents.length === 0 && (
-              <div style={{ padding: "16px", fontSize: 12, color: "var(--mut)" }}>
-                No incidents ingested yet this cycle.
-              </div>
-            )}
-            {feedIncidents.map((inc, i) => (
-              <div
-                key={inc.id}
-                style={{
-                  padding: "12px 16px",
-                  display: "flex",
-                  gap: 14,
-                  borderBottom: i < feedIncidents.length - 1 ? "1px solid var(--line)" : undefined,
-                }}
-              >
-                <span className="mono num" style={{ color: "var(--mut)", fontSize: 11, width: 96, flexShrink: 0 }}>
-                  {fmt(inc.occurredAt)}
-                </span>
-                <div style={{ flex: 1 }}>
-                  <b>{inc.headline}</b>{" "}
-                  <span style={{ color: "var(--mut)" }}>
-                    —{" "}
-                    {inc.distanceMi != null
-                      ? `${inc.distanceMi} mi ${inc.bearing ?? ""} of ${inc.nearestCampusCode}`
-                      : inc.note ?? "network scope"}
-                  </span>
-                  <div style={{ marginTop: 5, display: "flex", gap: 6, flexWrap: "wrap" }}>
-                    <span className={`chip ${inc.tier === "CONFIRMED" ? "c-conf" : inc.tier === "CORROBORATED" ? "c-corr" : "c-rep"}`}>
-                      <span className="d" />
-                      {inc.source}
-                    </span>
-                  </div>
-                </div>
-                <span className={`pill badge-${inc.tier === "CONFIRMED" ? "conf" : inc.tier === "CORROBORATED" ? "corr" : "rep"}`}>
-                  {inc.tier}
-                </span>
-              </div>
-            ))}
-          </div>
+          {feedIncidents.length === 0 ? (
+            <div className="card" style={{ marginTop: 10, padding: "16px", fontSize: 12, color: "var(--mut)" }}>
+              No incidents ingested yet this cycle.
+            </div>
+          ) : (
+            <IntelligenceFeed
+              items={feedIncidents.map((inc): FeedItem => ({
+                time: fmt(inc.occurredAt),
+                title: inc.headline,
+                detail:
+                  inc.distanceMi != null
+                    ? `${inc.distanceMi} mi ${inc.bearing ?? ""} of ${inc.nearestCampusCode}`
+                    : inc.note ?? "network scope",
+                primarySourceRaw: inc.source,
+                tier: inc.tier,
+                journey: deriveJourney(inc),
+              }))}
+            />
+          )}
         </div>
 
         {/* rail */}

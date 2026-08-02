@@ -1,3 +1,4 @@
+import Link from "next/link";
 import FreshnessFooter from "@/components/FreshnessFooter";
 import {
   afternoonFeeds,
@@ -111,6 +112,10 @@ export default function AlertsPage() {
               </div>
             </div>
           </div>
+
+          <Link href="/contract" className="btn ghost" style={{ marginTop: 14, fontSize: 11 }}>
+            Read the Notification Contract →
+          </Link>
         </div>
 
         {/* rail */}
@@ -155,6 +160,7 @@ export default function AlertsPage() {
         feeds={afternoonFeeds}
         lastCycle="14:54:41"
         right="STATUS CALC ON 7 OF 7 FEEDS · RULES v2.0"
+        base="/chicago"
       />
     </>
   );

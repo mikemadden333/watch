@@ -156,6 +156,18 @@ export const incidents: Incident[] = [
     nearestCampusCode: "ENG",
     distanceMi: 0.31,
     bearing: "NE",
+    verifiedBy: "M. Reese · Safety Director",
+    verifiedAt: "06:52 today",
+    verifierNote: "Matched CPD record to overnight news reports; geocode confirmed 0.31 mi NE.",
+    journey: [
+      { kind: "occurred", label: "Occurred", detail: "Shooting near 63rd & Halsted", time: "yest 21:47" },
+      { kind: "reported", label: "First report", detail: "Block Club Chicago · local news", time: "22:40 yest", tier: "REPORTED" },
+      { kind: "corroborated", label: "Corroboration", detail: "GDELT · news wire + a second outlet agree", time: "06:31 today", tier: "CORROBORATED" },
+      { kind: "confirmed", label: "Authoritative confirmation", detail: "Chicago Police · official shooting record", time: "06:40 today", tier: "CONFIRMED" },
+      { kind: "verified", label: "Verified by a person", detail: "M. Reese · Safety Director", time: "06:52 today" },
+      { kind: "status", label: "Status change", detail: "CLEAR → ELEVATED · rule E-2 · confirmed-in-ring", time: "06:40 today" },
+      { kind: "notified", label: "Who was notified", detail: "A. Okafor, M. Reese · push + email · delivered", time: "06:41 today" },
+    ],
   },
   {
     id: "inc-wdl-shotsfired",
@@ -418,6 +430,7 @@ export const auditEvents: AuditEvent[] = [
 ];
 
 export const ledgerMetrics: LedgerMetric[] = [
+  { label: "Median detection latency", value: "41 s", pct: 92, barColor: "ink", note: "publish → surfaced · within one poll cycle" },
   { label: "Corroborated → CPD-confirmed", value: "96%", pct: 96, barColor: "clear", note: "27 of 28 · trailing 30 d" },
   { label: "Median detect → confirm gap", value: "22.4 h", pct: 62, barColor: "ink", note: "fast layer leads the record by ~a day" },
   { label: "False ALERTs · production", value: "0", pct: 2, barColor: "clear", note: "61 consecutive days" },

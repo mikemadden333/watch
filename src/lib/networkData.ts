@@ -75,6 +75,8 @@ export async function getNetworkData(slug: string): Promise<NetworkData | null> 
   const feeds: FeedHealth[] = (healthRes.data ?? []).map(mapFeed);
   const audit: AuditEvent[] = (auditRes.data ?? []).map(mapAudit);
   const ledger: LedgerMetric[] = (ledgerRes.data ?? []).map(mapLedger);
+  const detLat = detectionLatencyMetric(incidents);
+  if (detLat) ledger.unshift(detLat);
 
   const counts = { alert: 0, elevated: 0, monitor: 0, clear: 0 };
   for (const s of statuses) {
@@ -184,6 +186,30 @@ function mapIncident(r: Record<string, unknown>, campuses: Campus[]): Incident {
     distanceMi: dist,
     bearing: bear,
     note: r.note ? String(r.note) : undefined,
+    verifiedBy: r.verified_by ? String(r.verified_by) : undefined,
+    verifiedAt: r.verified_at ? fmtTime(String(r.verified_at)) : undefined,
+    verifierNote: r.verifier_note ? String(r.verifier_note) : undefined,
+  };
+}
+
+/** v1.1 detection-latency metric: median of (detected_at − published_at)
+ *  across incidents that carry both clocks. "Finding out" is the promise,
+ *  so Watch measures and publishes its own time-to-detection. */
+function detectionLatencyMetric(incidents: Incident[]): LedgerMetric | null {
+  const secs = incidents
+    .filter((i) => i.publishedAt && i.detectedAt)
+    .map((i) => (new Date(i.detectedAt).getTime() - new Date(i.publishedAt).getTime()) / 1000)
+    .filter((s) => s >= 0)
+    .sort((a, b) => a - b);
+  if (!secs.length) return null;
+  const median = secs[Math.floor(secs.length / 2)];
+  const label = median < 3600 ? `${Math.round(median / 60)} m` : `${(median / 3600).toFixed(1)} h`;
+  return {
+    label: "Median detection latency",
+    value: label,
+    pct: Math.max(4, Math.min(100, 100 - median / 3600 / 0.24)),
+    barColor: "ink",
+    note: `publish → surfaced · ${secs.length} incidents scored`,
   };
 }
 

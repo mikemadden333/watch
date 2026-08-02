@@ -119,6 +119,7 @@ export default function AuditPage() {
         feeds={afternoonFeeds}
         lastCycle="14:54:41"
         right="STATUS CALC ON 7 OF 7 FEEDS · RULES v2.0"
+        base="/chicago"
       />
     </>
   );

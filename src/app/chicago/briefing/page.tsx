@@ -1,13 +1,26 @@
 import Link from "next/link";
 import FreshnessFooter from "@/components/FreshnessFooter";
+import IntelligenceFeed, { type FeedItem } from "@/components/IntelligenceFeed";
 import { StatusPill } from "@/components/ui";
 import {
   campuses,
+  incidents,
   intelligenceFeed,
   morningFeeds,
   morningStatuses,
   statusOf,
 } from "@/lib/data/chicago";
+
+const engJourney = incidents.find((i) => i.id === "inc-eng-shooting")?.journey;
+
+const feedItems: FeedItem[] = intelligenceFeed.map((row) => ({
+  time: row.time,
+  title: row.title,
+  detail: row.detail,
+  primarySourceRaw: row.chips[0]?.label ?? "",
+  tier: row.badge,
+  journey: row.title.includes("63rd & Halsted") ? engJourney : undefined,
+}));
 
 export default function BriefingPage() {
   return (
@@ -152,44 +165,9 @@ export default function BriefingPage() {
             }}
           >
             <b style={{ fontSize: 14 }}>Intelligence feed</b>
-            <span className="micro">Confirmed layer + live layer · network scope</span>
+            <span className="micro">Tap a row for its verification journey</span>
           </div>
-          <div className="card" style={{ marginTop: 10 }}>
-            {intelligenceFeed.map((row, i) => (
-              <div
-                key={i}
-                style={{
-                  padding: "12px 16px",
-                  display: "flex",
-                  gap: 14,
-                  borderBottom:
-                    i < intelligenceFeed.length - 1 ? "1px solid var(--line)" : undefined,
-                }}
-              >
-                <span
-                  className="mono num"
-                  style={{ color: "var(--mut)", fontSize: 11, width: 88, flexShrink: 0 }}
-                >
-                  {row.time}
-                </span>
-                <div style={{ flex: 1 }}>
-                  <b>{row.title}</b>{" "}
-                  <span style={{ color: "var(--mut)" }}>— {row.detail}</span>
-                  <div style={{ marginTop: 5, display: "flex", gap: 6, flexWrap: "wrap" }}>
-                    {row.chips.map((ch, j) => (
-                      <span key={j} className={`chip ${ch.cls}`}>
-                        <span className="d" />
-                        {ch.label}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-                <span className={`pill badge-${row.badge === "CONFIRMED" ? "conf" : row.badge === "CORROBORATED" ? "corr" : "rep"}`}>
-                  {row.badge}
-                </span>
-              </div>
-            ))}
-          </div>
+          <IntelligenceFeed items={feedItems} />
         </div>
 
         {/* rail */}
@@ -256,6 +234,7 @@ export default function BriefingPage() {
         feeds={morningFeeds}
         lastCycle="07:12:04"
         right="STATUS CALC ON 6 OF 7 FEEDS · RULES v2.0"
+        base="/chicago"
       />
     </>
   );

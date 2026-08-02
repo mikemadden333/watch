@@ -11,6 +11,7 @@ export default function LiveFooter({ data }: { data: NetworkData }) {
       feeds={data.feeds}
       lastCycle={lastCycle}
       right={`STATUS CALC ON ${inWindow} OF ${total} FEEDS · RULES v2.0`}
+      base={data.city === "Dallas" ? "/dallas" : "/chicago"}
     />
   );
 }
