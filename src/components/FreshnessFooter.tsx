@@ -50,12 +50,12 @@ export default function FreshnessFooter({
         <span>
           {FOOTER_DISCLAIMER} <span style={{ opacity: 0.8 }}>· {BRAND_CREDIT}</span>
         </span>
-        <Link
-          href="/limitations"
-          style={{ marginLeft: "auto", textDecoration: "underline", whiteSpace: "nowrap" }}
-        >
-          Limits &amp; how to use →
-        </Link>
+        <span style={{ marginLeft: "auto", display: "inline-flex", gap: 12, whiteSpace: "nowrap" }}>
+          <Link href="/privacy" style={{ textDecoration: "underline" }}>Privacy</Link>
+          <Link href="/terms" style={{ textDecoration: "underline" }}>Terms</Link>
+          <Link href="/messaging" style={{ textDecoration: "underline" }}>Text alerts</Link>
+          <Link href="/limitations" style={{ textDecoration: "underline" }}>Limits &amp; how to use →</Link>
+        </span>
       </div>
     </div>
   );
