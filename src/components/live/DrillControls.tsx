@@ -35,14 +35,14 @@ export default function DrillControls({ slug, enabled = false }: { slug: string;
     router.refresh();
   }, [router]);
 
-  const fire = useCallback(async () => {
-    flash("Simulating…");
+  const fire = useCallback(async (alert = false) => {
+    flash(alert ? "Simulating ALERT (text)…" : "Simulating…");
     try {
       const res = await fetch("/api/demo/incident", {
-        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ slug }),
+        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ slug, alert }),
       });
       const j = await res.json();
-      flash(j.ok ? `Simulated · ${j.campusName ?? j.campus}` : `Error: ${j.error ?? "failed"}`);
+      flash(j.ok ? `${alert ? "ALERT" : "Simulated"} · ${j.campusName ?? j.campus}` : `Error: ${j.error ?? "failed"}`);
       poke();
     } catch { flash("Network error"); }
   }, [slug, poke, flash]);
@@ -63,7 +63,8 @@ export default function DrillControls({ slug, enabled = false }: { slug: string;
     if (!on) return;
     function onKey(e: KeyboardEvent) {
       if (!(e.ctrlKey && e.shiftKey)) return;
-      if (e.code === "KeyD") { e.preventDefault(); fire(); }
+      if (e.code === "KeyD") { e.preventDefault(); fire(false); }   // ELEVATED story
+      if (e.code === "KeyA") { e.preventDefault(); fire(true); }    // ALERT → sends a text
       if (e.code === "KeyC") { e.preventDefault(); clear(); }
     }
     window.addEventListener("keydown", onKey);

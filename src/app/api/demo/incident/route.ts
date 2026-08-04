@@ -39,7 +39,7 @@ export async function POST(req: Request) {
   if (process.env.DEMO_MODE !== "1") {
     return NextResponse.json({ error: "demo mode disabled" }, { status: 403 });
   }
-  const { slug, campus } = (await req.json().catch(() => ({}))) as { slug?: string; campus?: string };
+  const { slug, campus, alert } = (await req.json().catch(() => ({}))) as { slug?: string; campus?: string; alert?: boolean };
   if (!slug) return NextResponse.json({ error: "slug required" }, { status: 400 });
 
   let sb;
@@ -57,7 +57,21 @@ export async function POST(req: Request) {
 
   let incidents: DrillIncident[];
 
-  if (slug === "veritas-charter" && target.code === "GPA") {
+  if (alert) {
+    // ---- ALERT-tier drill: a confirmed incident INSIDE the 0.25 mi alert ring
+    // (rule A-2) → posture escalates to ALERT → the SMS channel fires. This is
+    // the path that sends a real text (ELEVATED sends push/email only). ----
+    const p = offset(tLat, tLon, 0.15, 45);
+    incidents = [
+      {
+        source: "DRILL · simulated", sourceRecordId: `drill:${target.code}:alert`,
+        headline: `DRILL · near ${target.name}`, kind: "shooting", tier: "CONFIRMED",
+        lat: p.lat, lon: p.lon, geoConfidence: "exact",
+        occurredAt: now.toISOString(), publishedAt: now.toISOString(),
+        victimNote: "one victim, non-fatal", note: "DEMO DRILL · simulated · not a real incident",
+      },
+    ];
+  } else if (slug === "veritas-charter" && target.code === "GPA") {
     // ---- the Garfield Park Academy overnight story (wireframe, beat for beat) ----
     const today = centralYMD(now);
     const yest = centralYMD(new Date(now.getTime() - 86400000));
