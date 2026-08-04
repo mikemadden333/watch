@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import { FIRST_RUN } from "@/lib/legal";
 
 /* Logged acknowledgment, shown once per SESSION (i.e. every login), on first
@@ -20,16 +21,19 @@ function bold(text: string) {
 
 export default function FirstRunNotice() {
   const [show, setShow] = useState(false);
+  const pathname = usePathname();
 
+  // Re-check on every navigation — the root layout mounts this once at the
+  // splash ("/"), where it's suppressed; entering a network is a client-side
+  // navigation, so we must react to the pathname change to show it there.
   useEffect(() => {
-    const path = window.location.pathname;
-    if (path === "/" || path === "/limitations") return; // not on splash / the page itself
+    if (pathname === "/" || pathname === "/limitations") return; // not on splash / the page itself
     try {
       if (!sessionStorage.getItem(KEY)) setShow(true);
     } catch {
       setShow(true);
     }
-  }, []);
+  }, [pathname]);
 
   if (!show) return null;
 
