@@ -55,7 +55,7 @@ export async function evaluateTenant(
     sb.from("campus_status").select("*").eq("tenant_id", tid),
     sb
       .from("incidents")
-      .select("id,kind,tier,lat,lon,occurred_at,published_at,corroborating,geo_confidence")
+      .select("id,kind,headline,tier,lat,lon,occurred_at,published_at,corroborating,geo_confidence")
       .eq("tenant_id", tid)
       .gte("occurred_at", new Date(now.getTime() - 48 * 3600 * 1000).toISOString()),
   ]);
@@ -86,6 +86,7 @@ export async function evaluateTenant(
       return {
         id: String(i.id),
         kind: String(i.kind),
+        headline: String(i.headline ?? ""),
         tier: i.tier as RuleIncident["tier"],
         lat: Number(i.lat),
         lon: Number(i.lon),

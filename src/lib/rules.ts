@@ -35,7 +35,8 @@ export const DEFAULT_THRESHOLDS: RuleThresholds = {
 
 export interface RuleIncident {
   id: string;
-  kind: string; // "shooting" | "homicide" | "shots-fired" ...
+  kind: string; // "shooting" | "homicide" | "shots-fired" | "dispatch" ...
+  headline?: string; // carries the dispatch call nature (A-4)
   tier: Tier;
   lat: number;
   lon: number;
@@ -149,6 +150,32 @@ export function evaluateCampus(ctx: RuleContext): RuleResult {
         rulesVersion: v,
       };
     }
+  }
+
+  // A-4 · active police dispatch to a SHOOTING/GUN call inside the alert ring,
+  // in the last 30 minutes (live-dispatch cities like Dallas, where the CAD
+  // feed is the authoritative real-time signal). Preliminary but alert-worthy:
+  // police are actively responding to a shooting close to the school. Scoped by
+  // kind === "dispatch" (only the Dallas PD feed produces those). The nature of
+  // the call is carried in the headline. Coarse-geo dispatch is excluded by
+  // ringEligible, so an imprecise call never pages.
+  const a4 = ctx.incidents.find(
+    (i) =>
+      i.kind === "dispatch" &&
+      /\b(shoot|shot|gun|discharge|firearm)/i.test(i.headline || "") &&
+      ringEligible(i) &&
+      distanceMi(ctx.campus, i) <= t.alertRingMi &&
+      minutesAgo(i.occurredAt, ctx.now) <= 30
+  );
+  if (a4) {
+    return {
+      status: "ALERT",
+      ruleId: "A-4",
+      ruleName: "dispatch-shooting-in-alert-ring",
+      incidentId: a4.id,
+      detail: "Active police dispatch to a shooting inside 0.25 mi · preliminary",
+      rulesVersion: v,
+    };
   }
 
   // ---------- ELEVATED ----------
