@@ -70,8 +70,10 @@ export default function Nav({
   const hotCount = campuses.filter((c) => (c.status ?? "CLEAR") === worst && worst !== "CLEAR").length;
   const PCLS: Record<string, string> = { ALERT: "p-alert", ELEVATED: "p-elevated", MONITOR: "p-monitor", CLEAR: "p-clear" };
   const WORD: Record<string, string> = { ALERT: "on alert", ELEVATED: "elevated", MONITOR: "monitored" };
-  const netLabel = worst === "CLEAR" ? "Network clear" : `${hotCount} ${WORD[worst]}`;
   const anyHot = worst !== "CLEAR";
+  const hot1 = anyHot && hotCount === 1 ? sorted[0] : null;
+  const netLabel = worst === "CLEAR" ? "Network clear" : hot1 ? `${hot1.code} · ${WORD[worst]}` : `${hotCount} ${WORD[worst]}`;
+  const netHref = hot1 ? `${base}/briefing?view=leader&campus=${hot1.code}` : `${base}/briefing${qs({})}`;
 
   // build a query string preserving view + campus, overriding as asked
   function qs(next: { view?: string; campus?: string }): string {
@@ -114,7 +116,7 @@ export default function Nav({
           </Link>
         </div>
 
-        <Link href={`${base}/briefing${qs({})}`} className={`pill ${PCLS[worst]} netpill`} title="Network posture" aria-label={`Network posture: ${netLabel}`}>
+        <Link href={netHref} className={`pill ${PCLS[worst]} netpill`} title={hot1 ? `${hot1.name} · ${WORD[worst]}` : "Network posture"} aria-label={hot1 ? `${hot1.name} is ${WORD[worst]}` : `Network posture: ${netLabel}`}>
           <span className="d" style={{ background: DOT[worst] }} />
           {netLabel}
         </Link>

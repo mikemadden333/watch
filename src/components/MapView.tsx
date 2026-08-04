@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import type { Map as LeafletMap, LayerGroup } from "leaflet";
 import {
   campuses as chicagoCampuses,
@@ -9,6 +11,7 @@ import {
 } from "@/lib/data/chicago";
 import { distanceMi, bearing } from "@/lib/geo";
 import { fmtCentral } from "@/lib/time";
+import { incidentTypeWord, placeOf, occurredPhrase } from "@/lib/voice";
 import { StatusPill, statusColorVar } from "./ui";
 import type { Campus, CampusStatus, Incident } from "@/lib/types";
 
@@ -58,11 +61,20 @@ export default function MapView(props: MapViewProps = {}) {
   const nowMs = props.nowIso
     ? new Date(props.nowIso).getTime()
     : new Date("2026-08-01T07:12:00-05:00").getTime();
+  const pathname = usePathname();
+  const base = "/" + (pathname?.split("/").filter(Boolean)[0] ?? "chicago");
+
+  // open on the campus that needs attention, not the first in the list —
+  // so the "what happened" popover is showing the moment the map loads.
+  const postureRank: Record<string, number> = { ALERT: 0, ELEVATED: 1, MONITOR: 2, CLEAR: 3 };
+  const hottest = [...campuses].sort(
+    (a, b) => (postureRank[statusOf(null, a.code).status] ?? 3) - (postureRank[statusOf(null, b.code).status] ?? 3)
+  )[0];
 
   const mapEl = useRef<HTMLDivElement>(null);
   const mapRef = useRef<LeafletMap | null>(null);
   const overlayRef = useRef<LayerGroup | null>(null);
-  const [selected, setSelected] = useState(campuses[0]?.code ?? "");
+  const [selected, setSelected] = useState(hottest?.code ?? campuses[0]?.code ?? "");
   const [windowDays, setWindowDays] = useState(7);
   const [layers, setLayers] = useState<Layers>({
     confirmed: true,
@@ -192,16 +204,22 @@ export default function MapView(props: MapViewProps = {}) {
       const ageDays = (nowMs - new Date(inc.occurredAt).getTime()) / 86400000;
       if (ageDays > windowDays) return;
       const opacity = fadeByAge(ageDays);
-      const color = inc.tier === "CONFIRMED" ? "#57c191" : "#d9a53a";
+      // amber = the violence signal used everywhere; never status-green (which
+      // reads as "safe") for a confirmed shooting. Corroborated news = slate.
+      const color = inc.tier === "CONFIRMED" ? "#e8a13a" : "#9aa3c0";
+      const isDriver = !!triggerInc && inc.id === triggerInc.id;
       L.circleMarker([inc.lat, inc.lon], {
-        radius: 7,
-        color: "#0b0f1c",
+        radius: isDriver ? 8 : 7,
+        color: isDriver ? "#f3f1ea" : "#0b0f1c",
         weight: 2,
         fillColor: color,
         fillOpacity: opacity,
       })
         .addTo(g)
-        .bindTooltip(`${inc.headline}`, { direction: "top" });
+        .bindTooltip(
+          `${cap(incidentTypeWord(inc))}${inc.victimNote ? " · " + inc.victimNote : ""} — ${placeOf(inc)} · ${hm(inc.occurredAt)}`,
+          { direction: "top", permanent: isDriver }
+        );
     });
 
     // campuses
@@ -260,8 +278,8 @@ export default function MapView(props: MapViewProps = {}) {
           <div className="micro">Markers</div>
           <div style={{ marginTop: 8, fontSize: 11.5, display: "flex", flexDirection: "column", gap: 6 }}>
             <div><Dot c="var(--ink)" />Campus · status color</div>
-            <div><Dot c="var(--clear)" />Confirmed incident · CPD/ME</div>
-            <div><Dot c="var(--monitor)" />Corroborated · 2+ outlets</div>
+            <div><Dot c="#e8a13a" />Confirmed incident · CPD/ME</div>
+            <div><Dot c="#9aa3c0" />Corroborated · 2+ outlets</div>
             <div style={{ color: "var(--mut)", fontSize: 10.5 }}>
               Marker opacity decays with age · 7-day fade
             </div>
@@ -334,6 +352,33 @@ export default function MapView(props: MapViewProps = {}) {
               <b>{sel.name} · selected</b>
               <StatusPill status={selStatus.status} />
             </div>
+
+            {triggerInc && selStatus.status !== "CLEAR" ? (
+              <div
+                style={{
+                  marginTop: 10,
+                  padding: "9px 11px",
+                  borderRadius: 9,
+                  background: selStatus.status === "ALERT" ? "var(--alertbg)" : "var(--elevatedbg)",
+                  border: `1px solid ${selStatus.status === "ALERT" ? "var(--alert)" : "var(--line2)"}`,
+                }}
+              >
+                <div style={{ fontSize: 13, fontWeight: 700, color: "var(--ink)", lineHeight: 1.3 }}>
+                  {cap(incidentTypeWord(triggerInc))}
+                  {triggerInc.victimNote ? ` · ${triggerInc.victimNote}` : ""}
+                </div>
+                <div style={{ fontSize: 11, color: "var(--mut)", marginTop: 3, lineHeight: 1.4 }}>
+                  {placeOf(triggerInc)} · {distanceMi(sel, triggerInc).toFixed(2)} mi {bearing(sel, triggerInc)} of campus · occurred {occurredPhrase(triggerInc.occurredAt).replace(/^./, (ch) => ch.toLowerCase())}
+                </div>
+                <Link
+                  href={`${base}/act?view=leader&campus=${sel.code}`}
+                  style={{ display: "inline-block", marginTop: 8, fontSize: 11.5, fontWeight: 600, color: "var(--amber2)", textDecoration: "none" }}
+                >
+                  Open response →
+                </Link>
+              </div>
+            ) : null}
+
             <div style={{ marginTop: 10, fontFamily: "Menlo,monospace", fontSize: 10.5, display: "flex", flexDirection: "column", gap: 7 }}>
               <PopRow label="Confirmed in ring · 7 d" value={String(confirmedInRing.length)} />
               <PopRow
@@ -396,6 +441,9 @@ export default function MapView(props: MapViewProps = {}) {
   );
 }
 
+function cap(s: string): string {
+  return s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
+}
 function fadeByAge(ageDays: number): number {
   return Math.max(0.28, 1 - ageDays / 7);
 }

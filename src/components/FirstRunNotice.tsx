@@ -3,12 +3,12 @@
 import { useEffect, useState } from "react";
 import { FIRST_RUN } from "@/lib/legal";
 
-/* One-time, logged acknowledgment. Shown once per browser on first entry into
-   a network (never on the splash). Framed as "how to use Watch," not a legal
-   wall — calm, on-brand, honest. Accepting records the acknowledgment in
-   localStorage and, best-effort, server-side (an audit row), so there is a
-   record the user was informed. The primary liability shield is still the
-   customer contract; this supports it. */
+/* Logged acknowledgment, shown once per SESSION (i.e. every login), on first
+   entry into a network (never on the splash). Framed as "how to use Watch,"
+   not a legal wall — calm, on-brand, honest. Accepting records the
+   acknowledgment in sessionStorage and, best-effort, server-side (an audit
+   row), so there is a record the user was informed each time they enter. The
+   primary liability shield is still the customer contract; this supports it. */
 
 const KEY = "watch.ack.v1";
 
@@ -25,7 +25,7 @@ export default function FirstRunNotice() {
     const path = window.location.pathname;
     if (path === "/" || path === "/limitations") return; // not on splash / the page itself
     try {
-      if (!localStorage.getItem(KEY)) setShow(true);
+      if (!sessionStorage.getItem(KEY)) setShow(true);
     } catch {
       setShow(true);
     }
@@ -35,7 +35,7 @@ export default function FirstRunNotice() {
 
   function accept() {
     try {
-      localStorage.setItem(KEY, new Date().toISOString());
+      sessionStorage.setItem(KEY, new Date().toISOString());
     } catch {
       /* private mode — still proceed */
     }
@@ -62,8 +62,8 @@ export default function FirstRunNotice() {
         position: "fixed",
         inset: 0,
         zIndex: 9000,
-        background: "rgba(27,26,23,0.42)",
-        backdropFilter: "blur(3px)",
+        background: "rgba(5,8,16,0.62)",
+        backdropFilter: "blur(4px)",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",

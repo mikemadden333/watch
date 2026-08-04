@@ -3,37 +3,39 @@
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
-/* Demo DRILL controls — for demonstrations only, gated behind ?drill in the
-   URL so a real principal never triggers it. Fires a clearly-labeled
-   SIMULATED shooting near a campus (Chicago or Dallas per the current
-   network) that runs the real rules engine → posture escalates → the
-   in-app ALERT fires (and a text, if Twilio is configured). Clear wipes it.
-
-   Hotkeys:  ⌃⇧D  fire drill      ⌃⇧C  clear drill
+/* Demo DRILL controls. Available on every page whenever DEMO_MODE=1 (passed
+   in as `enabled`) — no ?drill needed; ?drill still reveals it as a fallback.
+   Hotkeys work globally while visible:
+       ⌃⇧D  simulate alert       ⌃⇧C  all clear
+   Fires a clearly-labeled SIMULATED shooting near a campus that runs the real
+   rules engine → posture escalates → the in-app ALERT fires (and a text, if
+   Twilio is live). Collapses to a small pill so it never clutters a demo.
    ============================================================ */
 
 const kbd: React.CSSProperties = {
-  fontFamily: "Menlo,monospace",
-  fontSize: 9,
-  opacity: 0.7,
+  fontFamily: "var(--mono)",
+  fontSize: 8.5,
+  opacity: 0.75,
   border: "1px solid currentColor",
   borderRadius: 4,
   padding: "1px 4px",
   lineHeight: 1,
+  letterSpacing: "0.02em",
 };
 
-export default function DrillControls({ slug }: { slug: string }) {
+export default function DrillControls({ slug, enabled = false }: { slug: string; enabled?: boolean }) {
   const router = useRouter();
-  const [on, setOn] = useState(false);
+  const [on, setOn] = useState(enabled);
+  const [open, setOpen] = useState(true);
   const [busy, setBusy] = useState<"" | "fire" | "clear">("");
   const [msg, setMsg] = useState("");
 
   useEffect(() => {
+    if (enabled) { setOn(true); return; }
     if (typeof window !== "undefined" && window.location.search.includes("drill")) setOn(true);
-  }, []);
+  }, [enabled]);
 
   const poke = useCallback(() => {
-    // make the in-app monitor re-check immediately, then sync server content
     window.dispatchEvent(new CustomEvent("watch:poll"));
     setTimeout(() => window.dispatchEvent(new CustomEvent("watch:poll")), 1500);
     router.refresh();
@@ -46,7 +48,7 @@ export default function DrillControls({ slug }: { slug: string }) {
         method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ slug }),
       });
       const j = await res.json();
-      setMsg(j.ok ? `Drill fired · ${j.campusName ?? j.campus}` : `Error: ${j.error ?? "failed"}`);
+      setMsg(j.ok ? `Fired · ${j.campusName ?? j.campus}` : `Error: ${j.error ?? "failed"}`);
       poke();
     } catch { setMsg("Network error"); }
     setBusy("");
@@ -69,8 +71,8 @@ export default function DrillControls({ slug }: { slug: string }) {
     if (!on) return;
     function onKey(e: KeyboardEvent) {
       if (!(e.ctrlKey && e.shiftKey)) return;
-      if (e.code === "KeyD") { e.preventDefault(); fire(); }
-      if (e.code === "KeyC") { e.preventDefault(); clear(); }
+      if (e.code === "KeyD") { e.preventDefault(); setOpen(true); fire(); }
+      if (e.code === "KeyC") { e.preventDefault(); setOpen(true); clear(); }
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
@@ -78,36 +80,58 @@ export default function DrillControls({ slug }: { slug: string }) {
 
   if (!on) return null;
 
+  // collapsed → a small unobtrusive pill
+  if (!open) {
+    return (
+      <button
+        onClick={() => setOpen(true)}
+        title="Demo controls (⌃⇧D simulate · ⌃⇧C clear)"
+        style={{
+          position: "fixed", left: 14, bottom: 14, zIndex: 8600,
+          display: "inline-flex", alignItems: "center", gap: 7,
+          background: "var(--panel)", border: "1px solid var(--line2)", borderRadius: 999,
+          padding: "7px 12px", color: "var(--mut)", cursor: "pointer",
+          fontFamily: "var(--mono)", fontSize: 9.5, letterSpacing: "0.14em", textTransform: "uppercase",
+          boxShadow: "0 6px 20px rgba(0,0,0,.42)",
+        }}
+      >
+        <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--alert)" }} />
+        Demo
+      </button>
+    );
+  }
+
   return (
     <div
       style={{
-        position: "fixed",
-        left: 16,
-        bottom: 16,
-        zIndex: 8600,
-        width: 208,
-        background: "var(--panel)",
-        border: "1px solid var(--line2)",
-        borderRadius: 14,
-        padding: "12px 13px 11px",
-        boxShadow: "0 10px 32px rgba(27,26,23,.20)",
+        position: "fixed", left: 14, bottom: 14, zIndex: 8600, width: 186,
+        background: "var(--panel)", border: "1px solid var(--line2)", borderRadius: 12,
+        padding: "10px 11px", boxShadow: "0 10px 30px rgba(0,0,0,.45)",
       }}
     >
-      <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 10 }}>
-        <span style={{ width: 7, height: 7, borderRadius: "50%", background: "var(--alert)", flex: "0 0 auto" }} />
-        <span style={{ fontFamily: "Menlo,monospace", fontSize: 9.5, letterSpacing: ".14em", color: "var(--mut)", fontWeight: 600 }}>
-          DEMO CONTROLS
+      <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 9 }}>
+        <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--alert)", flex: "0 0 auto" }} />
+        <span style={{ fontFamily: "var(--mono)", fontSize: 9, letterSpacing: "0.16em", color: "var(--mut)", fontWeight: 600 }}>
+          DEMO MODE
         </span>
+        <button
+          onClick={() => setOpen(false)}
+          aria-label="Collapse demo controls"
+          title="Collapse"
+          style={{ marginLeft: "auto", background: "none", border: "none", color: "var(--mut)", cursor: "pointer", fontSize: 14, lineHeight: 1, padding: 0 }}
+        >
+          –
+        </button>
       </div>
-      <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
         <button
           onClick={fire}
           disabled={!!busy}
           style={{
-            width: "100%", fontSize: 13, fontWeight: 600, border: "none",
-            background: "var(--alert)", color: "#fff", borderRadius: 10,
-            padding: "10px", cursor: busy ? "default" : "pointer",
-            display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+            width: "100%", fontSize: 12.5, fontWeight: 600, border: "none",
+            background: "var(--alert)", color: "#fff", borderRadius: 9,
+            padding: "8px 10px", cursor: busy ? "default" : "pointer",
+            display: "flex", alignItems: "center", justifyContent: "center", gap: 7,
             opacity: busy === "fire" ? 0.7 : 1,
           }}
         >
@@ -118,10 +142,10 @@ export default function DrillControls({ slug }: { slug: string }) {
           onClick={clear}
           disabled={!!busy}
           style={{
-            width: "100%", fontSize: 13, fontWeight: 500, border: "1px solid var(--line2)",
-            background: "transparent", color: "var(--ink)", borderRadius: 10,
-            padding: "9px", cursor: busy ? "default" : "pointer",
-            display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+            width: "100%", fontSize: 12.5, fontWeight: 500, border: "1px solid var(--line2)",
+            background: "transparent", color: "var(--ink)", borderRadius: 9,
+            padding: "7px 10px", cursor: busy ? "default" : "pointer",
+            display: "flex", alignItems: "center", justifyContent: "center", gap: 7,
             opacity: busy === "clear" ? 0.7 : 1,
           }}
         >
@@ -129,13 +153,9 @@ export default function DrillControls({ slug }: { slug: string }) {
           <kbd style={kbd}>⌃⇧C</kbd>
         </button>
       </div>
-      {msg ? (
-        <div style={{ marginTop: 9, fontSize: 10.5, color: "var(--ink)", fontFamily: "Menlo,monospace" }}>{msg}</div>
-      ) : (
-        <div style={{ marginTop: 9, fontSize: 10, color: "var(--mut)", lineHeight: 1.45 }}>
-          Simulated &amp; labeled — never counts toward accuracy.
-        </div>
-      )}
+      <div style={{ marginTop: 8, fontSize: 9.5, color: msg ? "var(--ink)" : "var(--faint)", fontFamily: "var(--mono)", lineHeight: 1.5 }}>
+        {msg || "Simulated · never counts toward accuracy"}
+      </div>
     </div>
   );
 }

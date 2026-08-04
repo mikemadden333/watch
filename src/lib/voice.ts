@@ -209,7 +209,7 @@ export function ceoBriefing(data: NetworkData, now = new Date()): Briefing {
   if (top) {
     para.push({ t: `A ${incidentTypeWord(top)} was ` });
     para.push({ t: `confirmed ${centralHour(now) < 12 ? "overnight" : "earlier"} ${blocksPhrase(top.distanceMi, top.bearing)} of ${cName}`, b: true });
-    para.push({ t: ` — ${cc.who} ${cc.verb} at ${clockOf(top.publishedAt)} ${whenWord(top.publishedAt, now)}. I've ${verbed} and prepared morning actions for ${principal}. ` });
+    para.push({ t: ` — ${cc.who} ${cc.verb} at ${clockOf(top.publishedAt)} ${whenWord(top.publishedAt, now)}${top.victimNote ? "; " + top.victimNote : ""}. I've ${verbed} and prepared morning actions for ${principal}. ` });
   } else {
     para.push({ t: `${cName} needs a closer look this morning. ` });
   }
@@ -249,8 +249,8 @@ export function leaderBriefing(data: NetworkData, code: string, now = new Date()
   const para: Seg[] = [];
   if (top) {
     const cc = confirmClause(top, data.city);
-    para.push({ t: `A ${incidentTypeWord(top)} was ` });
-    para.push({ t: `confirmed at ${clockOf(top.occurredAt)} ${whenWord(top.occurredAt, now)}`, b: true });
+    para.push({ t: `A ${incidentTypeWord(top)} ` });
+    para.push({ t: `occurred at ${clockOf(top.occurredAt)} ${whenWord(top.occurredAt, now)}`, b: true });
     para.push({ t: ` on ${placeOf(top)} — ` });
     para.push({ t: `${milesPhrase(top.distanceMi, top.bearing)}`, b: true });
     para.push({ t: ` of your front door. ${cc.who} ${cc.verb} at ${clockOf(top.publishedAt)} ${whenWord(top.publishedAt, now)}${top.victimNote ? "; " + top.victimNote : ""}. Nothing else qualified ${overnightWord(now)}. ` });

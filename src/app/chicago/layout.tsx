@@ -17,7 +17,7 @@ export default async function ChicagoLayout({ children }: { children: React.Reac
         <Nav network={tenant.name} base="/chicago" mark="/veritas-mark.svg" campuses={navCampuses} />
       </Suspense>
       {children}
-      <DrillControls slug="veritas-charter" />
+      <DrillControls slug="veritas-charter" enabled={process.env.DEMO_MODE === "1"} />
     </>
   );
 }

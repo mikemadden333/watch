@@ -17,7 +17,7 @@ export default async function DallasLayout({ children }: { children: React.React
         <Nav network={tenant.name} base="/dallas" mark="/solis-mark.svg" campuses={navCampuses} />
       </Suspense>
       {children}
-      <DrillControls slug="solis-academies" />
+      <DrillControls slug="solis-academies" enabled={process.env.DEMO_MODE === "1"} />
     </>
   );
 }

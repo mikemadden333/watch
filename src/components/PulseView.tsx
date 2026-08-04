@@ -19,8 +19,9 @@ import {
   PULSE_RADIUS_MI,
   type PulseRing,
 } from "@/lib/pulse";
-import { pulseHeader, numWord } from "@/lib/voice";
+import { pulseHeader, numWord, incidentTypeWord, placeOf } from "@/lib/voice";
 import { distanceMi } from "@/lib/geo";
+import type { Incident } from "@/lib/types";
 
 const EL = "#e8a13a"; // gun-violence ring color (amber signal, matches the CEO board)
 
@@ -103,12 +104,18 @@ function LeaderPulse({ data, campus }: { data: NetworkData; campus: Campus }) {
               {rings.map((r) => (
                 <div className="prow" key={r.id}>
                   <div className="top">
-                    <span>{r.headline}</span>
+                    <span>
+                      {cap(incidentTypeWord({ kind: r.kind } as Incident))} · {placeOf({ headline: r.headline } as Incident)}
+                    </span>
                     <span className="mono num" style={{ color: r.ageDays <= 7 ? EL : "var(--ink)" }}>{r.ageLabel}</span>
                   </div>
                   <div className="sub">
                     {r.distanceMi} mi {r.bearing}
-                    {r.victimNote ? ` · ${r.victimNote}` : ""}
+                    {r.victimNote ? (
+                      <span style={/fatal/i.test(r.victimNote) && !/non-fatal/i.test(r.victimNote) ? { color: "var(--alert)", fontWeight: 600 } : undefined}>
+                        {" · "}{r.victimNote}
+                      </span>
+                    ) : null}
                     {r.ageDays > 60 ? ` · fades fully in ${r.fadesInDays} days` : ""}
                   </div>
                   <div className="fade"><i style={{ width: `${Math.round(r.decayFrac * 100)}%`, opacity: Math.max(0.35, r.decayFrac) }} /></div>
