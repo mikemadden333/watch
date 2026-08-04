@@ -160,13 +160,19 @@ export const MESSAGING: LegalDoc = {
     {
       heading: "Sample messages",
       bullets: [
-        "WATCH ALERT — Garfield Park Academy: Confirmed shooting 2 blocks NE (occurred 6:41 AM). Open Watch to verify. In an emergency call 911; not a guarantee of safety. — Madden Education Advisory. Reply STOP to opt out.",
-        "WATCH — Good morning. All six campuses are clear. Open Watch for the full briefing.",
+        "Watch safety alert for Garfield Park Academy: a confirmed violent incident was reported nearby (about 2 blocks NE). Public-safety awareness only — open Watch for details and next steps. Not an emergency service; in an emergency call 911. Reply STOP to opt out, HELP for help. — Madden Education Advisory",
+        "WATCH — Good morning. All campuses are clear. Open Watch for the full briefing. Reply STOP to opt out.",
       ],
+    },
+    {
+      heading: "What this program is not",
+      body: "Watch is a criminal-violence detection and safety-notification service for schools. It does not promote, sell, distribute, advertise, or market firearms, weapons, ammunition, fireworks, or explosives, and it never facilitates any transaction. Its only purpose is to alert school staff to public-safety incidents reported by public sources near their campuses so they can protect students.",
     },
   ],
 };
 
 /** Plain-text "Message Flow" / opt-in description to paste into the Twilio
  *  A2P campaign registration (Campaign & Use-Case → Message Flow). */
-export const A2P_MESSAGE_FLOW = `End users are the authorized leaders and staff of a subscribing K-12 school network. They provide consent to receive SMS during account onboarding by entering their mobile number and affirmatively checking a consent checkbox (unchecked by default) that reads: "I agree to receive Watch safety-alert text messages at this number. Message and data rates may apply. Message frequency varies. Reply STOP to cancel, HELP for help." The opt-in web form and the program details are published at https://watch-xi-eight.vercel.app/messaging, the privacy policy at https://watch-xi-eight.vercel.app/privacy, and the terms at https://watch-xi-eight.vercel.app/terms. Consent is not a condition of purchase, and mobile opt-in data is never shared with third parties or affiliates for marketing. Messages are transactional safety notifications (incident alerts and scheduled campus briefings). Users can opt out anytime by replying STOP and get help by replying HELP.`;
+export const A2P_MESSAGE_FLOW = `Watch is a criminal-violence detection and safety-notification service for K-12 schools. This campaign does NOT promote, sell, distribute, advertise, or market firearms, weapons, ammunition, fireworks, or explosives, and it facilitates no transactions of any kind (no SHAFT content). Its sole purpose is to notify school administrators of public-safety incidents reported by public sources (police records and news) near their campuses so they can protect students.
+
+End users are the authorized leaders and staff of a subscribing school network. They provide consent to receive SMS during account onboarding by entering their mobile number and affirmatively checking a consent checkbox (unchecked by default) that reads: "I agree to receive Watch safety-alert text messages at this number. Message and data rates may apply. Message frequency varies. Reply STOP to cancel, HELP for help." The opt-in web form and program details are published at https://watch-xi-eight.vercel.app/messaging, the privacy policy at https://watch-xi-eight.vercel.app/privacy, and the terms at https://watch-xi-eight.vercel.app/terms. Consent is not a condition of purchase, and mobile opt-in data is never shared with third parties or affiliates for marketing. Messages are transactional public-safety notifications; they describe incidents in general terms ("a violent incident was reported nearby") and direct the recipient to the Watch application for details. Users opt out anytime by replying STOP and get help by replying HELP.`;

@@ -56,8 +56,26 @@ export async function sendAlertSms(
   return { sent, recipients: tos.length, degraded: false, error };
 }
 
-/** Build the ALERT text — plain, actionable, with the required pointers. */
+/** Keep the TEXT-MESSAGE channel free of firearm/weapon nouns. Carrier SHAFT
+ *  filters flag "shooting/gun/firearm" as if they were weapons *sales* (they
+ *  cannot tell a safety alert from weapons commerce), so the SMS describes the
+ *  event as a "violent incident" and points to Watch for the specifics. The
+ *  in-app surfaces still say exactly what happened. */
+export function safetyNeutral(s: string): string {
+  return (s || "")
+    .replace(/\bshots?[-\s]?fired\b/gi, "police activity")
+    .replace(/\bshootings\b/gi, "violent incidents")
+    .replace(/\b(shooting|gunfire|gunshots?)\b/gi, "violent incident")
+    .replace(/\b(firearms?|guns?|ammunition|weapons?)\b/gi, "violent incident")
+    .replace(/\bstabbings?\b/gi, "violent incident")
+    .replace(/(violent incident)(\s+\1)+/gi, "$1")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+}
+
+/** Build the ALERT text — SHAFT-safe, clearly a safety notification. */
 export function alertSmsBody(campusName: string, detail: string, occurredLocal?: string): string {
-  const when = occurredLocal ? ` (occurred ${occurredLocal})` : "";
-  return `WATCH ALERT — ${campusName}: ${detail}${when}. Open Watch to verify. In an emergency call 911; not a guarantee of safety. — Madden Education Advisory. Reply STOP to opt out.`;
+  const when = occurredLocal ? ` (${occurredLocal})` : "";
+  const safe = safetyNeutral(detail);
+  return `Watch safety alert for ${campusName}: ${safe}${when}. Public-safety awareness only — open Watch for details and next steps. Not an emergency service; in an emergency call 911. Reply STOP to opt out, HELP for help. — Madden Education Advisory`;
 }

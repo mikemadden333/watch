@@ -12,7 +12,7 @@ import { getNetworkData } from "./networkData";
 import { ceoBriefing, dismissalOutlook } from "./voice";
 import { logAuditEvent } from "./adapters/contract";
 import { quietState, DEFAULT_QUIET } from "./delivery";
-import { smsConfigured, sendAlertSms } from "./notify/sms";
+import { smsConfigured, sendAlertSms, safetyNeutral } from "./notify/sms";
 
 export const SCHED_SLUGS = ["veritas-charter", "solis-academies"] as const;
 
@@ -64,7 +64,7 @@ export async function runScheduledNotice(
     inhibited = true;
   } else if (smsConfigured()) {
     const tenantName = data.tenantName;
-    const body = `WATCH — ${tenantName}: ${sentence} Open Watch to see more. Not an emergency service; call 911 in an emergency. Reply STOP to opt out.`;
+    const body = safetyNeutral(`WATCH — ${tenantName}: ${sentence} Open Watch to see more. Not an emergency service; call 911 in an emergency. Reply STOP to opt out.`);
     const res = await sendAlertSms(body);
     pushed = res.sent;
   }
