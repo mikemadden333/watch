@@ -104,13 +104,16 @@ export async function POST(req: Request) {
       },
     ];
   } else {
-    // ---- generic single-campus drill (0.12 mi north → ALERT) ----
+    // ---- generic single-campus drill: 0.35 mi → ELEVATED (E-2), visual only,
+    // no text. The ⌃⇧A ALERT path is the one that pages. ----
+    const p = offset(tLat, tLon, 0.35, 45);
     incidents = [
       {
         source: "DRILL · simulated", sourceRecordId: `drill:${target.code}`,
         headline: `DRILL · simulated shooting · ${target.name}`, kind: "shooting", tier: "CONFIRMED",
-        lat: tLat + 0.00174, lon: tLon, geoConfidence: "exact",
+        lat: p.lat, lon: p.lon, geoConfidence: "exact",
         occurredAt: now.toISOString(), publishedAt: now.toISOString(),
+        victimNote: "one victim, non-fatal",
         note: "DEMO DRILL · simulated · not a real incident",
       },
     ];
