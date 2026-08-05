@@ -3,6 +3,7 @@
   "crons": [
     { "path": "/api/cron/nws", "schedule": "*/2 * * * *" },
     { "path": "/api/cron/dallas-pd", "schedule": "*/2 * * * *" },
+    { "path": "/api/cron/dallas-incidents", "schedule": "0 */6 * * *" },
     { "path": "/api/cron/evaluate", "schedule": "*/2 * * * *" },
     { "path": "/api/cron/gdelt", "schedule": "*/10 * * * *" },
     { "path": "/api/cron/news", "schedule": "*/10 * * * *" },

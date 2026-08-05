@@ -44,6 +44,7 @@ const FOOT: Record<string, string> = {
   crimes: "CPD crimes",
   rss: "Local RSS",
   dpd: "Dispatch",
+  dpi: "DPD incidents",
 };
 
 export function plainFootLabel(key: string): string {

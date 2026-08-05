@@ -63,6 +63,13 @@ export const SOURCE_CATALOG: Record<string, SourceCard[]> = {
   ],
   dallas: [
     {
+      name: "Dallas Police · incident record",
+      role: "Confirms",
+      what: "The city's official public record of reported crimes, with block-level coordinates.",
+      provides: "The confirmed gun-violence layer near each campus (firearm-involved assaults, robberies, shootings, and homicides). Populates the 125-day board and Pulse.",
+      latency: "About 1–2 days behind the event.",
+    },
+    {
       name: "Dallas Police · active dispatch",
       role: "Dispatch",
       what: "The city's live 911 active-call feed, refreshed roughly every two minutes.",
