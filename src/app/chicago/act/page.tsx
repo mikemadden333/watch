@@ -1,22 +1,15 @@
-import ActView from "@/components/ActView";
-import { getNetworkData } from "@/lib/networkData";
+import { redirect } from "next/navigation";
 
-export const dynamic = "force-dynamic";
-
-export default async function ChicagoAct({
+/* The Act tab split into Action + Communications. Old links land on Action. */
+export default async function ChicagoActRedirect({
   searchParams,
 }: {
   searchParams: Promise<{ view?: string; campus?: string }>;
 }) {
   const sp = await searchParams;
-  const view = sp.view === "leader" ? "leader" : "ceo";
-  const data = await getNetworkData("veritas-charter");
-  if (!data) {
-    return (
-      <div className="v2hero">
-        <div className="sentence">This network isn&apos;t connected yet.</div>
-      </div>
-    );
-  }
-  return <ActView data={data} slug="veritas-charter" view={view} campus={sp.campus} />;
+  const q = new URLSearchParams();
+  if (sp.view) q.set("view", sp.view);
+  if (sp.campus) q.set("campus", sp.campus);
+  const s = q.toString();
+  redirect(`/chicago/action${s ? "?" + s : ""}`);
 }

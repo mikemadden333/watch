@@ -371,7 +371,7 @@ export default function MapView(props: MapViewProps = {}) {
                   {placeOf(triggerInc)} · {distanceMi(sel, triggerInc).toFixed(2)} mi {bearing(sel, triggerInc)} of campus · occurred {occurredPhrase(triggerInc.occurredAt).replace(/^./, (ch) => ch.toLowerCase())}
                 </div>
                 <Link
-                  href={`${base}/act?view=leader&campus=${sel.code}`}
+                  href={`${base}/action?view=leader&campus=${sel.code}`}
                   style={{ display: "inline-block", marginTop: 8, fontSize: 11.5, fontWeight: 600, color: "var(--amber2)", textDecoration: "none" }}
                 >
                   Open response →

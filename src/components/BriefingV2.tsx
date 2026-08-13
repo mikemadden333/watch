@@ -256,7 +256,7 @@ function CeoView({ data, base }: { data: NetworkData; base: string }) {
             </p>
             {hotCampus ? (
               <div className="sr-ctarow">
-                <Link className="sr-cta" href={`${base}/act?view=leader&campus=${hotCampus.c.code}`}>
+                <Link className="sr-cta" href={`${base}/action?view=leader&campus=${hotCampus.c.code}`}>
                   Open {hotCampus.c.name}&apos;s response →
                 </Link>
                 <Link className="sr-cta ghost" href={`${base}/briefing?view=leader&campus=${hotCampus.c.code}`}>
@@ -385,9 +385,9 @@ function LeaderView({ data, base, code }: { data: NetworkData; base: string; cod
               : "Your standing morning checklist — nothing extra is required today."}
           </div>
         </Link>
-        <Link className="ac" href={`${base}/act?view=leader&campus=${campus.code}`}>
-          <div className="k">Act · ready for your edit</div>
-          <div className="v">{active ? "Family note drafted from the facts →" : "Draft templates, ready when needed →"}</div>
+        <Link className="ac" href={`${base}/comms?view=leader&campus=${campus.code}`}>
+          <div className="k">Communications · ready for your edit</div>
+          <div className="v">{active ? "Family note drafted from the facts →" : "Drafts thread from the incident, ready when needed →"}</div>
           <div className="s">
             {active
               ? "References the incident, your response, and police coordination. Nothing sends unless you send it."

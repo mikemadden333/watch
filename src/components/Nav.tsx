@@ -16,7 +16,8 @@ const TABS = [
   { label: "Briefing", href: "briefing" },
   { label: "Map", href: "map" },
   { label: "Pulse", href: "pulse" },
-  { label: "Act", href: "act" },
+  { label: "Action", href: "action" },
+  { label: "Communications", href: "comms" },
   { label: "Record", href: "record" },
   { label: "About", href: "about" },
 ];
