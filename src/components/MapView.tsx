@@ -251,7 +251,7 @@ export default function MapView(props: MapViewProps = {}) {
           ? `All ${campuses.length} campuses on one map — clear right now.`
           : `${campuses.length} campuses on one map · ${clearNow} clear.`}
       </div>
-      <span className="micro">Rings show the selected campus · markers fade with age · coarse-geo is never plotted</span>
+      <span className="micro">Rings show the selected campus. Dots fade as they age. If we can&apos;t pin the exact spot, it isn&apos;t here.</span>
     </div>
     <div className="wrap">
       {/* rail (left on map screen) */}

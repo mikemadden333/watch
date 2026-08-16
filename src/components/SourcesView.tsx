@@ -12,8 +12,8 @@ export default function SourcesView({ city, network }: { city: string; network: 
   return (
     <>
     <div className="head">
-      <div className="sentence">Every claim traces to a public source.</div>
-      <span className="micro">{network} · {cards.length} sources · plain English · dataset IDs live in Audit evidence</span>
+      <div className="sentence">Where every line comes from.</div>
+      <span className="micro">{network} · {cards.length} sources · the dataset IDs live in the Record</span>
     </div>
     <div className="wrap" style={{ paddingTop: 4 }}>
       <div className="main">

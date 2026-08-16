@@ -15,8 +15,8 @@ export default function RecordView({ data }: { data: NetworkData }) {
   return (
     <>
       <div className="v2hero">
-        <div className="micro">Record · the account of everything</div>
-        <div className="sentence">Everything Watch has done, and how often it was right.</div>
+        <div className="micro">Record</div>
+        <div className="sentence">Everything Watch did, and how often it was right.</div>
         <p className="para" style={{ maxWidth: 720 }}>
           The append-only log below carries every status change, delivery, ingest, and copied draft — each with its
           source record, rule, and timestamps. <b>Nothing here is editable, ever.</b>
