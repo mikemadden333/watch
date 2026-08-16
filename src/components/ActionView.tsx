@@ -57,13 +57,12 @@ export default function ActionView({
   return (
     <>
       <div className="v2hero">
-        <div className="micro">Action · your plan, made runnable</div>
-        <div className="sentence">Knowing is half of it. When something happens, you run your plan — and Watch remembers every step.</div>
-        <p className="para" style={{ maxWidth: 740 }}>
-          At onboarding, Watch loads your district&apos;s own emergency action plan here — your roles, your call
-          chain, your language (what you see today is the national-standard default). You start a response; it
-          becomes a live checklist that walks four phases, each step stamped with who and when, closed only through
-          an after-action review, and kept permanently. <b>A person starts a response — Watch never does.</b>
+        <div className="micro">Action</div>
+        <div className="sentence">Your plan, as a live checklist.</div>
+        <p className="para" style={{ maxWidth: 660 }}>
+          When something happens near a campus, you start a response. Watch turns your plan into a checklist,
+          timestamps every step, and keeps the record. Today it shows the national-standard plan; your own plan
+          loads at onboarding. <b>You start it. Watch never does.</b>
         </p>
       </div>
 

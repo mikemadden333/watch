@@ -246,7 +246,7 @@ function CeoView({ data, base }: { data: NetworkData; base: string }) {
         <div className="sr-hero">
           <div>
             <div className="sr-eyebrow">Network briefing · {numWord(n)} campuses</div>
-            <h1 className="sr-answer">
+            <h1 className="sr-answer" data-tour="brief-answer">
               {b.lead} <span className={`sr-${b.keyClass}`}>{b.key}</span>
             </h1>
           </div>
@@ -369,7 +369,7 @@ function LeaderView({ data, base, code }: { data: NetworkData; base: string; cod
           <span className="v2live"><i />Live · watching</span>
         </div>
         <div className="micro">{b.micro}</div>
-        <div className="sentence">
+        <div className="sentence" data-tour="brief-answer">
           {b.lead} <span className={b.keyClass}>{b.key}</span>
         </div>
         <Para para={b.para} />

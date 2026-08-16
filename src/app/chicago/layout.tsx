@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import Nav from "@/components/Nav";
 import DrillControls from "@/components/live/DrillControls";
+import PresenterTour from "@/components/live/PresenterTour";
 import { getNetworkData } from "@/lib/networkData";
 import { buildNavCampuses } from "@/lib/navCampuses";
 import { tenant, campuses as fixtureCampuses, morningStatuses } from "@/lib/data/chicago";
@@ -18,6 +19,7 @@ export default async function ChicagoLayout({ children }: { children: React.Reac
       </Suspense>
       {children}
       <DrillControls slug="veritas-charter" enabled={process.env.DEMO_MODE === "1"} />
+      <PresenterTour slug="veritas-charter" base="/chicago" enabled={process.env.DEMO_MODE === "1"} />
     </>
   );
 }

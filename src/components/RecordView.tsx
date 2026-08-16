@@ -64,7 +64,7 @@ export default function RecordView({ data }: { data: NetworkData }) {
         </div>
 
         <div className="rail" style={{ width: 330 }}>
-          <div className="card" style={{ padding: 16 }}>
+          <div className="card" data-tour="record-ledger" style={{ padding: 16 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <b>Accuracy ledger</b><span className="chip">public to customer</span>
             </div>

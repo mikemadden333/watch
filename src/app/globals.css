@@ -2235,3 +2235,72 @@ a {
 @media (max-width: 940px) {
   .nav2 .toggle { display: none; }
 }
+
+/* Communications — decluttered controls (plain label, dropdown, compact audience) */
+.clabel { font-family: var(--mono); font-size: 10px; letter-spacing: 1.4px; text-transform: uppercase; color: var(--mut); margin-bottom: 8px; }
+.cselect {
+  width: 100%; max-width: 620px; padding: 11px 13px; border-radius: 9px;
+  border: 1px solid var(--line2); background: var(--panel2); color: var(--ink);
+  font-family: var(--sans); font-size: 13.5px; cursor: pointer;
+}
+.cselect:focus { outline: none; border-color: var(--amber); }
+.cauds { display: flex; flex-wrap: wrap; gap: 8px; }
+.caud { padding: 10px 18px; }
+.caud b { font-size: 13px; }
+
+/* ============================================================
+   Presenter tour — spotlight dim, glow ring, caption card.
+   ============================================================ */
+.tourroot { position: fixed; inset: 0; z-index: 9990; pointer-events: none; }
+.tourdim { position: fixed; pointer-events: none; transition: all 0.18s ease; }
+.tourring {
+  position: fixed; pointer-events: none; border-radius: 12px;
+  border: 2px solid var(--amber2);
+  box-shadow: 0 0 0 1px rgba(232,161,58,0.4), 0 0 26px 5px rgba(232,161,58,0.45);
+  transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: tourpulse 2s ease-in-out infinite;
+}
+@keyframes tourpulse {
+  0%, 100% { box-shadow: 0 0 0 1px rgba(232,161,58,0.4), 0 0 22px 4px rgba(232,161,58,0.4); }
+  50% { box-shadow: 0 0 0 1px rgba(232,161,58,0.55), 0 0 34px 8px rgba(232,161,58,0.6); }
+}
+@media (prefers-reduced-motion: reduce) { .tourring { animation: none; } }
+
+.tourcap {
+  position: fixed; bottom: 26px; left: 50%; transform: translateX(-50%);
+  width: min(560px, calc(100vw - 32px)); z-index: 10000; pointer-events: auto;
+  background: linear-gradient(180deg, rgba(232,161,58,0.06), transparent), var(--panel);
+  border: 1px solid var(--line2); border-radius: 14px; padding: 16px 18px 14px;
+  box-shadow: 0 18px 50px rgba(0,0,0,0.6);
+}
+.tourcap .tc-top { display: flex; align-items: baseline; gap: 10px; margin-bottom: 8px; }
+.tourcap .tc-num { font-family: var(--mono); font-size: 11px; color: var(--amber2); letter-spacing: 0.5px; font-variant-numeric: tabular-nums; }
+.tourcap .tc-title { font-family: var(--mono); font-size: 10px; letter-spacing: 1.6px; text-transform: uppercase; color: var(--mut); }
+.tourcap .tc-say { font-family: var(--serif); font-size: 16px; line-height: 1.5; color: var(--ink); }
+.tourcap .tc-ctl { display: flex; align-items: center; gap: 8px; margin-top: 14px; }
+.tourcap .tc-btn {
+  font-family: var(--sans); font-size: 12px; padding: 7px 14px; border-radius: 8px;
+  border: 1px solid var(--line2); background: var(--panel2); color: var(--ink); cursor: pointer;
+}
+.tourcap .tc-btn.primary { background: var(--amber); border-color: var(--amber); color: #201400; font-weight: 700; }
+.tourcap .tc-btn:disabled { opacity: 0.4; cursor: default; }
+.tourcap .tc-hint { margin-left: auto; font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.5px; color: var(--faint); }
+
+/* ============================================================
+   Pulse — the timeline infographic + research (rebuilt).
+   ============================================================ */
+.pulsewrap { display: grid; grid-template-columns: 1.5fr 1fr; gap: 14px; align-items: start; }
+@media (max-width: 860px) { .pulsewrap { grid-template-columns: 1fr; } }
+.pchart { padding: 18px 20px 14px; }
+.pchart .pstats { display: flex; flex-wrap: wrap; gap: 26px; margin-bottom: 16px; }
+.pstat { display: flex; flex-direction: column; gap: 1px; }
+.pstat b { font-family: var(--sans); font-size: 26px; font-weight: 700; line-height: 1; color: var(--ink); font-variant-numeric: tabular-nums; }
+.pstat span { font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.8px; text-transform: uppercase; color: var(--mut); }
+.ptimeline { margin-top: 4px; }
+.ptl-axis { display: flex; justify-content: space-between; margin-top: 4px; font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.5px; color: var(--faint); }
+.pexplain { padding: 16px 18px; }
+.pexplain p { font-size: 13px; line-height: 1.6; color: var(--ink2); margin: 0 0 10px; }
+.pexplain .pcite { font-size: 11px; color: var(--mut); line-height: 1.5; margin: 0; }
+.pexplain .pcite a { color: var(--amber2); text-decoration: none; }
+.pexplain .pcite a:hover { text-decoration: underline; }
+.pulsewrap .plist { grid-column: 1 / -1; }

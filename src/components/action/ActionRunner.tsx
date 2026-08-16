@@ -226,14 +226,13 @@ export default function ActionRunner({
           </div>
         ) : null}
 
-        <div className="startcard">
+        <div className="startcard" data-tour="action-start">
           <div className="startrow">
             <div className="starttext">
               <div className="section-label" style={{ marginBottom: 6 }}>Emergency response</div>
               <b style={{ fontSize: 16 }}>Nothing is active right now.</b>
               <div style={{ fontSize: 12.5, color: "var(--mut)", marginTop: 6, lineHeight: 1.55, maxWidth: 560 }}>
-                When something demands it, you start a response — and your plan becomes a live, stamped checklist.
-                A person starts a response; <b style={{ color: "var(--ink2)" }}>Watch never does</b>.
+                Start one when something happens near a campus. You start it; <b style={{ color: "var(--ink2)" }}>Watch never does</b>.
               </div>
             </div>
             <div className="startdot"><span className="pill p-clear"><span className="d" />ALL CLEAR</span></div>
@@ -296,11 +295,11 @@ export default function ActionRunner({
               placeholder="Your name — stamps every step"
               className="startname"
             />
-            <button type="button" className="startbtn" onClick={() => begin(false)}>Begin response</button>
+            <button type="button" className="startbtn" data-tour="action-begin" onClick={() => begin(false)}>Begin response</button>
             <button type="button" className="btn ghost" onClick={() => begin(true)} style={{ fontSize: 12.5 }}>Run as a drill</button>
           </div>
           <div className="startfoot mono">
-            Opens a logged run · every step stamped with who and when · closes only through an after-action review · call 911 first if there&apos;s imminent danger — Watch is decision support, not dispatch.
+            Every step is timestamped and kept. Call 911 first if anyone&apos;s in danger — Watch doesn&apos;t dispatch.
           </div>
         </div>
 
@@ -320,7 +319,7 @@ export default function ActionRunner({
   return (
     <>
       {/* run header */}
-      <div className="runhead" style={{ borderLeft: `4px solid ${run.drill ? "var(--monitor)" : "var(--alert)"}` }}>
+      <div className="runhead" data-tour="action-run" style={{ borderLeft: `4px solid ${run.drill ? "var(--monitor)" : "var(--alert)"}` }}>
         <div style={{ minWidth: 260 }}>
           <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
             <span className={`pill ${run.drill ? "p-monitor" : "p-alert"}`}><span className="d" />{run.drill ? "DRILL RUN OPEN" : "RESPONSE RUN OPEN"}</span>
@@ -371,8 +370,8 @@ export default function ActionRunner({
 
         {/* posture selector lives in Assess — setting it IS step a3 */}
         {phase.key === "assess" ? (
-          <div className="posturebox">
-            <div className="mono" style={{ fontSize: 10, letterSpacing: 1.2, color: "var(--amber2)", marginBottom: 9 }}>BUILDING POSTURE — SAY IT TWICE, EXACTLY</div>
+          <div className="posturebox" data-tour="action-posture">
+            <div className="mono" style={{ fontSize: 10, letterSpacing: 1.2, color: "var(--amber2)", marginBottom: 9 }}>BUILDING POSTURE — SAY IT TWICE</div>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
               {POSTURES.map((p) => (
                 <button
@@ -433,7 +432,7 @@ export default function ActionRunner({
             <button type="button" className="btn" onClick={() => setPhaseIdx((i) => Math.min(PHASES.length - 1, i + 1))}>
               Advance to {PHASES[phaseIdx + 1].label} →
             </button>
-            <span className="mono" style={{ fontSize: 10.5, color: "var(--mut)" }}>phases don&apos;t have to run in order — jump above anytime</span>
+            <span className="mono" style={{ fontSize: 10.5, color: "var(--mut)" }}>jump between phases anytime</span>
           </div>
         ) : null}
       </div>
@@ -481,7 +480,7 @@ export default function ActionRunner({
         <div ref={aarRef} className="card" style={{ marginTop: 16, padding: "20px 22px", borderLeft: "4px solid var(--amber)" }}>
           <div className="section-label" style={{ marginBottom: 4 }}>After-action review — required to close</div>
           <p style={{ fontSize: 12, color: "var(--mut)", margin: "4px 0 14px", lineHeight: 1.5 }}>
-            Two minutes now, honestly answered, is how the next run gets better. The answers close into the permanent record with the run.
+            Answer honestly. It&apos;s kept with the record.
           </p>
           <div style={{ display: "grid", gap: 9 }}>
             {aarAnswers.map((a, idx) => (

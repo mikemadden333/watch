@@ -9,7 +9,7 @@ export default function AboutView() {
     <div className="v2prose">
       <Markdown content={ABOUT_WATCH} />
 
-      <div className="colophon">
+      <div className="colophon" data-tour="about-team">
         <div className="micro">Who builds Watch</div>
         <p className="colo-org">
           Watch is designed, built, and operated by <b>Madden Education Advisory, LLC</b> — an

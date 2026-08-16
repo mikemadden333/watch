@@ -22,10 +22,10 @@ function hm(iso: string): string {
 }
 
 const THINK_LINES = [
-  "Reading the verified record…",
-  "Locking the facts — what, when, where, who confirmed…",
-  "Conditioning on your reference examples…",
-  "Drafting in your network's voice…",
+  "Reading the incident…",
+  "Locking the facts…",
+  "Matching your voice…",
+  "Writing…",
 ];
 
 export default function CommsComposer({
@@ -217,42 +217,23 @@ export default function CommsComposer({
 
   return (
     <>
-      {/* flow indicator — the honest three-move spine */}
-      <div className="cflow" aria-hidden>
-        <span className={`cn ${!hasDrafted ? "on" : "done"}`}><i>1</i> Incident</span>
-        <span className="ar">→</span>
-        <span className={`cn ${!hasDrafted ? "on" : "done"}`}><i>2</i> Audience</span>
-        <span className="ar">→</span>
-        <span className={`cn ${hasDrafted ? "on" : ""}`}><i>3</i> Your message</span>
-      </div>
+      {/* incident */}
+      <div className="clabel">Incident</div>
+      {pickable.length === 0 ? (
+        <div className="banner banner-neutral">No incidents in the current window yet.</div>
+      ) : (
+        <select className="cselect" data-tour="comms-incident" value={incidentId ?? ""} onChange={(e) => pick(e.target.value)}>
+          {pickable.map((i) => (
+            <option key={i.id} value={i.id}>
+              {i.headline} · {i.tier.toLowerCase()} · {hm(i.occurredAt)}{i.victimNote ? ` · ${i.victimNote}` : ""}
+            </option>
+          ))}
+        </select>
+      )}
 
-      {/* 1 · incident */}
-      <div className="section-label" style={{ marginBottom: 8, marginTop: 22 }}>1 · Start at a verified incident</div>
-      <div style={{ display: "grid", gap: 7 }}>
-        {pickable.map((i) => (
-          <label
-            key={i.id}
-            className={`crow ${incidentId === i.id ? "on" : ""}`}
-          >
-            <input type="radio" name="cinc" checked={incidentId === i.id} onChange={() => pick(i.id)} style={{ marginTop: 2 }} />
-            <span style={{ flex: 1 }}>
-              <b>{i.headline}</b>
-              <span style={{ color: "var(--mut)" }}>
-                {" "}· {i.nearestCampusCode ?? "network"} · occurred {hm(i.occurredAt)}
-                {i.victimNote ? ` · ${i.victimNote}` : ""}
-              </span>
-            </span>
-            <span className="chip mono" style={{ fontSize: 9.5, flexShrink: 0 }}>{i.tier}</span>
-          </label>
-        ))}
-        {pickable.length === 0 ? (
-          <div className="banner banner-neutral">No incidents in the current window — the composer threads from live incidents as they qualify.</div>
-        ) : null}
-      </div>
-
-      {/* 2 · audience */}
-      <div className="section-label" style={{ margin: "26px 0 8px" }}>2 · Who needs to hear from you</div>
-      <div className="cauds">
+      {/* audience */}
+      <div className="clabel" style={{ marginTop: 22 }}>Who it&apos;s for</div>
+      <div className="cauds" data-tour="comms-audience">
         {AUDIENCES.map((a) => (
           <button
             key={a.key}
@@ -261,20 +242,16 @@ export default function CommsComposer({
             className={`caud ${audience === a.key ? "on" : ""}`}
           >
             <b>{a.label}</b>
-            <span>{a.desc}</span>
           </button>
         ))}
       </div>
-      {hasDrafted ? (
-        <div className="cflip mono">Same facts, different reader — switch the audience and the letter re-voices instantly.</div>
-      ) : null}
 
-      {/* 3 · the message — facts locked, then the draft */}
-      <div className="cstage" ref={stageRef}>
+      {/* the message — facts locked, then the draft */}
+      <div className="cstage" ref={stageRef} data-tour="comms-draft">
         <div className="factstrip">
           <div className="fhead">
-            <span className="mono flabel">FACTS · LOCKED</span>
-            <span className="fnote">from the verified record — Watch drafts <i>around</i> these; it cannot change them</span>
+            <span className="mono flabel">THE FACTS</span>
+            <span className="fnote">Pulled from the record. Watch can&apos;t change these.</span>
           </div>
           <div className="fchips">
             {facts.map((f) => (
@@ -288,15 +265,13 @@ export default function CommsComposer({
 
         {genPhase === "idle" && !draft ? (
           <div className="cdraw">
-            <button className="btn cbig" type="button" onClick={draftNow}>Draft this message ↓</button>
-            <span className="mono chint">for <b>{audienceLabel}</b> · in your network&apos;s voice · nothing sends from Watch</span>
+            <button className="btn cbig" type="button" onClick={draftNow}>Write the draft</button>
+            <span className="mono chint">for {audienceLabel}. Nothing sends from Watch — you copy it out.</span>
           </div>
         ) : (
           <div className="cdraw">
-            <button className="btn ghost" type="button" onClick={draftNow} disabled={genPhase === "thinking"}>Redraft</button>
-            <span className="mono chint">
-              {audienceLabel} · voiced on {enabledCount} example{enabledCount === 1 ? "" : "s"} · edit freely below · nothing sends from Watch
-            </span>
+            <button className="btn ghost" type="button" onClick={draftNow} disabled={genPhase === "thinking"}>Rewrite</button>
+            <span className="mono chint">Edit it, then copy it out. Nothing sends from Watch.</span>
           </div>
         )}
 
@@ -304,7 +279,7 @@ export default function CommsComposer({
         {genPhase === "thinking" ? (
           <div className="card cthink">
             <div className="mono" style={{ fontSize: 11, color: "var(--amber2)", marginBottom: 12 }}>
-              {thinkMode === "full" ? THINK_LINES[thinkLine] : "Re-voicing for " + audienceLabel + "…"}
+              {thinkMode === "full" ? THINK_LINES[thinkLine] : "Rewriting for " + audienceLabel + "…"}
             </div>
             {(thinkMode === "full" ? [92, 78, 88, 60, 70] : [88, 64, 76]).map((w, i) => (
               <div key={i} className="shimmer" style={{ width: `${w}%`, height: 11, borderRadius: 5, marginTop: 8 }} />
@@ -338,16 +313,16 @@ export default function CommsComposer({
 
       {/* the voice — demoted reference library, collapsible */}
       <button type="button" className="voicebar" onClick={() => setVoiceOpen((v) => !v)} aria-expanded={voiceOpen}>
-        <span className="mono vlab">THE VOICE</span>
-        <span className="vsum">Watch drafts the way your network writes · {enabledCount} of {allRefs.length} example{allRefs.length === 1 ? "" : "s"} on</span>
+        <span className="mono vlab">YOUR VOICE</span>
+        <span className="vsum">How Watch matches how your school writes · {enabledCount} of {allRefs.length} on</span>
         <span className="vchev">{voiceOpen ? "▲" : "▼"}</span>
       </button>
 
       {voiceOpen ? (
         <div className="voicewrap">
           <p className="vintro">
-            Load communications your network is proud of. Watch reads how you speak — openers, structure, sign-offs —
-            and drafts within that voice. <b>Turn a source off and the draft re-voices; the facts never move.</b>
+            Add letters your school is proud of. Watch copies how you write, not the facts.
+            <b> Turn one off and rewrite to see the draft change.</b>
           </p>
           <div style={{ display: "grid", gap: 8 }}>
             {allRefs.map((r) => {

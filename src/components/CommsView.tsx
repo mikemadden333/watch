@@ -35,13 +35,11 @@ export default function CommsView({
   return (
     <>
       <div className="v2hero">
-        <div className="micro">Communications · your words, from the facts</div>
-        <div className="sentence">Every message starts at a verified incident — and sounds like you.</div>
-        <p className="para" style={{ maxWidth: 740 }}>
-          Three moves: pick the incident, pick who needs to hear from you, and Watch drafts the message —
-          around facts locked from the record, in a voice learned from your own best communications. Switch the
-          audience and the same facts re-voice for the new reader. Everything is editable, and{" "}
-          <b>nothing sends from Watch</b> — you copy the words into your own system, and the copy is logged to Record.
+        <div className="micro">Communications</div>
+        <div className="sentence">Write to families about what happened.</div>
+        <p className="para" style={{ maxWidth: 660 }}>
+          Pick an incident and who it&apos;s for. Watch writes a first draft from the verified facts, in your
+          school&apos;s voice. You edit it and send it yourself. <b>Nothing goes out from Watch.</b>
         </p>
       </div>
 

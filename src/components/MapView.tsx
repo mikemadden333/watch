@@ -141,14 +141,17 @@ export default function MapView(props: MapViewProps = {}) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // redraw overlay on state change
+  // redraw overlay on state change AND when the incident set changes — e.g. a
+  // demo drill or a live ingest arrives via router.refresh(). Keying on the
+  // incident ids means a freshly-seeded incident actually lands on the map.
+  const incidentKey = incidents.map((i) => `${i.id}:${i.tier}`).join("|");
   useEffect(() => {
     (async () => {
       const L = (await import("leaflet")).default;
       if (mapRef.current) drawOverlay(L);
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selected, layers, windowDays]);
+  }, [selected, layers, windowDays, incidentKey, nowMs]);
 
   async function drawOverlay(L: typeof import("leaflet")) {
     const g = overlayRef.current;
@@ -341,6 +344,7 @@ export default function MapView(props: MapViewProps = {}) {
           {/* selected popover */}
           <div
             className="card mappop"
+            data-tour="map-pop"
             style={{
               position: "absolute",
               right: 18,
