@@ -1899,3 +1899,303 @@ a {
   from { opacity: 0; transform: translateY(3px); }
   to { opacity: 1; transform: none; }
 }
+
+/* ============================================================
+   Communications — the guided composer (rebuilt for the demo).
+   One three-move spine: incident → audience → message. The facts
+   strip is the hero; the draft is the output; the voice library
+   is demoted to a collapsible bar.
+   ============================================================ */
+.cflow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+}
+.cflow .cn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--mut);
+  transition: color 0.2s ease;
+}
+.cflow .cn i {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 17px;
+  height: 17px;
+  border-radius: 50%;
+  border: 1px solid var(--line2);
+  font-style: normal;
+  font-size: 9.5px;
+  color: var(--mut);
+}
+.cflow .cn.on { color: var(--amber2); }
+.cflow .cn.on i { border-color: var(--amber); color: var(--amber2); background: rgba(232,161,58,0.12); }
+.cflow .cn.done i { border-color: var(--clear); color: var(--clear); }
+.cflow .ar { color: var(--faint); }
+
+.crow {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 10px 13px;
+  border-radius: 9px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  cursor: pointer;
+  font-size: 12.5px;
+  line-height: 1.45;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+.crow:hover { border-color: var(--line2); }
+.crow.on { border-color: var(--amber); background: rgba(232,161,58,0.06); }
+
+.cauds {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 8px;
+}
+.caud {
+  text-align: left;
+  padding: 12px 14px;
+  border-radius: 9px;
+  cursor: pointer;
+  font-family: var(--sans);
+  border: 1px solid var(--line);
+  background: var(--panel);
+  color: var(--ink);
+  transition: border-color 0.15s ease, background 0.15s ease, transform 0.1s ease;
+}
+.caud:hover { border-color: var(--line2); }
+.caud.on { border-color: var(--amber); background: var(--ink); color: var(--bg); }
+.caud b { display: block; font-size: 13px; }
+.caud span { display: block; font-size: 10.5px; margin-top: 3px; opacity: 0.72; line-height: 1.4; }
+
+.cflip {
+  margin-top: 10px;
+  font-size: 10.5px;
+  letter-spacing: 0.3px;
+  color: var(--amber2);
+  opacity: 0.9;
+}
+
+.cstage {
+  margin-top: 26px;
+  padding: 18px 18px 20px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: linear-gradient(180deg, rgba(232,161,58,0.03), transparent 120px), var(--panel);
+}
+
+.factstrip {
+  border-left: 3px solid var(--amber);
+  background: var(--panel2);
+  border-radius: 8px;
+  padding: 12px 15px;
+}
+.factstrip .fhead { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.factstrip .flabel { font-size: 9.5px; letter-spacing: 1.4px; color: var(--amber2); }
+.factstrip .fnote { font-size: 11px; color: var(--mut); line-height: 1.4; }
+.factstrip .fnote i { color: var(--ink2); font-style: italic; }
+.factstrip .fchips { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 10px; }
+.factstrip .fx {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--line2);
+  background: var(--panel);
+  font-size: 11.5px;
+}
+.factstrip .fx .fk { font-family: var(--mono); font-size: 9px; letter-spacing: 0.6px; text-transform: uppercase; color: var(--mut); }
+.factstrip .fx .fv { color: var(--ink); font-weight: 600; }
+
+.cdraw { margin-top: 16px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.cbig { padding: 12px 22px; font-size: 14px; }
+.chint { font-size: 11px; color: var(--mut); }
+.chint b { color: var(--ink2); }
+.cthink { margin-top: 14px; padding: 18px 20px; }
+.draftreveal {
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--ink2);
+  padding: 13px 14px;
+  border: 1px solid var(--line2);
+  border-radius: 8px;
+  background: var(--panel2);
+}
+
+.voicebar {
+  margin-top: 30px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 16px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--panel);
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.15s ease;
+}
+.voicebar:hover { border-color: var(--line2); }
+.voicebar .vlab { font-size: 10px; letter-spacing: 1.4px; color: var(--amber2); }
+.voicebar .vsum { flex: 1; font-size: 11.5px; color: var(--mut); }
+.voicebar .vchev { font-size: 10px; color: var(--mut); }
+
+.voicewrap { margin-top: 12px; }
+.voicewrap .vintro { font-size: 12px; color: var(--mut); margin: 0 0 12px; line-height: 1.55; max-width: 680px; }
+.voicewrap .vintro b { color: var(--ink2); }
+.vref { padding: 12px 15px; }
+.vref .vrefh { display: flex; gap: 10px; align-items: baseline; justify-content: space-between; flex-wrap: wrap; }
+.vref .vexcerpt { font-size: 11.5px; color: var(--mut); margin-top: 5px; font-style: italic; line-height: 1.5; }
+.vref .vtraits { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+.vtoggle {
+  font-family: var(--mono);
+  font-size: 10px;
+  padding: 3px 9px;
+  border-radius: 6px;
+  border: 1px solid var(--line2);
+  background: var(--panel2);
+  color: var(--mut);
+  cursor: pointer;
+}
+.vtoggle.on { background: var(--amber); border-color: var(--amber); color: #201400; }
+
+/* ============================================================
+   Action — the response runner (rebuilt for the demo).
+   A calm start card at rest; a four-phase spine when running,
+   one phase in focus at a time; the plan tucked into a reveal.
+   ============================================================ */
+.startcard {
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--clear);
+  border-radius: 12px;
+  background: var(--panel);
+  padding: 22px 24px 20px;
+}
+.startrow { display: flex; gap: 18px; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; }
+.startrow .starttext b { color: var(--ink); }
+.startdot { flex-shrink: 0; }
+
+.startlink {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 18px;
+  padding: 12px 15px;
+  border-radius: 9px;
+  background: var(--panel2);
+  border: 1px solid var(--line);
+}
+.startlink .sl-lab { font-size: 9px; letter-spacing: 1.2px; color: var(--mut); flex-shrink: 0; }
+.startlink .sl-inc { flex: 1; min-width: 200px; font-size: 12.5px; }
+.startlink .sl-inc b { color: var(--ink); }
+.startlink .sl-meta { display: block; color: var(--mut); font-size: 11px; margin-top: 2px; }
+.sl-change {
+  font-family: var(--mono); font-size: 10px; letter-spacing: 0.5px;
+  background: none; border: 1px solid var(--line2); border-radius: 6px;
+  color: var(--mut); padding: 4px 9px; cursor: pointer; flex-shrink: 0;
+}
+.sl-change:hover { color: var(--ink2); border-color: var(--mut); }
+
+.startpick { margin-top: 12px; display: grid; gap: 14px; max-width: 620px; }
+.sp-field .sp-lab { font-weight: 700; margin-bottom: 6px; font-size: 12.5px; }
+.sp-select {
+  width: 100%; padding: 9px 10px; border-radius: 7px;
+  border: 1px solid var(--line2); background: var(--panel2);
+  font-family: var(--sans); font-size: 13px; color: var(--ink);
+}
+
+.startgo { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 18px; }
+.startname {
+  padding: 10px 12px; border-radius: 7px; border: 1px solid var(--line2);
+  background: var(--panel2); font-family: var(--sans); font-size: 13px; color: var(--ink);
+  min-width: 240px;
+}
+.startname::placeholder { color: var(--faint); }
+.startbtn {
+  background: var(--alert); color: #fff; border: none; border-radius: 8px;
+  padding: 11px 22px; font-size: 13.5px; font-weight: 700; font-family: var(--sans); cursor: pointer;
+}
+.startbtn:hover { filter: brightness(1.08); }
+.startfoot { margin-top: 14px; font-size: 10px; letter-spacing: 0.3px; color: var(--faint); line-height: 1.6; max-width: 720px; }
+
+.runhead {
+  padding: 16px 20px; border-radius: 10px; background: var(--panel); border: 1px solid var(--line);
+  display: flex; flex-wrap: wrap; gap: 14px; align-items: center; justify-content: space-between;
+}
+
+/* the four-phase spine */
+.spine { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 12px; }
+.sp-node {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 5px;
+  padding: 11px 13px; border-radius: 9px; border: 1px solid var(--line);
+  background: var(--panel); cursor: pointer; text-align: left; transition: border-color 0.15s ease, background 0.15s ease;
+}
+.sp-node:hover { border-color: var(--line2); }
+.sp-node.on { border-color: var(--amber); background: rgba(232,161,58,0.07); }
+.sp-node.done { border-color: rgba(87,193,145,0.4); }
+.sp-node .sp-i {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 18px; height: 18px; border-radius: 50%; font-family: var(--mono); font-size: 10px;
+  border: 1px solid var(--line2); color: var(--mut);
+}
+.sp-node.on .sp-i { border-color: var(--amber); color: var(--amber2); background: rgba(232,161,58,0.14); }
+.sp-node.done .sp-i { border-color: var(--clear); color: var(--clear); }
+.sp-node .sp-nm { font-size: 12px; font-weight: 700; color: var(--ink2); }
+.sp-node.on .sp-nm { color: var(--ink); }
+.sp-node .sp-ct { font-size: 10px; color: var(--mut); }
+
+.phasecard { margin-top: 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--panel); overflow: hidden; }
+.ph-head {
+  padding: 14px 20px 12px; border-bottom: 1px solid var(--line);
+  display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap;
+}
+.posturebox { padding: 15px 20px; border-bottom: 1px solid var(--line); background: rgba(232,161,58,0.03); }
+.postchip {
+  font-family: var(--mono); font-size: 11px; padding: 8px 13px; border-radius: 7px;
+  border: 1px solid var(--line2); background: var(--panel2); color: var(--ink2); cursor: pointer;
+}
+.postchip:hover { border-color: var(--mut); }
+.postchip.on { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.pa-line { margin-top: 12px; font-size: 13px; line-height: 1.5; color: var(--ink); }
+
+.ph-steps { }
+.ph-step { padding: 13px 20px; display: flex; gap: 12px; align-items: flex-start; border-bottom: 1px solid var(--line); }
+.ph-step:last-child { border-bottom: none; }
+.ph-step.done { opacity: 0.66; }
+.stepbox {
+  width: 20px; height: 20px; border-radius: 5px; border: 1.5px solid var(--line2);
+  background: var(--panel2); color: var(--bg); font-size: 12px; flex-shrink: 0; margin-top: 1px;
+  cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0;
+}
+.stepbox:hover { border-color: var(--amber); }
+.stepbox.on { background: var(--clear); border-color: var(--clear); }
+.markbtn {
+  font-family: var(--mono); font-size: 10.5px; padding: 6px 11px; border-radius: 7px;
+  border: 1px solid var(--line2); background: var(--panel2); color: var(--ink2); cursor: pointer; flex-shrink: 0;
+}
+.markbtn:hover { border-color: var(--amber); color: var(--amber2); }
+.ph-adv { padding: 14px 20px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; border-top: 1px solid var(--line); background: var(--panel2); }
+
+.logbox { margin-top: 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--panel); padding: 14px 18px; }
+.logbox summary { cursor: pointer; font-size: 12px; color: var(--ink2); list-style: none; }
+.logbox summary::-webkit-details-marker { display: none; }
+.logbox summary .mono { font-size: 10px; letter-spacing: 1.2px; color: var(--mut); }
+.logbox[open] summary { margin-bottom: 12px; }
+
+.planreveal { margin-top: 44px; border-top: 1px solid var(--line); padding-top: 18px; }
+.planreveal summary { cursor: pointer; font-size: 12.5px; color: var(--ink2); list-style: none; display: flex; align-items: center; gap: 10px; }
+.planreveal summary::-webkit-details-marker { display: none; }
+.planreveal summary .mono { font-size: 10px; letter-spacing: 1.2px; color: var(--mut); }
+.planreveal summary .pr-hint { margin-left: auto; font-family: var(--mono); font-size: 10px; color: var(--mut); border: 1px solid var(--line2); border-radius: 6px; padding: 3px 8px; }

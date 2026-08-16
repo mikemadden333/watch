@@ -38,9 +38,9 @@ export default function CommsView({
         <div className="micro">Communications · your words, from the facts</div>
         <div className="sentence">Every message starts at a verified incident — and sounds like you.</div>
         <p className="para" style={{ maxWidth: 740 }}>
-          No more floating templates. The thread runs from the verified record to the words: pick the incident,
-          pick the audience — families, staff, students, or the board — and Watch drafts around locked facts it
-          cannot alter, in a voice learned from your own best communications. Everything is editable, and{" "}
+          Three moves: pick the incident, pick who needs to hear from you, and Watch drafts the message —
+          around facts locked from the record, in a voice learned from your own best communications. Switch the
+          audience and the same facts re-voice for the new reader. Everything is editable, and{" "}
           <b>nothing sends from Watch</b> — you copy the words into your own system, and the copy is logged to Record.
         </p>
       </div>

@@ -58,28 +58,31 @@ export default function ActionView({
     <>
       <div className="v2hero">
         <div className="micro">Action · your plan, made runnable</div>
-        <div className="sentence">The plan is loaded. When something happens, you run it — and Watch remembers.</div>
+        <div className="sentence">Knowing is half of it. When something happens, you run your plan — and Watch remembers every step.</div>
         <p className="para" style={{ maxWidth: 740 }}>
-          At onboarding, Watch loads your district&apos;s own emergency action plan into this tab and tailors the
-          runbook to it — your roles, your call chain, your language. What you see today is the national-standard
-          default. When a serious incident demands it, <b>Initiate emergency response</b> turns the plan into a live
-          checklist: every step stamped with who and when, closed only through an after-action review, kept
-          permanently. Watch never activates a response on its own.
+          At onboarding, Watch loads your district&apos;s own emergency action plan here — your roles, your call
+          chain, your language (what you see today is the national-standard default). You start a response; it
+          becomes a live checklist that walks four phases, each step stamped with who and when, closed only through
+          an after-action review, and kept permanently. <b>A person starts a response — Watch never does.</b>
         </p>
       </div>
 
       <div className="actwrap">
-        <div className="section-label" style={{ marginBottom: 8 }}>Emergency response</div>
         <ActionRunner slug={slug} campuses={data.campuses.map((c) => ({ code: c.code, name: c.name }))} incidents={incidents} defaultCampus={defaultCampus} />
 
-        <div className="section-label" style={{ margin: "44px 0 6px" }}>Your response plan — the source of the runbook</div>
-        <div className="banner banner-plan">
-          Placeholder — national best practice. At onboarding this becomes your district&apos;s own plan
-          (Admin → Response Plan), and the runbook above is rebuilt from it.
-        </div>
-        <div className="v2prose" style={{ maxWidth: "none", margin: 0, padding: "18px 0 0" }}>
-          <Markdown content={DEFAULT_RESPONSE_PLAN} />
-        </div>
+        <details className="planreveal">
+          <summary>
+            <span className="mono">YOUR RESPONSE PLAN</span> — the source of the runbook above
+            <span className="pr-hint">view ▾</span>
+          </summary>
+          <div className="banner banner-plan" style={{ marginTop: 14 }}>
+            Placeholder — national best practice. At onboarding this becomes your district&apos;s own plan
+            (Admin → Response Plan), and the runbook above is rebuilt from it.
+          </div>
+          <div className="v2prose" style={{ maxWidth: "none", margin: 0, padding: "18px 0 0" }}>
+            <Markdown content={DEFAULT_RESPONSE_PLAN} />
+          </div>
+        </details>
 
         <p className="quiet" style={{ marginTop: 34 }}>{PERMANENT_DISCLAIMER}</p>
       </div>

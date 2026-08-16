@@ -97,7 +97,12 @@ export function generateDraft(audience: Audience, ctx: CommsContext): GeneratedD
   const fatal = isFatal(i);
   const type = i ? incidentTypeWord(i) : "incident";
   const when = i ? occurredPhrase(i.occurredAt) : "Earlier today";
-  const dist = i ? `about ${milesPhrase(i.distanceMi, i.bearing)}` : "near campus";
+  // A precise distance clause when we have one; a clean fallback when we don't
+  // (weather advisories and network-level items carry no distance).
+  const miles = i && typeof i.distanceMi === "number" ? milesPhrase(i.distanceMi, i.bearing) : null;
+  const distOf = (noun: string) => (miles ? `${miles} of ${noun}` : `near ${noun}`);
+  const distFrom = (noun: string) => (miles ? `${miles} from ${noun}` : `near ${noun}`);
+  const dist = distOf("campus");
   const confirm = confirmedBy(ctx.city, i);
   const tierLine = i?.tier === "CONFIRMED" ? `confirmed by ${confirm}` : i ? `reported and being verified — a single-source report is treated as unconfirmed` : "";
   const principal = campus.principal ? `Principal ${surname(campus.principal)}` : "The principal";
@@ -113,7 +118,7 @@ export function generateDraft(audience: Audience, ctx: CommsContext): GeneratedD
 
   if (audience === "families") {
     if (active) {
-      const body = `${campus.name} families: Police are managing an incident ${dist} of campus. Students and staff are safe inside, and classes continue. ${nextUpdate ? `You will have our next update by ${clockOf(new Date(Date.now() + 45 * 60000).toISOString())} or sooner.` : "We will update you as soon as the situation resolves."}`;
+      const body = `${campus.name} families: Police are managing an incident ${dist}. Students and staff are safe inside, and classes continue. ${nextUpdate ? `You will have our next update by ${clockOf(new Date(Date.now() + 45 * 60000).toISOString())} or sooner.` : "We will update you as soon as the situation resolves."}`;
       return {
         audience,
         note: `During an active posture · short by design (~27 words) · full letter follows at resolution`,
@@ -136,7 +141,7 @@ export function generateDraft(audience: Audience, ctx: CommsContext): GeneratedD
 
 ${opener}
 
-${when}, a ${type} occurred ${dist} of campus. It did not happen at our school, and no students or staff were involved. We learned of it through our safety monitoring, and it has been ${tierLine}.
+${when}, a ${type} occurred ${dist}. It did not happen at our school, and no students or staff were involved. We learned of it through our safety monitoring, and it has been ${tierLine}.
 
 ${actionsFirst ? `Here is what we did: ${actions}. ` : `In response, ${actions}. `}${gravity}We stayed in close coordination with the police department and our district safety team throughout.
 
@@ -161,7 +166,7 @@ ${campus.name}`;
       : "Please be present and attentive at arrival, especially near the main entrance and the streets nearest the incident.";
     const body = `Team —
 
-${when}, a ${type} occurred ${dist} of campus. ${cap(tierLine)}. Not on campus; no students or staff involved.${i?.victimNote ? ` (${cap(i.victimNote)}.)` : ""}
+${when}, a ${type} occurred ${dist}. ${cap(tierLine)}. Not on campus; no students or staff involved.${i?.victimNote ? ` (${cap(i.victimNote)}.)` : ""}
 
 ${arrival}
 
@@ -182,7 +187,7 @@ ${principal}`;
   if (audience === "students") {
     const body = `This morning we want to be straight with you, because you deserve that.
 
-${when.replace(/^./, (c) => c.toLowerCase()).replace(/^t/, "T")}, something happened in the neighborhood — ${dist} from school. It did not happen here, and everyone at school is safe. The adults in this building knew about it before you arrived, and we have already done the things we do to keep campus safe today.
+${when.replace(/^./, (c) => c.toLowerCase()).replace(/^t/, "T")}, something happened in the neighborhood — ${distFrom("school")}. It did not happen here, and everyone at school is safe. The adults in this building knew about it before you arrived, and we have already done the things we do to keep campus safe today.
 
 If you heard about it, or it touched someone you know, that can sit heavy. You don't have to carry it alone — ${counselingNamed ? "the counseling office is open all day, no appointment needed" : "our counselors are here for you"}. Being here together is the normal we get to keep.`;
     return {
@@ -200,11 +205,11 @@ If you heard about it, or it touched someone you know, that can sit heavy. You d
 Re: Safety notification — ${campus.name}
 ${new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" })}
 
-Situation. ${when}, a ${type} occurred ${dist} of ${campus.name}.${i?.victimNote ? ` ${cap(i.victimNote)}.` : ""} The incident did not occur on campus, and no students or staff were involved.
+Situation. ${when}, a ${type} occurred ${distOf(campus.name)}.${i?.victimNote ? ` ${cap(i.victimNote)}.` : ""} The incident did not occur on campus, and no students or staff were involved.
 
 Verification. Watch surfaced the incident${stamp(i?.detectedAt)}; it stands ${tierLine}. ${i ? `Source: ${i.source}.` : ""}
 
-Actions taken. ${active ? `The campus is in a ${status?.status} posture${timestamps ? ` (since ${status?.since})` : ""}; exterior doors are secured, movement is controlled, and the campus leader is coordinating with the police liaison and district safety.` : "Campus leadership briefed staff, secured the perimeter during the relevant window, and coordinated with the police liaison and district safety. Normal operations continued or resumed the same day."}
+Actions taken. ${active ? `The campus is in an ${status?.status} posture${timestamps ? ` (since ${status?.since})` : ""}; exterior doors are secured, movement is controlled, and the campus leader is coordinating with the police liaison and district safety.` : "Campus leadership briefed staff, secured the perimeter during the relevant window, and coordinated with the police liaison and district safety. Normal operations continued or resumed the same day."}
 
 Communications. Staff were briefed directly; families ${active ? "received a short holding message with a committed next update" : "received a full letter the same day"}. Media inquiries route to the designated spokesperson only.
 
