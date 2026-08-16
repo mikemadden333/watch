@@ -2199,3 +2199,39 @@ a {
 .planreveal summary::-webkit-details-marker { display: none; }
 .planreveal summary .mono { font-size: 10px; letter-spacing: 1.2px; color: var(--mut); }
 .planreveal summary .pr-hint { margin-left: auto; font-family: var(--mono); font-size: 10px; color: var(--mut); border: 1px solid var(--line2); border-radius: 6px; padding: 3px 8px; }
+
+/* Map — layer toggles as proper switches (not checkbox glyphs) */
+.maptoggle {
+  display: flex; align-items: center; gap: 9px;
+  background: none; border: none; padding: 2px 0; cursor: pointer;
+  font-family: var(--sans); font-size: 11.5px; color: var(--ink2); text-align: left;
+}
+.maptoggle.off { cursor: default; }
+.maptoggle .mt-sw {
+  position: relative; flex-shrink: 0; width: 26px; height: 15px; border-radius: 999px;
+  background: var(--line2); border: 1px solid var(--line2); transition: background 0.15s ease, border-color 0.15s ease;
+}
+.maptoggle .mt-knob {
+  position: absolute; top: 1px; left: 1px; width: 11px; height: 11px; border-radius: 50%;
+  background: var(--mut); transition: transform 0.16s ease, background 0.16s ease;
+}
+.maptoggle.on .mt-sw { background: rgba(232,161,58,0.25); border-color: var(--amber); }
+.maptoggle.on .mt-knob { transform: translateX(11px); background: var(--amber2); }
+.maptoggle.off .mt-sw { opacity: 0.5; }
+.maptoggle:hover:not(.off) .mt-lab { color: var(--ink); }
+
+/* Nav — graceful degradation so the 7 tabs + controls never wrap the 56px bar */
+@media (max-width: 1280px) {
+  .nav2 { padding: 0 22px; }
+  .nav2 .tabs { margin-left: 14px; }
+}
+@media (max-width: 1180px) {
+  .nav2 .tenant .microink { display: none; }
+}
+@media (max-width: 1080px) {
+  .nav2 .netpill { display: none; }
+  .nav2 .tab { padding: 6px 8px; }
+}
+@media (max-width: 940px) {
+  .nav2 .toggle { display: none; }
+}

@@ -60,7 +60,7 @@ function RingMap({ campus, rings }: { campus: Campus; rings: PulseRing[] }) {
         violence stays live in a community. Overlap of fresh rings is the pattern to notice.
       </div>
       <div className="micro" style={{ position: "absolute", right: 16, bottom: 16 }}>
-        Schematic · real positions, not to scale
+        Direction is real · distances compressed to fit
       </div>
     </div>
   );

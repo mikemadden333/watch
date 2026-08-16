@@ -6,6 +6,7 @@
    ============================================================ */
 
 import LiveFooter from "@/components/live/LiveFooter";
+import RecordControls from "@/components/RecordControls";
 import type { NetworkData } from "@/lib/networkData";
 
 const GRID = "0.8fr 0.9fr 3fr 1.2fr";
@@ -25,13 +26,8 @@ export default function RecordView({ data }: { data: NetworkData }) {
       <div className="wrap" style={{ paddingTop: 12 }}>
         <div className="main">
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8 }}>
-            <b style={{ fontSize: 15 }}>The log · live</b>
-            <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
-              <span className="chip">All events ▾</span>
-              <span className="chip">Last 24 h ▾</span>
-              <button className="btn ghost" style={{ fontSize: 11 }}>Export CSV</button>
-              <button className="btn" style={{ fontSize: 11 }}>Signed PDF</button>
-            </div>
+            <b style={{ fontSize: 15 }}>The log</b>
+            <RecordControls audit={data.audit} />
           </div>
           <div className="card" style={{ marginTop: 12, fontSize: 11.5 }}>
             <div className="micro" style={{ display: "grid", gridTemplateColumns: GRID, padding: "9px 16px", borderBottom: "1px solid var(--line)" }}>

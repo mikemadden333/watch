@@ -293,7 +293,10 @@ export default function MapView(props: MapViewProps = {}) {
             <Toggle on={layers.corroborated} onClick={() => setLayers((l) => ({ ...l, corroborated: !l.corroborated }))}>
               Corroborated (news · last 6 h)
             </Toggle>
-            <div style={{ color: "var(--mut)" }}>☐ Single-source reports <span style={{ color: "var(--faint)" }}>· off map by rule</span></div>
+            <div className="maptoggle off" title="Single-source reports never plot — an integrity rule, not a toggle">
+              <span className="mt-sw" aria-hidden><span className="mt-knob" /></span>
+              <span className="mt-lab" style={{ color: "var(--mut)" }}>Single-source reports <span style={{ color: "var(--faint)" }}>· off map by rule</span></span>
+            </div>
             <Toggle on={layers.weather} onClick={() => setLayers((l) => ({ ...l, weather: !l.weather }))}>
               Weather (NWS live)
             </Toggle>
@@ -458,9 +461,10 @@ function Dot({ c }: { c: string }) {
 }
 function Toggle({ on, onClick, children }: { on: boolean; onClick: () => void; children: React.ReactNode }) {
   return (
-    <div onClick={onClick} style={{ cursor: "pointer", userSelect: "none" }}>
-      {on ? "☑" : "☐"} {children}
-    </div>
+    <button type="button" onClick={onClick} className={`maptoggle ${on ? "on" : ""}`}>
+      <span className="mt-sw" aria-hidden><span className="mt-knob" /></span>
+      <span className="mt-lab">{children}</span>
+    </button>
   );
 }
 function PopRow({ label, value }: { label: string; value: string }) {
