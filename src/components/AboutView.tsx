@@ -23,6 +23,13 @@ export default function AboutView() {
           </div>
         </div>
         <div className="person">
+          <span className="mono-av alt">ML</span>
+          <div>
+            <div className="pn">Moon Lee</div>
+            <div className="pr">Founding Product Partner · Chief Technology Officer</div>
+          </div>
+        </div>
+        <div className="person">
           <span className="mono-av alt">EM</span>
           <div>
             <div className="pn">Erin Madden</div>
