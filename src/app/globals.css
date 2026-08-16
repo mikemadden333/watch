@@ -2335,3 +2335,18 @@ a {
 }
 @media (prefers-reduced-motion: reduce) { .tc-btn.fire { animation: none; } }
 .tourring.alert { border-color: var(--alert); box-shadow: 0 0 0 1px rgba(229,86,75,0.5), 0 0 30px 7px rgba(229,86,75,0.5); animation: none; }
+
+/* Pulse — situation read + contagion decay infographic */
+.psit { padding: 18px 20px 14px; }
+.psit .psit-top { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 10px; }
+.psit-badge {
+  font-family: var(--mono); font-size: 11px; letter-spacing: 1px; text-transform: uppercase;
+  padding: 5px 12px; border-radius: 999px; border: 1px solid var(--line2); color: var(--ink2);
+}
+.psit-badge.hot { background: var(--alertbg); border-color: rgba(229,86,75,0.5); color: var(--alert); }
+.psit-badge.warm { background: var(--elevatedbg); border-color: rgba(230,134,74,0.5); color: var(--elevated); }
+.psit-badge.clr { background: var(--clearbg); border-color: rgba(87,193,145,0.4); color: var(--clear); }
+.psit-nums { font-size: 12px; color: var(--mut); font-variant-numeric: tabular-nums; }
+.psit-nums b { color: var(--ink); font-weight: 700; }
+.psit-read { font-size: 14.5px; line-height: 1.55; color: var(--ink); margin: 0 0 6px; max-width: 60ch; }
+.pdecay { margin-top: 8px; }

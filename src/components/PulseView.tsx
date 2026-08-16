@@ -18,49 +18,67 @@ import {
   type PulseRing,
 } from "@/lib/pulse";
 import { numWord, incidentTypeWord, placeOf } from "@/lib/voice";
-import { distanceMi } from "@/lib/geo";
 import type { Incident } from "@/lib/types";
 
 const EL = "#e8a13a"; // gun-violence signal color (amber, matches the CEO board)
-const BUCKETS = 9; // ~14-day columns across the 125-day window
-const DAYS_PER = 14;
+const WINDOW = 125;    // the contagion window, in days
 
-/* ---------------- the timeline infographic ---------------- */
+function isFatal(note?: string): boolean {
+  return !!note && /fatal/i.test(note) && !/non-fatal/i.test(note);
+}
 
-function Timeline({ rings }: { rings: PulseRing[] }) {
-  // count incidents into ~2-week buckets; bucket 0 = most recent (right edge)
-  const counts = new Array(BUCKETS).fill(0);
-  for (const r of rings) counts[Math.min(BUCKETS - 1, Math.floor(r.ageDays / DAYS_PER))]++;
-  const max = Math.max(1, ...counts);
-  const W = 320, H = 96, padB = 18, padT = 8, gap = 5;
-  const bw = (W - gap * (BUCKETS - 1)) / BUCKETS;
-  const plot = H - padB - padT;
-  // oldest on the left → reverse so index 0 (newest) sits on the right
-  const cols = [...counts].reverse();
+/* Plain-language read of the current situation near the campus. */
+function heatRead(rings: PulseRing[]) {
+  const fresh14 = rings.filter((r) => r.ageDays <= 14).length;
+  const fresh30 = rings.filter((r) => r.ageDays <= 30).length;
+  const near = rings.filter((r) => r.distanceMi <= 0.25).length;
+  const nearest = rings.length ? Math.min(...rings.map((r) => r.distanceMi)) : null;
+  const recentDays = rings.length ? Math.min(...rings.map((r) => r.ageDays)) : null;
+  let label = "Quiet", cls = "clr";
+  if (fresh14 >= 2 || (fresh14 >= 1 && near >= 1)) { label = "Running hot"; cls = "hot"; }
+  else if (fresh30 >= 1 || rings.length >= 3) { label = "Simmering"; cls = "warm"; }
+  return { label, cls, fresh14, fresh30, near, nearest, recentDays };
+}
+
+/* ---------------- the contagion / decay infographic ----------------
+   Each confirmed incident is a ring on a decay curve: the fresher it is,
+   the higher and brighter it sits (top-right = today, still hot); as an
+   incident ages it slides left and fades — the danger cooling over 125
+   days, the way the research describes it. */
+function DecayBand({ rings }: { rings: PulseRing[] }) {
+  const W = 340, H = 138, padL = 6, padR = 6, padT = 12, padB = 22;
+  const plotW = W - padL - padR, plotH = H - padT - padB;
+  const bottom = padT + plotH;
+  const x = (age: number) => padL + plotW - (Math.min(WINDOW, Math.max(0, age)) / WINDOW) * plotW;
+  const decay = (age: number) => Math.max(0, 1 - Math.min(WINDOW, age) / WINDOW);
+  const y = (d: number) => padT + (1 - d) * plotH;
+  const curve = Array.from({ length: 26 }, (_, i) => { const age = WINDOW - (i / 25) * WINDOW; return `${x(age).toFixed(1)},${y(decay(age)).toFixed(1)}`; }).join(" ");
 
   return (
-    <div className="ptimeline">
-      <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" style={{ width: "100%", height: 150, display: "block" }}>
-        {/* baseline + one faint gridline */}
-        <line x1="0" y1={H - padB} x2={W} y2={H - padB} stroke="#2b3555" strokeWidth="0.8" />
-        <line x1="0" y1={padT + plot / 2} x2={W} y2={padT + plot / 2} stroke="#1e2740" strokeWidth="0.6" strokeDasharray="2 3" />
-        {cols.map((c, i) => {
-          const h = c === 0 ? 0 : Math.max(3, (c / max) * plot);
-          const x = i * (bw + gap);
-          const y = H - padB - h;
-          const newest = i === BUCKETS - 1;
+    <div className="pdecay">
+      <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" style={{ width: "100%", height: 172, display: "block" }}>
+        <defs>
+          <linearGradient id="pdg" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stopColor={EL} stopOpacity="0.015" />
+            <stop offset="1" stopColor={EL} stopOpacity="0.16" />
+          </linearGradient>
+        </defs>
+        <polygon points={`${padL},${bottom} ${curve} ${padL + plotW},${bottom}`} fill="url(#pdg)" />
+        <polyline points={curve} fill="none" stroke={EL} strokeOpacity="0.45" strokeWidth="1" strokeDasharray="3 3" />
+        <line x1={padL} y1={bottom} x2={W - padR} y2={bottom} stroke="#2b3555" strokeWidth="0.8" />
+        {rings.map((r) => {
+          const d = decay(r.ageDays);
+          const cx = x(r.ageDays), cy = y(d), rad = 2.5 + 6 * d;
+          const col = isFatal(r.victimNote) ? "#e5564b" : EL;
           return (
-            <g key={i}>
-              <rect x={x} y={y} width={bw} height={h} rx={1.5} fill={EL} fillOpacity={newest ? 1 : 0.5 + 0.4 * (i / (BUCKETS - 1))} />
-              {c > 0 ? <text x={x + bw / 2} y={y - 3} textAnchor="middle" fontSize="7" fontFamily="Menlo, monospace" fill="var(--ink2)">{c}</text> : null}
+            <g key={r.id}>
+              <circle cx={cx} cy={cy} r={rad} fill={col} fillOpacity={0.14 + 0.34 * d} stroke={col} strokeOpacity={0.4 + 0.5 * d} strokeWidth="0.8" />
+              <circle cx={cx} cy={cy} r="1.1" fill={col} fillOpacity={0.6 + 0.4 * d} />
             </g>
           );
         })}
       </svg>
-      <div className="ptl-axis">
-        <span>125 days ago</span>
-        <span>today →</span>
-      </div>
+      <div className="ptl-axis"><span>125 days ago · cooled</span><span>today · hot →</span></div>
     </div>
   );
 }
@@ -70,55 +88,46 @@ function Timeline({ rings }: { rings: PulseRing[] }) {
 function LeaderPulse({ data, campus }: { data: NetworkData; campus: Campus }) {
   const rings = pulseForCampus(data.incidents, campus);
   const total = rings.length;
-  const fresh = freshThisWeek(rings);
-  const fatal = rings.filter((r) => r.victimNote && /fatal/i.test(r.victimNote) && !/non-fatal/i.test(r.victimNote)).length;
-  const nearestConfirmed = data.incidents
-    .filter((i) => i.tier === "CONFIRMED" && i.lat && i.lon && distanceMi({ lat: i.lat, lon: i.lon }, campus) <= PULSE_RADIUS_MI + 0.05)
-    .sort((a, b) => new Date(b.occurredAt).getTime() - new Date(a.occurredAt).getTime())[0];
-  const mostRecentDays = nearestConfirmed
-    ? Math.round((Date.now() - new Date(nearestConfirmed.occurredAt).getTime()) / 86400000)
-    : undefined;
-  // how close: within a quarter-mile
-  const near = rings.filter((r) => r.distanceMi <= 0.25).length;
+  const hr = heatRead(rings);
+  const read =
+    total === 0
+      ? `It's quiet. Nothing has been confirmed near ${campus.name} in the last 125 days.`
+      : `${hr.fresh14 > 0 ? `${hr.fresh14} confirmed in the last two weeks` : "Nothing in the last two weeks"}${hr.nearest != null ? `, the closest ${hr.nearest} miles from the door` : ""}. ${
+          hr.label === "Running hot"
+            ? "This block is active — the kind of stretch where one incident tends to pull another in behind it."
+            : hr.label === "Simmering"
+            ? "Not spiking, but not settled either. Worth keeping an eye on the walk routes."
+            : "The neighborhood has been calm lately, though the record still carries older incidents."
+        }`;
 
   return (
     <>
       <div className="head">
-        <div className="sentence">
-          {total === 0
-            ? `No verified incidents within a half-mile of ${campus.name} in the last 125 days.`
-            : `${total} verified incident${total === 1 ? "" : "s"} within a half-mile of ${campus.name} in the last 125 days.`}
-        </div>
-        <span className="micro">Confirmed by police or the medical examiner · within a half-mile</span>
+        <div className="sentence">The pattern around {campus.name}</div>
+        <span className="micro">Pulse · how much violence is near your campus, how close, and how recently — and how long it stays live</span>
       </div>
 
       <div className="pulsewrap">
-        {/* the infographic */}
-        <div className="card pchart" data-tour="pulse-graphic">
-          <div className="pstats">
-            <div className="pstat"><b>{total}</b><span>incidents</span></div>
-            <div className="pstat"><b style={{ color: fresh ? EL : "var(--ink)" }}>{fresh}</b><span>in the last week</span></div>
-            <div className="pstat"><b style={{ color: fatal ? "var(--alert)" : "var(--ink)" }}>{fatal}</b><span>fatal</span></div>
-            <div className="pstat"><b>{mostRecentDays ?? "—"}</b><span>days since the last</span></div>
-            <div className="pstat"><b>{near}</b><span>within a quarter-mile</span></div>
+        {/* the situation read + the decay infographic */}
+        <div className="card psit" data-tour="pulse-graphic">
+          <div className="psit-top">
+            <span className={`psit-badge ${hr.cls}`}>{hr.label}</span>
+            <span className="psit-nums">
+              <b>{total}</b> in 125 days · <b>{hr.fresh14}</b> in the last two weeks{hr.nearest != null ? <> · closest <b>{hr.nearest} mi</b></> : null}
+            </span>
           </div>
-          {total === 0 ? (
-            <div className="note" style={{ padding: "26px 4px" }}>
-              Nothing verified near {campus.name} in the window. When the official record shows an incident, it appears
-              here and stays on the board for 125 days.
-            </div>
-          ) : (
-            <Timeline rings={rings} />
-          )}
+          <p className="psit-read">{read}</p>
+          {total > 0 ? <DecayBand rings={rings} /> : null}
         </div>
 
-        {/* why 125 days — the research */}
+        {/* the contagion explainer */}
         <div className="card pexplain">
-          <div className="micro" style={{ marginBottom: 8 }}>Why 125 days</div>
+          <div className="micro" style={{ marginBottom: 8 }}>Violence is a contagion</div>
           <p>
-            A shooting doesn&apos;t end when the sirens leave. A Yale study of gun violence in Chicago found that one
-            incident sharply raises the odds of another one nearby, for weeks after. Watch keeps every verified
-            incident on the board for 125 days, so you see the pattern near your campus — not just today.
+            One shooting sharply raises the odds of another one close by — for weeks — and then the danger slowly
+            cools. Watch holds every confirmed incident for about 125 days, so the heat near your campus stays visible
+            while it lasts. Each ring above is one incident: the fresher it is, the higher and brighter it sits; as it
+            ages it slides left and fades.
           </p>
           <p className="pcite">
             Green, Horel &amp; Papachristos, <i>Modeling Contagion Through Social Networks to Explain and Predict
@@ -138,7 +147,7 @@ function LeaderPulse({ data, campus }: { data: NetworkData; campus: Campus }) {
                 <div className="sub">
                   {r.distanceMi} mi {r.bearing}
                   {r.victimNote ? (
-                    <span style={/fatal/i.test(r.victimNote) && !/non-fatal/i.test(r.victimNote) ? { color: "var(--alert)", fontWeight: 600 } : undefined}>
+                    <span style={isFatal(r.victimNote) ? { color: "var(--alert)", fontWeight: 600 } : undefined}>
                       {" · "}{r.victimNote}
                     </span>
                   ) : null}
