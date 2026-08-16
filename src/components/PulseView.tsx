@@ -78,19 +78,18 @@ function LeaderPulse({ data, campus }: { data: NetworkData; campus: Campus }) {
   const mostRecentDays = nearestConfirmed
     ? Math.round((Date.now() - new Date(nearestConfirmed.occurredAt).getTime()) / 86400000)
     : undefined;
-  // how close: distance bands
+  // how close: within a quarter-mile
   const near = rings.filter((r) => r.distanceMi <= 0.25).length;
-  const mid = rings.filter((r) => r.distanceMi > 0.25 && r.distanceMi <= 0.5).length;
 
   return (
     <>
       <div className="head">
         <div className="sentence">
           {total === 0
-            ? `No verified incidents within a mile of ${campus.name} in the last 125 days.`
-            : `${total} verified incident${total === 1 ? "" : "s"} within a mile of ${campus.name} in the last 125 days.`}
+            ? `No verified incidents within a half-mile of ${campus.name} in the last 125 days.`
+            : `${total} verified incident${total === 1 ? "" : "s"} within a half-mile of ${campus.name} in the last 125 days.`}
         </div>
-        <span className="micro">Confirmed by police or the medical examiner · within {PULSE_RADIUS_MI} mile</span>
+        <span className="micro">Confirmed by police or the medical examiner · within a half-mile</span>
       </div>
 
       <div className="pulsewrap">
@@ -101,7 +100,7 @@ function LeaderPulse({ data, campus }: { data: NetworkData; campus: Campus }) {
             <div className="pstat"><b style={{ color: fresh ? EL : "var(--ink)" }}>{fresh}</b><span>in the last week</span></div>
             <div className="pstat"><b style={{ color: fatal ? "var(--alert)" : "var(--ink)" }}>{fatal}</b><span>fatal</span></div>
             <div className="pstat"><b>{mostRecentDays ?? "—"}</b><span>days since the last</span></div>
-            <div className="pstat"><b>{near + mid}</b><span>within a half-mile</span></div>
+            <div className="pstat"><b>{near}</b><span>within a quarter-mile</span></div>
           </div>
           {total === 0 ? (
             <div className="note" style={{ padding: "26px 4px" }}>
