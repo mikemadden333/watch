@@ -41,7 +41,7 @@
   --elevatedbg: rgba(230, 134, 74, 0.14);
   --alertbg: rgba(229, 86, 75, 0.16);
 
-  --sans: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --mono: "SF Mono", "IBM Plex Mono", Menlo, Consolas, monospace;
   --serif: Georgia, "Times New Roman", serif;
 }
@@ -2304,3 +2304,34 @@ a {
 .pexplain .pcite a { color: var(--amber2); text-decoration: none; }
 .pexplain .pcite a:hover { text-decoration: underline; }
 .pulsewrap .plist { grid-column: 1 / -1; }
+
+/* Presenter tour — intro title card + the live-fire alert beat */
+.tourcap { width: min(600px, calc(100vw - 32px)); }
+.tourcard {
+  position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%);
+  width: min(620px, calc(100vw - 40px)); z-index: 10000; pointer-events: auto;
+  background: linear-gradient(180deg, rgba(232,161,58,0.07), transparent 60%), var(--panel);
+  border: 1px solid var(--line2); border-radius: 18px; padding: 34px 36px 26px;
+  box-shadow: 0 30px 80px rgba(0,0,0,0.66);
+}
+.tourcard .tc-eyebrow { font-family: var(--mono); font-size: 11px; letter-spacing: 2.2px; text-transform: uppercase; color: var(--amber2); margin-bottom: 16px; }
+.tourcard .tc-lead { font-family: var(--serif); font-size: 21px; line-height: 1.5; color: var(--ink); margin: 0 0 24px; text-wrap: pretty; }
+.tc-eyebrow { font-family: var(--mono); font-size: 10px; letter-spacing: 1.6px; text-transform: uppercase; color: var(--amber2); }
+
+.tourcap.alertcap {
+  border-color: rgba(229,86,75,0.5);
+  background: linear-gradient(180deg, rgba(229,86,75,0.12), transparent 70%), var(--panel);
+  box-shadow: 0 18px 50px rgba(0,0,0,0.6), 0 0 0 1px rgba(229,86,75,0.25);
+}
+.tourcap.alertcap .tc-title { color: var(--alert); }
+.tc-btn.fire {
+  background: var(--alert); border: 1px solid var(--alert); color: #fff; font-weight: 700;
+  animation: firepulse 1.6s ease-in-out infinite;
+}
+.tc-btn.fire:hover { filter: brightness(1.08); }
+@keyframes firepulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(229,86,75,0.5); }
+  50% { box-shadow: 0 0 0 6px rgba(229,86,75,0); }
+}
+@media (prefers-reduced-motion: reduce) { .tc-btn.fire { animation: none; } }
+.tourring.alert { border-color: var(--alert); box-shadow: 0 0 0 1px rgba(229,86,75,0.5), 0 0 30px 7px rgba(229,86,75,0.5); animation: none; }

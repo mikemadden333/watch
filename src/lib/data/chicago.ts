@@ -48,7 +48,7 @@ export const campuses: Campus[] = [
     students: 604,
     grades: "K-8",
     dismissal: "14:45",
-    principal: "M. Reyes",
+    principal: "R. Thomas",
     alertRingMi: 0.25,
     elevatedRingMi: 0.5,
     geocodeVerified: true,

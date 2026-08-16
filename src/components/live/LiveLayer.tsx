@@ -55,6 +55,17 @@ export default function LiveLayer({
   const dismissTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const acRef = useRef<AudioContext | null>(null);
   const [showPreview, setShowPreview] = useState(false);
+  // While the presenter tour is running, it becomes the single narrator — the
+  // standalone alert/whisper cards are suppressed so they never collide with it.
+  const [tourActive, setTourActive] = useState(false);
+  useEffect(() => {
+    const read = () => { try { setTourActive(localStorage.getItem("watch-tour-active") === "1"); } catch { /* no storage */ } };
+    read();
+    const onTour = (e: Event) => setTourActive(!!(e as CustomEvent).detail?.active);
+    window.addEventListener("watch:tour", onTour as EventListener);
+    window.addEventListener("storage", read);
+    return () => { window.removeEventListener("watch:tour", onTour as EventListener); window.removeEventListener("storage", read); };
+  }, []);
 
   useEffect(() => {
     try { setMuted(localStorage.getItem("watch.mute") === "1"); } catch { /* ignore */ }
@@ -193,7 +204,7 @@ export default function LiveLayer({
       )}
 
       {/* WHISPER — Monitor */}
-      {overlay?.kind === "whisper" && (
+      {!tourActive && overlay?.kind === "whisper" && (
         <div className="ll-whisper" role="status">
           <span className="ll-dot" style={{ background: "var(--monitor)" }} />
           <b>{overlay.campus}</b>&nbsp;· {overlay.headline}
@@ -204,7 +215,7 @@ export default function LiveLayer({
       )}
 
       {/* SPEAK — Elevated */}
-      {overlay?.kind === "speak" && (
+      {!tourActive && overlay?.kind === "speak" && (
         <div className="ll-speak" role="alert">
           <div className="ll-speak-top">
             <span className="ll-tier elev">{overlay.tierLabel ?? "ELEVATED"}</span>
@@ -223,7 +234,7 @@ export default function LiveLayer({
       )}
 
       {/* RESOLVE — de-escalation */}
-      {overlay?.kind === "resolve" && (
+      {!tourActive && overlay?.kind === "resolve" && (
         <div className="ll-resolve" role="status">
           <span className="ll-dot" style={{ background: "var(--clear)" }} />
           {overlay.headline} · {overlay.where}
@@ -231,7 +242,7 @@ export default function LiveLayer({
       )}
 
       {/* INTERRUPT — Alert */}
-      {overlay?.kind === "interrupt" && (
+      {!tourActive && overlay?.kind === "interrupt" && (
         <div className="ll-take" role="alertdialog" aria-label="Alert">
           <div className="ll-take-card">
             <div className="ll-flag">◆ LIVE · ALERT · {name(overlay.campus)}</div>

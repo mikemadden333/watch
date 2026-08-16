@@ -113,10 +113,16 @@ async function _getNetworkData(slug: string): Promise<NetworkData | null> {
 
 /* ---------- row mappers ---------- */
 
+// Demo persona: the school we walk through is led by Principal Thomas, so the
+// former principal in the room feels himself back in the building. Applied at
+// the data layer so the name is consistent everywhere (briefing, comms sign-off).
+const PRINCIPAL_OVERRIDE: Record<string, string> = { GPA: "R. Thomas" };
+
 function mapCampus(r: Record<string, unknown>): Campus {
+  const code = String(r.code);
   return {
     id: String(r.id),
-    code: String(r.code),
+    code,
     name: String(r.name),
     address: String(r.address ?? ""),
     lat: Number(r.lat),
@@ -124,7 +130,7 @@ function mapCampus(r: Record<string, unknown>): Campus {
     students: Number(r.students ?? 0),
     grades: String(r.grades ?? ""),
     dismissal: String(r.dismissal ?? ""),
-    principal: String(r.principal ?? ""),
+    principal: PRINCIPAL_OVERRIDE[code] ?? String(r.principal ?? ""),
     cpdLiaison: r.cpd_liaison ? String(r.cpd_liaison) : undefined,
     alertRingMi: Number(r.alert_ring_mi ?? 0.25),
     elevatedRingMi: Number(r.elevated_ring_mi ?? 0.5),
