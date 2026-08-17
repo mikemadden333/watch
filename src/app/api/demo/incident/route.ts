@@ -57,25 +57,19 @@ export async function POST(req: Request) {
 
   let incidents: DrillIncident[];
 
-  if (alert) {
-    // ---- ALERT-tier drill: a confirmed incident INSIDE the 0.25 mi alert ring
-    // (rule A-2) → posture escalates to ALERT → the SMS channel fires. This is
-    // the path that sends a real text (ELEVATED sends push/email only). ----
-    const p = offset(tLat, tLon, 0.15, 45);
-    incidents = [
-      {
-        source: "DRILL · simulated", sourceRecordId: `drill:${target.code}:alert`,
-        headline: `DRILL · near ${target.name}`, kind: "shooting", tier: "CONFIRMED",
-        lat: p.lat, lon: p.lon, geoConfidence: "exact",
-        occurredAt: now.toISOString(), publishedAt: now.toISOString(),
-        victimNote: "one victim, non-fatal", note: "DEMO DRILL · simulated · not a real incident",
-      },
-    ];
-  } else if (slug === "veritas-charter" && target.code === "GPA") {
-    // ---- the Garfield Park Academy overnight story (wireframe, beat for beat) ----
+  const isGpa = slug === "veritas-charter" && target.code === "GPA";
+
+  if (isGpa) {
+    // ---- the Garfield Park Academy story, beat for beat. It is ALWAYS the rich
+    // three-incident story so every tab tells one coherent thread: a real block,
+    // clocks staggered (shooting overnight → CPD record early morning → Watch
+    // surfaces it), plus two older confirmed shootings so Pulse shows fading
+    // rings. `alert:true` (the guided tour / ⌃⇧A) places the main incident inside
+    // the 0.25 mi ring → posture escalates to ALERT → the SMS channel fires;
+    // otherwise it sits at 0.28 mi → ELEVATED (push/email only). ----
     const today = centralYMD(now);
     const yest = centralYMD(new Date(now.getTime() - 86400000));
-    const main = offset(tLat, tLon, 0.28, 45); // 0.28 mi NE → ELEVATED (E-2)
+    const main = offset(tLat, tLon, alert ? 0.15 : 0.28, 45); // NE of campus
     const h34 = offset(tLat, tLon, 0.31, 270); // 34 d ago, 0.31 mi W
     const h96 = offset(tLat, tLon, 0.4, 135); // 96 d ago, 0.4 mi SE
     incidents = [
@@ -100,6 +94,19 @@ export async function POST(req: Request) {
         lat: h96.lat, lon: h96.lon, geoConfidence: "exact",
         occurredAt: new Date(now.getTime() - 96 * 86400000).toISOString(),
         publishedAt: new Date(now.getTime() - 96 * 86400000 + 8 * 3600000).toISOString(),
+        victimNote: "one victim, non-fatal", note: "DEMO DRILL · simulated · not a real incident",
+      },
+    ];
+  } else if (alert) {
+    // ---- ALERT-tier drill for other campuses: a confirmed incident INSIDE the
+    // 0.25 mi alert ring (rule A-2) → ALERT → the SMS channel fires. ----
+    const p = offset(tLat, tLon, 0.15, 45);
+    incidents = [
+      {
+        source: "DRILL · simulated", sourceRecordId: `drill:${target.code}:alert`,
+        headline: `DRILL · near ${target.name}`, kind: "shooting", tier: "CONFIRMED",
+        lat: p.lat, lon: p.lon, geoConfidence: "exact",
+        occurredAt: now.toISOString(), publishedAt: now.toISOString(),
         victimNote: "one victim, non-fatal", note: "DEMO DRILL · simulated · not a real incident",
       },
     ];

@@ -149,7 +149,7 @@ export default function PresenterTour({ enabled, slug, base }: { enabled: boolea
       );
       const run: ResponseRun = {
         id: `run-tour-${slug}`, slug, campusCode: "GPA", campusName: "Garfield Park Academy",
-        incidentId: null, incidentHeadline: "Confirmed shooting · near Garfield Park Academy",
+        incidentId: null, incidentHeadline: "Confirmed shooting · 2800 block W Warren Blvd · 0.15 mi NE",
         drill: false, posture: "SECURE", postureAt: new Date(now - 3 * 60000).toISOString(),
         initiatedBy: "V. Parks", startedAt: new Date(now - 4 * 60000).toISOString(),
         steps, notes: [], status: "active",
