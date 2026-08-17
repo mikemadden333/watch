@@ -105,6 +105,20 @@ export default function CommsComposer({
     if (!incidentId && pickable.length > 0) setIncidentId(pickable[0].id);
   }, [pickable, incidentId]);
 
+  // During the guided tour, auto-write the draft (quick, no long "thinking"
+  // animation) so the Communications step shows a finished note, not a button.
+  const autoRan = useRef(false);
+  useEffect(() => {
+    if (autoRan.current) return;
+    let tourActive = false;
+    try { tourActive = window.localStorage.getItem("watch-tour-active") === "1"; } catch { /* ignore */ }
+    if (tourActive && incidentId && genPhase === "idle" && !draft) {
+      autoRan.current = true;
+      runDraft(audience, incidentId, disabledRefs, true);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [incidentId, genPhase, draft]);
+
   /** Build the drafting context from explicit choices (avoids stale state on live redraft). */
   function buildCtx(incId: string | null, disabled: string[]) {
     const inc = pickable.find((i) => i.id === incId);

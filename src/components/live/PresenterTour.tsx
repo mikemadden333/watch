@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { freshSteps, type ResponseRun } from "@/lib/action/store";
+import { freshSteps, logMilestone, type ResponseRun } from "@/lib/action/store";
 
 /* ============================================================
    Presenter tour — page-by-page. ⌃⇧G arms it: the network goes
@@ -155,6 +155,10 @@ export default function PresenterTour({ enabled, slug, base }: { enabled: boolea
         steps, notes: [], status: "active",
       };
       localStorage.setItem(`watch-runs-${slug}`, JSON.stringify([run]));
+      // log the run to the Record so the response the funder watches actually
+      // appears in the accounting ledger (the real begin()/setPosture do this).
+      logMilestone(slug, "GPA · response run OPENED · Confirmed shooting · 2800 block W Warren Blvd", "initiated by V. Parks · guided tour");
+      logMilestone(slug, "GPA · posture set: SECURE", "response run · by V.P.");
     } catch { /* storage blocked */ }
   }, [slug]);
 
