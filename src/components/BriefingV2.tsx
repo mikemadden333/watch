@@ -30,6 +30,7 @@ import { pulseForCampus } from "@/lib/pulse";
 import HeatRibbon, { type RibbonDay } from "./briefing/HeatRibbon";
 import SafetyDial, { type DialInc } from "./briefing/SafetyDial";
 import PulseMap from "./pulse/PulseMap";
+import { violentCrimeNear, violentCrimeWord, VIOLENT_RADIUS_MI } from "@/lib/violentCrime";
 
 type StoryRow = { time: string; text: string; cls?: "conf" | "elev" | "alert" };
 
@@ -212,14 +213,14 @@ function CeoView({ data, base }: { data: NetworkData; base: string }) {
   const stats = data.campuses
     .map((c) => {
       const st = (data.statuses.find((s) => s.campusCode === c.code)?.status ?? "CLEAR") as Status;
-      const rings = pulseForCampus(data.incidents, c, now);
+      const rings = violentCrimeNear(data.incidents, c, now);
       const ribbon: RibbonDay[] = dayLabels.map((label) => ({ n: 0, label, items: [] as { t: string; s: string }[] }));
       for (const r of rings) {
         if (r.ageDays < 30) {
           const idx = 29 - Math.min(29, Math.max(0, Math.floor(r.ageDays)));
           ribbon[idx].n += 1;
           ribbon[idx].items.push({
-            t: `${cap(incidentTypeWord({ kind: r.kind } as Incident))} · ${placeOf({ headline: r.headline } as Incident)}`,
+            t: `${cap(violentCrimeWord({ kind: r.kind, headline: r.headline } as Incident))} · ${placeOf({ headline: r.headline } as Incident)}`,
             s: `${r.distanceMi} mi ${r.bearing} · ${r.ageLabel}`,
           });
         }
@@ -309,11 +310,11 @@ function CeoView({ data, base }: { data: NetworkData; base: string }) {
           </div>
           <div className="sr-v">
             <div className="sr-num">{net7}</div>
-            <div className="sr-lab">Confirmed gun violence<br />near campuses · 7 days</div>
+            <div className="sr-lab">Confirmed violent crime<br />within 1 mi · 7 days</div>
           </div>
           <div className="sr-v">
             <div className="sr-num">{net30}</div>
-            <div className="sr-lab">Confirmed gun violence<br />near campuses · 30 days</div>
+            <div className="sr-lab">Confirmed violent crime<br />within 1 mi · 30 days</div>
           </div>
           <div className={`sr-v${feedsAllLive ? " clr" : !feedsKnown ? " warnv" : ""}`}>
             <div className="sr-num">{feedsKnown ? feedsLive : "—"}{feedsKnown ? <small> / {feedsTotal}</small> : null}</div>
@@ -324,7 +325,7 @@ function CeoView({ data, base }: { data: NetworkData; base: string }) {
         <div className="sr-boardh">
           <div className="t">The blocks around your schools</div>
           <div className="s">
-            Confirmed gun violence · last 30 days
+            Confirmed violent crime · within 1 mile · last 30 days
             <span className="sr-scale" aria-hidden="true">
               <i style={{ background: "var(--sr-cell)" }} />
               <i style={{ background: "rgba(232,161,58,.38)" }} />
@@ -397,15 +398,16 @@ function LeaderView({ data, base, code }: { data: NetworkData; base: string; cod
   const dismissPretty = pretty12(campus.dismissal);
   const briefPretty = pretty12(minusMinutes(campus.dismissal, 30));
 
-  // the safety dial — confirmed gun violence near this campus, plotted by hour
-  // of day and recency, so a principal has a pattern to explore even when clear
-  const pulseRings = pulseForCampus(data.incidents, campus, now);
+  // the safety dial + campus map — confirmed violent crime within a mile of this
+  // campus, plotted by hour of day and recency, so a principal has a pattern to
+  // explore even when clear
+  const pulseRings = violentCrimeNear(data.incidents, campus, now);
   const dialData: DialInc[] = pulseRings.map((r) => ({
     id: r.id,
     hour: centralHour(new Date(r.occurredAt)),
     ageDays: Math.max(0, Math.round(r.ageDays)),
     fatal: /fatal/i.test(r.victimNote ?? "") && !/non-fatal/i.test(r.victimNote ?? ""),
-    title: `${cap(incidentTypeWord({ kind: r.kind } as Incident))} · ${placeOf({ headline: r.headline } as Incident)}`,
+    title: `${cap(violentCrimeWord({ kind: r.kind, headline: r.headline } as Incident))} · ${placeOf({ headline: r.headline } as Incident)}`,
     sub: `${r.distanceMi} mi ${r.bearing} · ${r.ageLabel}`,
   }));
   const schoolStart = parseInt((campus.arrivalStart ?? "07:30").split(":")[0], 10) || 7;
@@ -455,10 +457,10 @@ function LeaderView({ data, base, code }: { data: NetworkData; base: string; cod
       {pulseRings.length > 0 ? (
         <section className="sdpanel campusmap">
           <div className="sdhead">
-            <div className="t">The blocks around {campus.name}</div>
-            <div className="s">Confirmed gun violence · last 125 days · pinned where it happened</div>
+            <div className="t">Violent crime around {campus.name}</div>
+            <div className="s">Confirmed violent crime within {VIOLENT_RADIUS_MI} mile · last 125 days · pinned where it happened</div>
           </div>
-          <PulseMap rings={pulseRings} campus={campus} compact />
+          <PulseMap rings={pulseRings} campus={campus} compact radiusMi={VIOLENT_RADIUS_MI} />
         </section>
       ) : null}
 

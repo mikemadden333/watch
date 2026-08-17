@@ -78,7 +78,7 @@ export default function SafetyDial({
   const duringSchool = incidents.filter((i) => i.hour >= schoolStart && i.hour < schoolEnd).length;
   const insight =
     total === 0
-      ? `No confirmed gun violence within a half-mile of ${campusName} in the last 125 days.`
+      ? `No confirmed violent crime within a mile of ${campusName} in the last 125 days.`
       : `Of ${total} confirmed incident${total === 1 ? "" : "s"} near ${campusName} in 125 days, ${
           duringSchool === 0 ? "none" : duringSchool
         } happened during school hours (${fmtH(schoolStart)}–${fmtH(schoolEnd)}). The rest were evenings, nights, and weekends.`;
@@ -89,7 +89,7 @@ export default function SafetyDial({
     <div className="sdpanel">
       <div className="sdhead">
         <div className="t">The pattern around {campusName}</div>
-        <div className="s">Confirmed gun violence · by hour &amp; recency · last 125 days</div>
+        <div className="s">Confirmed violent crime · by hour &amp; recency · last 125 days</div>
       </div>
 
       <div className="sd-grid">

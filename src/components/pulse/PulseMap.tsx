@@ -24,7 +24,8 @@ const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 const isFatal = (note?: string) => !!note && /fatal/i.test(note) && !/non-fatal/i.test(note);
 const titleOf = (r: PulseRing) => `${cap(incidentTypeWord({ kind: r.kind } as Incident))} · ${placeOf({ headline: r.headline } as Incident)}`;
 
-export default function PulseMap({ rings, campus, compact = false }: { rings: PulseRing[]; campus: Campus; compact?: boolean }) {
+export default function PulseMap({ rings, campus, compact = false, radiusMi = PULSE_RADIUS_MI }: { rings: PulseRing[]; campus: Campus; compact?: boolean; radiusMi?: number }) {
+  const ringMi = radiusMi >= 0.9 ? [0.5, 1] : [0.25, 0.5];
   const mapEl = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<LeafletMap | null>(null);
   const overlayRef = useRef<LayerGroup | null>(null);
@@ -55,7 +56,7 @@ export default function PulseMap({ rings, campus, compact = false }: { rings: Pu
       // frame on the outer half-mile ring so the whole watched area is visible.
       // toBounds() takes the full box size in meters and needs no map — unlike
       // Circle.getBounds(), which throws on a circle not yet added to a map.
-      const box = L.latLng(campus.lat, campus.lon).toBounds(PULSE_RADIUS_MI * 2 * MI_TO_M);
+      const box = L.latLng(campus.lat, campus.lon).toBounds(radiusMi * 2 * MI_TO_M);
       map.fitBounds(box, { padding: [18, 18] });
       overlayRef.current = L.layerGroup().addTo(map);
       map.on("click", () => setSel(null));
@@ -85,8 +86,8 @@ export default function PulseMap({ rings, campus, compact = false }: { rings: Pu
     if (!g) return;
     g.clearLayers();
 
-    // range rings — 0.25 mi (inner) and 0.5 mi (outer)
-    for (const [mi, op] of [[0.25, 0.1], [0.5, 0.07]] as const) {
+    // range rings — inner + outer, scaled to the awareness radius
+    for (const [mi, op] of [[ringMi[0], 0.1], [ringMi[1], 0.07]] as [number, number][]) {
       L.circle([campus.lat, campus.lon], {
         radius: mi * MI_TO_M,
         color: EL,
@@ -142,7 +143,7 @@ export default function PulseMap({ rings, campus, compact = false }: { rings: Pu
           <span><i className="lg-campus" />Campus</span>
           <span><i className="lg-hot" />Fresh · still hot</span>
           <span><i className="lg-cool" />Cooling</span>
-          <span className="pradar-scale">rings 0.25 &amp; {PULSE_RADIUS_MI} mi · tap a pin</span>
+          <span className="pradar-scale">rings {ringMi[0]} &amp; {ringMi[1]} mi · tap a pin</span>
         </div>
       </div>
 
@@ -190,7 +191,7 @@ export default function PulseMap({ rings, campus, compact = false }: { rings: Pu
 
       {rings.length > 0 && (
         <div className="pmap-scale-note mono">
-          {rings.length} confirmed within {PULSE_RADIUS_MI} mi over the last {PULSE_WINDOW_DAYS} days · pinned where each happened
+          {rings.length} confirmed within {ringMi[1]} mi over the last {PULSE_WINDOW_DAYS} days · pinned where each happened
         </div>
       )}
     </div>
