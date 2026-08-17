@@ -44,8 +44,6 @@ const STATUS_COLOR: Record<string, string> = {
 interface Layers {
   confirmed: boolean;
   corroborated: boolean;
-  weather: boolean;
-  allCrimes: boolean;
 }
 
 export default function MapView(props: MapViewProps = {}) {
@@ -79,22 +77,25 @@ export default function MapView(props: MapViewProps = {}) {
   const [layers, setLayers] = useState<Layers>({
     confirmed: true,
     corroborated: true,
-    weather: true,
-    allCrimes: false,
   });
 
   const sel = campuses.find((c) => c.code === selected)!;
   const selStatus = statusOf(morningStatuses, selected)!;
 
-  // confirmed incidents within elevated ring of selected, last 7d
+  // confirmed incidents within the elevated ring of the selected campus, inside
+  // the current data window — matches exactly what's drawn on the map, and the
+  // popover count follows the scrubber.
   const confirmedInRing = incidents.filter(
     (i) =>
       i.tier === "CONFIRMED" &&
       i.kind !== "weather-advisory" &&
-      distanceMi(sel, i) <= sel.elevatedRingMi
+      distanceMi(sel, i) <= sel.elevatedRingMi &&
+      (nowMs - new Date(i.occurredAt).getTime()) / 86400000 <= windowDays
   );
+  // nearest CONFIRMED incident (so the "Nearest confirmed" row can't surface a
+  // single-source news item)
   const nearest = [...incidents]
-    .filter((i) => i.kind !== "weather-advisory" && i.lat && i.lon)
+    .filter((i) => i.tier === "CONFIRMED" && i.kind !== "weather-advisory" && i.lat && i.lon)
     .sort((a, b) => distanceMi(sel, a) - distanceMi(sel, b))[0] as
     | (typeof incidents)[number]
     | undefined;
@@ -306,12 +307,10 @@ export default function MapView(props: MapViewProps = {}) {
               <span className="mt-sw" aria-hidden><span className="mt-knob" /></span>
               <span className="mt-lab" style={{ color: "var(--mut)" }}>Single-source reports <span style={{ color: "var(--faint)" }}>· off map by rule</span></span>
             </div>
-            <Toggle on={layers.weather} onClick={() => setLayers((l) => ({ ...l, weather: !l.weather }))}>
-              Weather (NWS live)
-            </Toggle>
-            <Toggle on={layers.allCrimes} onClick={() => setLayers((l) => ({ ...l, allCrimes: !l.allCrimes }))}>
-              All-crimes backfill (8-day layer)
-            </Toggle>
+            <div className="maptoggle off" title="Weather advisories are metro-wide, never a point on the map">
+              <span className="mt-sw" aria-hidden><span className="mt-knob" /></span>
+              <span className="mt-lab" style={{ color: "var(--mut)" }}>Weather advisories <span style={{ color: "var(--faint)" }}>· briefing only</span></span>
+            </div>
           </div>
           <hr className="hr" />
           <div className="micro">All campuses</div>
@@ -393,7 +392,7 @@ export default function MapView(props: MapViewProps = {}) {
             ) : null}
 
             <div style={{ marginTop: 10, fontFamily: "Menlo,monospace", fontSize: 10.5, display: "flex", flexDirection: "column", gap: 7 }}>
-              <PopRow label="Confirmed in ring · 7 d" value={String(confirmedInRing.length)} />
+              <PopRow label={`Confirmed in ring · ${windowDays} d`} value={String(confirmedInRing.length)} />
               <PopRow
                 label="Nearest confirmed"
                 value={
@@ -429,7 +428,7 @@ export default function MapView(props: MapViewProps = {}) {
               zIndex: 500,
             }}
           >
-            <span className="micro microink">Data window</span>
+            <span className="micro microink">Time window</span>
             <input
               type="range"
               min={1}
@@ -439,7 +438,7 @@ export default function MapView(props: MapViewProps = {}) {
               style={{ flex: 1, accentColor: "#e8a13a" }}
             />
             <span className="mono" style={{ fontSize: 10, color: "var(--mut)", whiteSpace: "nowrap" }}>
-              {windowDays} d ago —— latest data day
+              Showing the last {windowDays} {windowDays === 1 ? "day" : "days"}
             </span>
           </div>
 
