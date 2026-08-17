@@ -25,7 +25,7 @@ import {
   type Briefing,
   type Seg,
 } from "@/lib/voice";
-import { pulseForCampus, PULSE_WINDOW_DAYS } from "@/lib/pulse";
+import { pulseForCampus } from "@/lib/pulse";
 
 type StoryRow = { time: string; text: string; cls?: "conf" | "elev" | "alert" };
 
@@ -70,20 +70,12 @@ const HOOD: Record<string, string> = {
 };
 
 /** 18-week histogram of ring ages → sparkline geometry (oldest left, newest right). */
-function sparkPoints(ages: number[]): { line: string; area: string; last: [number, number] } {
-  const W = 120, H = 28, pad = 2, BINS = 18;
-  const binW = PULSE_WINDOW_DAYS / BINS;
-  const series = new Array(BINS).fill(0);
-  for (const a of ages) {
-    const idx = BINS - 1 - Math.min(BINS - 1, Math.floor(a / binW));
-    series[idx]++;
-  }
-  const mx = Math.max(1, ...series);
-  const step = (W - pad * 2) / (BINS - 1);
-  const pts = series.map((v, i) => [pad + i * step, H - pad - (v / mx) * (H - pad * 2)] as [number, number]);
-  const line = pts.map((p) => `${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(" ");
-  const area = `${pad},${H - pad} ${line} ${(W - pad).toFixed(1)},${H - pad}`;
-  return { line, area, last: pts[pts.length - 1] };
+/** heat-ribbon cell color by how many confirmed incidents landed that day. */
+function cellColor(n: number): string {
+  if (n <= 0) return "var(--sr-cell)";
+  if (n === 1) return "rgba(232,161,58,.38)";
+  if (n === 2) return "var(--sr-amber)";
+  return "var(--sr-amber2)";
 }
 
 type TlRow = { tm?: string; text: string; ok?: boolean };
@@ -211,22 +203,31 @@ function CeoView({ data, base }: { data: NetworkData; base: string }) {
   const n = data.campuses.length;
   const rank: Record<string, number> = { ALERT: 0, ELEVATED: 1, MONITOR: 2, CLEAR: 3 };
 
-  // per-campus violence stats from the real 125-day store (7d / 30d windows)
+  // per-campus violence stats from the real 125-day store (7d / 30d windows),
+  // plus a 30-day daily histogram for the heat ribbon (index 0 = 29 days ago,
+  // index 29 = today) — binned from the real incident dates.
   const stats = data.campuses
     .map((c) => {
       const st = (data.statuses.find((s) => s.campusCode === c.code)?.status ?? "CLEAR") as Status;
       const rings = pulseForCampus(data.incidents, c, now);
+      const days30 = new Array(30).fill(0) as number[];
+      for (const r of rings) {
+        if (r.ageDays < 30) {
+          const idx = 29 - Math.min(29, Math.max(0, Math.floor(r.ageDays)));
+          days30[idx] += 1;
+        }
+      }
       return {
         c, st,
-        ages: rings.map((r) => r.ageDays),
+        days30,
         total: rings.length, // last 125 days
         m: rings.filter((r) => r.ageDays <= 30).length,
         w: rings.filter((r) => r.ageDays <= 7).length,
       };
     })
-    // rank by the actionable window: worst status first, then the last 30 days
-    // (not the 125-day store, which over-weights stale history)
-    .sort((a, x) => rank[a.st] - rank[x.st] || x.m - a.m || x.w - a.w);
+    // rank by the actionable window: worst status first, then this week's
+    // activity, then the last 30 days (never the stale 125-day store)
+    .sort((a, x) => rank[a.st] - rank[x.st] || x.w - a.w || x.m - a.m);
 
   const clearCount = stats.filter((s) => s.st === "CLEAR").length;
   const hotCampus = stats.find((s) => s.st === "ELEVATED" || s.st === "ALERT");
@@ -316,12 +317,18 @@ function CeoView({ data, base }: { data: NetworkData; base: string }) {
         <div className="sr-boardh">
           <div className="t">The blocks around your schools</div>
           <div className="s">
-            Confirmed gun violence · this week &amp; last 30 days
+            Confirmed gun violence · last 30 days
+            <span className="sr-scale" aria-hidden="true">
+              <i style={{ background: "var(--sr-cell)" }} />
+              <i style={{ background: "rgba(232,161,58,.38)" }} />
+              <i style={{ background: "var(--sr-amber)" }} />
+              <i style={{ background: "var(--sr-amber2)" }} />
+              <em>more</em>
+            </span>
           </div>
         </div>
         <div className="sr-board">
           {stats.map((s, i) => {
-            const sp = sparkPoints(s.ages);
             const hood = HOOD[s.c.code];
             const hot = s.st !== "CLEAR";
             const statusText = s.st === "CLEAR" ? "clear" : statusWord(s.st).toLowerCase();
@@ -336,13 +343,20 @@ function CeoView({ data, base }: { data: NetworkData; base: string }) {
                   <span className="sr-nm"><i style={{ background: SR_DOT[s.st] }} />{s.c.name}</span>
                   <span className="sr-hood">{hood ? `${hood} · ` : ""}{statusText}</span>
                 </span>
-                <svg className="sr-spark" width="120" height="28" viewBox="0 0 120 28" aria-hidden="true">
-                  <polygon points={sp.area} fill="rgba(232,161,58,.12)" />
-                  <polyline points={sp.line} fill="none" stroke="rgba(232,161,58,.85)" strokeWidth="1.4" strokeLinejoin="round" />
-                  <circle cx={sp.last[0].toFixed(1)} cy={sp.last[1].toFixed(1)} r="2.1" fill="#f4bf63" />
-                </svg>
+                <span className="sr-ribbonw">
+                  <span className="sr-ribbon">
+                    {s.days30.map((cnt, d) => (
+                      <i
+                        key={d}
+                        className={`sr-cell${d === 29 ? " today" : ""}${cnt >= 3 ? " glow" : ""}`}
+                        style={{ background: cellColor(cnt), animationDelay: `${(i * 0.05 + d * 0.012).toFixed(3)}s` }}
+                      />
+                    ))}
+                  </span>
+                  <span className="sr-ribbonx"><span>30 days ago</span><span>today</span></span>
+                </span>
                 <span className="sr-cnt">
-                  <span className={`big${s.w === 0 ? " zero" : ""}`}>{s.w}</span><span className="u">this week</span>
+                  <span className={`big${s.w === 0 ? " zero" : " warm"}`}>{s.w}</span><span className="u">this week</span>
                   {s.m ? <div className="r">{s.m} in 30 days</div> : <div className="r faint">quiet this month</div>}
                 </span>
               </Link>
