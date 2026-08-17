@@ -20,6 +20,8 @@ import {
   placeOf,
   milesPhrase,
   numWord,
+  overnightWord,
+  watchedWindow,
   type Briefing,
   type Seg,
 } from "@/lib/voice";
@@ -38,7 +40,7 @@ function synthStory(
   const rows: StoryRow[] = [];
   const cc = confirmClause(i, city);
   const type = incidentTypeWord(i);
-  if (i.occurredAt) rows.push({ time: clockOf(i.occurredAt), text: `A ${type} occurred on ${placeOf(i)} — nobody knew yet, including us.` });
+  if (i.occurredAt) rows.push({ time: clockOf(i.occurredAt), text: `A ${type} occurred on ${placeOf(i)}.` });
   if (i.publishedAt) rows.push({ time: clockOf(i.publishedAt), text: `${cc.who} ${cc.verb}. Confirmed${i.victimNote ? " — " + i.victimNote : ""}.`, cls: "conf" });
   const alerted = st?.status === "ALERT";
   rows.push({
@@ -86,6 +88,24 @@ function sparkPoints(ages: number[]): { line: string; area: string; last: [numbe
 
 type TlRow = { tm?: string; text: string; ok?: boolean };
 
+/** "14:45" → "2:45 PM". Tolerates already-formatted or empty input. */
+function pretty12(hhmm: string): string {
+  const m = /^(\d{1,2}):(\d{2})/.exec(hhmm || "");
+  if (!m) return hhmm || "dismissal";
+  let h = parseInt(m[1], 10);
+  const min = m[2];
+  const ap = h >= 12 ? "PM" : "AM";
+  h = h % 12 || 12;
+  return `${h}:${min} ${ap}`;
+}
+/** subtract minutes from an "HH:MM" clock, clamped to the same day. */
+function minusMinutes(hhmm: string, mins: number): string {
+  const m = /^(\d{1,2}):(\d{2})/.exec(hhmm || "");
+  if (!m) return hhmm || "";
+  const total = Math.max(0, parseInt(m[1], 10) * 60 + parseInt(m[2], 10) - mins);
+  return `${String(Math.floor(total / 60)).padStart(2, "0")}:${String(total % 60).padStart(2, "0")}`;
+}
+
 /** The "while you slept" verification story — real signals, honest tokens. */
 function ceoTimeline(
   data: NetworkData,
@@ -110,9 +130,9 @@ function ceoTimeline(
   // All clear — the quiet was verified, not assumed.
   const rows: TlRow[] = [];
   rows.push({
-    tm: "overnight",
+    tm: overnightWord(now),
     ok: true,
-    text: `${police} ${isDallas ? "cleared the overnight dispatch log" : "published the overnight shooting record"}. Nothing landed inside a campus ring.`,
+    text: `${police} ${isDallas ? "cleared the latest dispatch log" : "published the latest shooting record"}. Nothing landed inside a campus ring.`,
   });
 
   const dayAgo = now.getTime() - 24 * 3600 * 1000;
@@ -135,7 +155,7 @@ function ceoTimeline(
 
   const hasME = data.feeds.some((f) => /exam|\bme\b|medical/i.test(f.key + " " + f.label));
   if (hasME) {
-    rows.push({ tm: "overnight", ok: true, text: "Medical-examiner feed refreshed. No new gun deaths in the network's areas." });
+    rows.push({ tm: overnightWord(now), ok: true, text: "Medical-examiner feed refreshed. No new gun deaths in the network's areas." });
   }
 
   const feedsTotal = data.feeds.length;
@@ -146,8 +166,8 @@ function ceoTimeline(
     feedsTotal === 0
       ? { tm: "now", text: "Source health is not reporting — treat this quiet with caution until feeds confirm." }
       : {
-          tm: "all night",
-          text: `${feedsLive >= feedsTotal ? `All ${feedsTotal}` : `${feedsLive} of ${feedsTotal}`} sources connected and reporting. The quiet was verified, not assumed.`,
+          tm: overnightWord(now),
+          text: `${feedsLive >= feedsTotal ? `All ${feedsTotal}` : `${feedsLive} of ${feedsTotal}`} sources connected and reporting. Every source checked; nothing qualified for an alert.`,
         }
   );
   return rows;
@@ -335,7 +355,7 @@ function CeoView({ data, base }: { data: NetworkData; base: string }) {
         </div>
 
         <div className="sr-night">
-          <div className="sr-nlab">While you slept<br />the verification story</div>
+          <div className="sr-nlab">{overnightWord(now) === "overnight" ? "While you slept" : "Since this morning"}<br />what Watch checked</div>
           <div className="sr-tl">
             {timeline.map((e, i) => (
               <div key={i} className={`sr-e${e.ok ? " ok" : ""}`}>
@@ -358,11 +378,14 @@ function CeoView({ data, base }: { data: NetworkData; base: string }) {
 /* ---------------- School Leader ---------------- */
 
 function LeaderView({ data, base, code }: { data: NetworkData; base: string; code: string }) {
+  const now = new Date();
   const campus = data.campuses.find((c) => c.code === code) ?? data.campuses[0];
   const st = (data.statuses.find((s) => s.campusCode === campus.code)?.status ?? "CLEAR") as Status;
   const b: Briefing = leaderBriefing(data, campus.code);
   const incident = drivingIncident(data, campus.code);
   const active = st === "ELEVATED" || st === "ALERT" || st === "MONITOR";
+  const dismissPretty = pretty12(campus.dismissal);
+  const briefPretty = pretty12(minusMinutes(campus.dismissal, 30));
 
   return (
     <>
@@ -380,8 +403,8 @@ function LeaderView({ data, base, code }: { data: NetworkData; base: string; cod
 
       <div className="acts">
         <Link className="ac primary" href={`${base}/campuses/${campus.code.toLowerCase()}`}>
-          <div className="k">Your morning · playbook</div>
-          <div className="v">Review the playbook before doors open →</div>
+          <div className="k">Your playbook</div>
+          <div className="v">Review the playbook →</div>
           <div className="s">
             {active
               ? "Brief front-desk and security · confirm doors · adjust morning recess · hold parent note for your review"
@@ -398,9 +421,9 @@ function LeaderView({ data, base, code }: { data: NetworkData; base: string; cod
           </div>
         </Link>
         <div className="ac">
-          <div className="k">2:15 PM · dismissal outlook</div>
+          <div className="k">{briefPretty} · dismissal outlook</div>
           <div className="v">I&apos;ll brief you before dismissal</div>
-          <div className="s">One sentence at 2:15 — conditions on your blocks in the 90 minutes before release.</div>
+          <div className="s">One line at {briefPretty} — conditions on your blocks in the half hour before your {dismissPretty} release.</div>
         </div>
       </div>
 
@@ -419,8 +442,8 @@ function LeaderView({ data, base, code }: { data: NetworkData; base: string; cod
           <div className="micro">What I watched · and dismissed</div>
           <div className="rows">
             <div className="erow">
-              <span className="t">overnight</span>
-              I watched the public record around {campus.name} through the night. Nothing crossed a line.
+              <span className="t">{overnightWord(now)}</span>
+              I watched the public record around {campus.name} {watchedWindow(now)}. Nothing crossed a line.
             </div>
           </div>
           <div className="quiet">
