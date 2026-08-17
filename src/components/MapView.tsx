@@ -120,7 +120,7 @@ export default function MapView(props: MapViewProps = {}) {
 
       const map = L.map(mapEl.current, {
         center,
-        zoom: 13,
+        zoom: 12,
         zoomControl: false,
         attributionControl: false,
       });
@@ -130,6 +130,12 @@ export default function MapView(props: MapViewProps = {}) {
         { maxZoom: 19, subdomains: "abcd" }
       ).addTo(map);
       mapRef.current = map;
+      // open framed on the whole network — every campus visible. Extra bottom-
+      // right padding keeps campuses clear of the popover and the scrubber.
+      const bounds = L.latLngBounds(campuses.map((c) => [c.lat, c.lon] as [number, number]));
+      if (bounds.isValid()) {
+        map.fitBounds(bounds, { paddingTopLeft: [56, 56], paddingBottomRight: [330, 96], maxZoom: 14 });
+      }
       overlayRef.current = L.layerGroup().addTo(map);
       drawOverlay(L);
     })();
@@ -396,8 +402,7 @@ export default function MapView(props: MapViewProps = {}) {
                     : "none in range"
                 }
               />
-              <PopRow label="Occurred" value={triggerInc ? hm(triggerInc.occurredAt) : "—"} />
-              <PopRow label="Published" value={triggerInc ? hm(triggerInc.publishedAt) : "—"} />
+              <PopRow label="How long ago" value={triggerInc ? agoPhrase(triggerInc.occurredAt, nowMs) : "—"} />
               <PopRow
                 label="Rule fired"
                 value={selStatus.ruleId ? `${selStatus.ruleId} · ${selStatus.ruleName}` : "CLEAR · none"}
@@ -456,6 +461,19 @@ function fadeByAge(ageDays: number): number {
 }
 function hm(iso?: string): string {
   return fmtCentral(iso) || "—";
+}
+/** plain elapsed time — "how long ago", which matters more than the clock. */
+function agoPhrase(iso: string | undefined, nowMs: number): string {
+  if (!iso) return "—";
+  const ms = nowMs - new Date(iso).getTime();
+  if (!isFinite(ms)) return "—";
+  if (ms < 60000) return "just now";
+  const min = Math.floor(ms / 60000);
+  if (min < 60) return `${min} min ago`;
+  const hr = Math.floor(min / 60);
+  if (hr < 24) return `${hr} h ago`;
+  const d = Math.floor(hr / 24);
+  return `${d} d ago`;
 }
 
 function Dot({ c }: { c: string }) {
