@@ -2517,6 +2517,39 @@ a {
 }
 @keyframes pBreathe { 0%, 100% { opacity: 0.55; } 50% { opacity: 1; } }
 
+/* ---------------- Pulse · live contagion-window banner ---------------- */
+.cbanner {
+  display: flex; justify-content: space-between; align-items: center; gap: 20px; flex-wrap: wrap;
+  padding: 15px 22px; border-radius: 14px; margin-bottom: 20px; border: 1px solid var(--line2);
+}
+.cbanner.active { background: linear-gradient(100deg, #2a0e10, #3a1215); border-color: rgba(229, 86, 75, 0.6); box-shadow: 0 0 34px rgba(229, 86, 75, 0.22); }
+.cbanner.acute { background: linear-gradient(100deg, #291710, #331d11); border-color: rgba(230, 134, 74, 0.5); }
+.cbanner.watch { background: linear-gradient(100deg, #231d11, #292312); border-color: rgba(232, 161, 58, 0.4); }
+.cb-left { display: flex; gap: 13px; align-items: flex-start; min-width: 0; }
+.cb-dot { width: 12px; height: 12px; border-radius: 50%; margin-top: 5px; flex: none; }
+.cbanner.active .cb-dot { background: #e5564b; }
+.cbanner.acute .cb-dot { background: #e6864a; }
+.cbanner.watch .cb-dot { background: #e8a13a; }
+.cb-phase { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.14em; text-transform: uppercase; }
+.cbanner.active .cb-phase { color: #f0857c; }
+.cbanner.acute .cb-phase { color: #f0a06a; }
+.cbanner.watch .cb-phase { color: #f4bf63; }
+.cb-head { font-size: 15px; font-weight: 700; color: #f3f1ea; margin-top: 3px; }
+.cb-sub { font-size: 12px; color: #c3c8d6; margin-top: 3px; max-width: 54ch; line-height: 1.5; }
+.cb-count { text-align: right; flex: none; }
+.cb-lab { font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.1em; text-transform: uppercase; color: #8b93ad; }
+.cb-val { font-family: var(--mono); font-size: 25px; font-weight: 700; color: #f3f1ea; font-variant-numeric: tabular-nums; margin-top: 3px; }
+.cbanner.active .cb-val { color: #f4bf63; }
+@media (prefers-reduced-motion: no-preference) {
+  .cbanner.active .cb-dot { animation: cbPulse 1.4s ease-out infinite; }
+}
+@keyframes cbPulse {
+  0% { box-shadow: 0 0 0 0 rgba(229, 86, 75, 0.7); }
+  70% { box-shadow: 0 0 0 9px rgba(229, 86, 75, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(229, 86, 75, 0); }
+}
+@media (max-width: 600px) { .cb-count { text-align: left; } }
+
 /* ---------------- Pulse · The Science (self-contained dark panel) ---------------- */
 .scienceband {
   --s-ink: #f3f1ea; --s-ink2: #c3c8d6; --s-mut: #8b93ad; --s-faint: #59617e;

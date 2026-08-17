@@ -22,6 +22,7 @@ import {
 } from "@/lib/pulse";
 import { numWord } from "@/lib/voice";
 import PulseRadar from "./pulse/PulseRadar";
+import ContagionBanner from "./pulse/ContagionBanner";
 
 const EL = "#e8a13a"; // gun-violence signal color (amber, matches the CEO board)
 const RED = "#e5564b";
@@ -49,9 +50,17 @@ function heatRead(rings: PulseRing[]) {
 /* ---------------- leader altitude ---------------- */
 
 function LeaderPulse({ data, campus }: { data: NetworkData; campus: Campus }) {
-  const rings = pulseForCampus(data.incidents, campus);
+  const now = new Date();
+  const rings = pulseForCampus(data.incidents, campus, now);
   const total = rings.length;
   const hr = heatRead(rings);
+
+  // the freshest incident inside the 7-day contagion window drives the live banner
+  const fresh0 = rings[0];
+  const trigger =
+    fresh0 && fresh0.ageDays < 7
+      ? { occurredAt: fresh0.occurredAt, kind: fresh0.kind, distanceMi: fresh0.distanceMi, bearing: fresh0.bearing, fatal: isFatal(fresh0.victimNote) }
+      : null;
 
   const read =
     total === 0
@@ -68,6 +77,8 @@ function LeaderPulse({ data, campus }: { data: NetworkData; campus: Campus }) {
         <div className="sentence">The pattern around {campus.name}</div>
         <span className="micro">Pulse · how much confirmed gun violence is near your campus, how close, how recent — and how long it stays live</span>
       </div>
+
+      {trigger ? <ContagionBanner trigger={trigger} nowIso={now.toISOString()} /> : null}
 
       <div className="pulsewrap">
         <div className="card psit">

@@ -24,6 +24,7 @@ export interface PulseRing {
   victimNote?: string;
   distanceMi: number;
   bearing: string;
+  occurredAt: string; // ISO — for the live contagion countdown
   ageDays: number;
   ageLabel: string; // "9 h ago" | "34 d ago"
   decayFrac: number; // remaining fraction of the 125-day window
@@ -77,6 +78,7 @@ export function pulseForCampus(incidents: Incident[], campus: Campus, now = new 
       victimNote: i.victimNote,
       distanceMi: Math.round(d * 100) / 100,
       bearing: bearing(campus, { lat: i.lat, lon: i.lon }),
+      occurredAt: i.occurredAt,
       ageDays,
       ageLabel: ageLabelOf(ageDays),
       decayFrac,
