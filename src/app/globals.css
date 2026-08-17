@@ -2517,6 +2517,86 @@ a {
 }
 @keyframes pBreathe { 0%, 100% { opacity: 0.55; } 50% { opacity: 1; } }
 
+/* ---------------- Reports · builder + printable document ---------------- */
+.reportpage { padding: 26px 32px 80px; max-width: 940px; margin: 0 auto; }
+.report-controls {
+  background: linear-gradient(180deg, #111a32, #0e1528); border: 1px solid #1e2740; border-radius: 14px;
+  padding: 16px 18px; margin-bottom: 24px; color: #c3c8d6;
+}
+.rc-row { display: flex; align-items: flex-end; gap: 18px; flex-wrap: wrap; }
+.rc-field { display: flex; flex-direction: column; gap: 6px; }
+.rc-field > span { font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: #8b93ad; }
+.rc-field select {
+  background: #16203c; border: 1px solid #2b3555; color: #f3f1ea; border-radius: 9px; padding: 9px 12px; font: inherit; font-size: 13px; min-width: 240px;
+}
+.rc-seg { display: inline-flex; border: 1px solid #2b3555; border-radius: 9px; overflow: hidden; }
+.rc-seg button { background: #16203c; border: none; color: #c3c8d6; font: inherit; font-size: 12.5px; padding: 9px 14px; cursor: pointer; border-right: 1px solid #2b3555; }
+.rc-seg button:last-child { border-right: none; }
+.rc-seg button.on { background: var(--amber); color: #10131b; font-weight: 600; }
+.rc-print { margin-left: auto; background: var(--amber); color: #10131b; border: none; border-radius: 9px; padding: 11px 18px; font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; }
+.rc-print:hover { background: var(--amber2); }
+.rc-hint { font-size: 11.5px; color: #8b93ad; margin-top: 10px; }
+
+/* the document */
+.report-doc {
+  background: #fff; color: #1a1f2e; border-radius: 12px; padding: 40px 46px 34px;
+  box-shadow: 0 18px 50px rgba(0,0,0,0.4); max-width: 820px; margin: 0 auto;
+  font-family: var(--sans);
+}
+.rd-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-bottom: 14px; border-bottom: 2px solid #1a1f2e; }
+.rd-brand { display: flex; align-items: center; gap: 9px; font-weight: 700; font-size: 17px; color: #10131b; }
+.rd-mark { width: 15px; height: 15px; border-radius: 50%; border: 2px solid #b8791f; display: inline-block; }
+.rd-meta { font-family: var(--mono); font-size: 10px; letter-spacing: 0.04em; color: #6b7280; text-align: right; }
+.rd-title { margin: 22px 0 8px; }
+.rd-kick { font-family: var(--mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: #b8791f; }
+.rd-title h1 { font-family: var(--serif); font-size: 30px; font-weight: 600; color: #10131b; margin: 8px 0 8px; letter-spacing: -0.01em; }
+.rd-sub { font-size: 12.5px; color: #6b7280; }
+.rd-sec { margin-top: 30px; break-inside: avoid; }
+.rd-sec h2 { font-family: var(--serif); font-size: 17px; font-weight: 600; color: #10131b; margin: 0 0 14px; padding-bottom: 8px; border-bottom: 1px solid #e5e7eb; }
+.rd-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+.rd-stat { border: 1px solid #e5e7eb; border-radius: 10px; padding: 14px 16px; }
+.rd-stat .v { font-size: 28px; font-weight: 700; color: #10131b; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.rd-stat .v small { font-size: 13px; font-weight: 500; color: #9ca3af; margin-left: 3px; }
+.rd-stat .l { font-size: 11px; color: #6b7280; margin-top: 5px; line-height: 1.4; }
+.rd-insight { margin: 16px 0 0; padding: 12px 15px; border-left: 3px solid #b8791f; background: #fbf6ec; font-size: 13.5px; color: #1a1f2e; border-radius: 0 8px 8px 0; }
+
+.rd-bars { display: flex; flex-direction: column; gap: 9px; }
+.rd-bar { display: grid; grid-template-columns: 190px 1fr 34px; align-items: center; gap: 14px; }
+.rd-bl { font-size: 13px; color: #1a1f2e; display: flex; align-items: center; gap: 8px; }
+.rd-dot { width: 8px; height: 8px; border-radius: 50%; flex: none; display: inline-block; }
+.rd-dot.clear { background: #2f9e6b; } .rd-dot.monitor { background: #b8901f; } .rd-dot.elevated { background: #c2691f; } .rd-dot.alert { background: #d0342c; }
+.rd-btrack { height: 9px; background: #f0f1f4; border-radius: 5px; overflow: hidden; }
+.rd-btrack i { display: block; height: 100%; background: linear-gradient(90deg, #e0a94a, #c2691f); border-radius: 5px; }
+.rd-bn { font-size: 13px; font-weight: 700; text-align: right; font-variant-numeric: tabular-nums; color: #10131b; }
+
+.rd-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+.rd-table th { text-align: left; font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.08em; text-transform: uppercase; color: #6b7280; padding: 0 10px 8px; border-bottom: 1px solid #e5e7eb; }
+.rd-table th.num, .rd-table td.num { text-align: right; font-variant-numeric: tabular-nums; }
+.rd-table td { padding: 8px 10px; border-bottom: 1px solid #f0f1f4; color: #1a1f2e; }
+.rd-table td.mut { color: #6b7280; }
+.rd-fatal { color: #d0342c; font-weight: 600; }
+.rd-pill { font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.05em; padding: 2px 8px; border-radius: 20px; border: 1px solid #d7dbe2; }
+.rd-pill.clear { color: #2f9e6b; border-color: #b7e3cd; } .rd-pill.elevated { color: #c2691f; border-color: #eccbaa; } .rd-pill.alert { color: #d0342c; border-color: #f0c0bc; } .rd-pill.monitor { color: #b8901f; border-color: #ecdfaa; }
+.rd-empty, .rd-more { font-size: 12px; color: #6b7280; padding: 10px 2px; }
+.rd-foot { margin-top: 34px; padding-top: 16px; border-top: 1px solid #e5e7eb; font-size: 10.5px; color: #6b7280; line-height: 1.55; }
+.rd-fbrand { margin-top: 8px; font-family: var(--mono); font-size: 10px; color: #9ca3af; }
+
+@media (max-width: 720px) {
+  .rd-stats { grid-template-columns: repeat(2, 1fr); }
+  .rd-bar { grid-template-columns: 130px 1fr 30px; gap: 10px; }
+  .report-doc { padding: 26px 22px; }
+}
+
+@media print {
+  body { background: #fff !important; }
+  .nav2, .campuspick, .report-controls, .netpill, .firstrun, .fr-backdrop, .ll-take, .tourroot { display: none !important; }
+  .reportpage { padding: 0 !important; max-width: none !important; }
+  .report-doc { box-shadow: none !important; border-radius: 0 !important; margin: 0 !important; max-width: none !important; padding: 0 !important; }
+  .rd-sec, .rd-bar, .rd-stat, .rd-table tr { break-inside: avoid; }
+  a { color: inherit !important; text-decoration: none !important; }
+  @page { margin: 14mm; }
+}
+
 /* ---------------- Briefing · the campus safety dial (dark panel) ---------------- */
 .sdpanel {
   --s-ink: #f3f1ea; --s-ink2: #c3c8d6; --s-mut: #8b93ad; --s-faint: #59617e; --s-line: #24304f;

@@ -19,6 +19,7 @@ const TABS = [
   { label: "Action", href: "action" },
   { label: "Communications", href: "comms" },
   { label: "Record", href: "record" },
+  { label: "Reports", href: "reports" },
   { label: "About", href: "about" },
 ];
 
