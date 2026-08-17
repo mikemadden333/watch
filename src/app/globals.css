@@ -1204,7 +1204,48 @@ a {
 /* ---- 30-day heat ribbon: one cell per day, brighter = more gun violence ---- */
 .sr-ribbonw {
   min-width: 0;
+  position: relative;
 }
+.sr-cell.live { cursor: pointer; }
+.sr-cell.live:hover { filter: brightness(1.3); }
+.sr-cell.sel { box-shadow: inset 0 0 0 1.5px var(--sr-amber2); }
+.ribbonpop {
+  position: absolute;
+  bottom: calc(100% + 9px);
+  width: 252px;
+  background: #16213e;
+  border: 1px solid var(--sr-line2);
+  border-radius: 11px;
+  padding: 12px 13px 13px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.55);
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  text-align: left;
+  cursor: default;
+}
+.ribbonpop::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: #16213e;
+}
+.ribbonpop .rp-hd {
+  font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--sr-amber2);
+}
+.ribbonpop .rp-it { display: flex; flex-direction: column; }
+.ribbonpop .rp-it b { font-size: 12px; color: var(--sr-ink); font-weight: 600; line-height: 1.3; }
+.ribbonpop .rp-it em { font-style: normal; font-family: var(--mono); font-size: 10px; color: var(--sr-mut); margin-top: 2px; }
+.ribbonpop .rp-more { font-family: var(--mono); font-size: 10px; color: var(--sr-faint); }
+.ribbonpop .rp-x {
+  position: absolute; top: 7px; right: 9px; border: none; background: none; color: var(--sr-mut);
+  font-size: 16px; line-height: 1; cursor: pointer; padding: 2px 5px; border-radius: 6px;
+}
+.ribbonpop .rp-x:hover { color: var(--sr-ink); background: rgba(255, 255, 255, 0.06); }
 .sr-ribbon {
   display: flex;
   gap: 3px;
@@ -1619,21 +1660,32 @@ a {
   font-weight: 800;
 }
 .plist {
-  margin-top: 14px;
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  background: var(--panel);
-  overflow: hidden;
+  margin-top: 4px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 8px;
 }
 .prow {
-  padding: 13px 16px;
-  border-bottom: 1px solid var(--line);
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 11px 13px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--panel);
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  transition: border-color .14s ease, background .14s ease;
 }
-.prow:last-child {
-  border-bottom: none;
+.prow:hover {
+  border-color: var(--line2);
+  background: var(--panel2);
+}
+.prow.on {
+  border-color: var(--amber);
+  background: var(--panel2);
+  box-shadow: 0 0 0 1px var(--amber) inset;
 }
 .prow .top {
   display: flex;
@@ -1647,6 +1699,31 @@ a {
   color: var(--mut);
   margin-top: 4px;
 }
+
+/* interactive radar block: radar + detail + clickable list */
+.pradarcard { padding: 16px 18px; grid-column: 1 / -1; }
+.pulsewrap > .pradarcard { grid-column: 1 / -1; }
+.pinc:hover circle:not([fill="transparent"]) { filter: brightness(1.25); }
+.pdetail {
+  position: relative;
+  max-width: 560px;
+  margin: 6px auto 14px;
+  padding: 12px 40px 12px 14px;
+  border: 1px solid var(--amber);
+  border-radius: 10px;
+  background: var(--panel2);
+}
+.pdetail.fatal { border-color: var(--alert); }
+.pdetail-x {
+  position: absolute; top: 8px; right: 10px;
+  border: none; background: none; color: var(--mut); font-size: 18px; line-height: 1;
+  cursor: pointer; padding: 2px 6px; border-radius: 6px;
+}
+.pdetail-x:hover { color: var(--ink); background: rgba(255,255,255,0.05); }
+.pdetail-t { font-size: 14px; font-weight: 700; color: var(--ink); }
+.pdetail-sub { font-size: 12.5px; color: var(--ink2); margin-top: 5px; }
+.pdetail-sub .fatalw { color: var(--alert); font-weight: 600; }
+.pdetail-meta { font-family: var(--mono); font-size: 10.5px; color: var(--faint); margin-top: 6px; letter-spacing: 0.02em; }
 .fade {
   height: 5px;
   border-radius: 3px;

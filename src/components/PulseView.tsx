@@ -20,12 +20,12 @@ import {
   PULSE_WINDOW_DAYS,
   type PulseRing,
 } from "@/lib/pulse";
-import { numWord, incidentTypeWord, placeOf } from "@/lib/voice";
+import { numWord } from "@/lib/voice";
+import PulseRadar from "./pulse/PulseRadar";
 
 const EL = "#e8a13a"; // gun-violence signal color (amber, matches the CEO board)
 const RED = "#e5564b";
 const UNITS_PER_MI = 100 / PANE_SPAN_MI;
-const HOT_DAYS = 21; // still emitting a ripple; older incidents are cooling dots
 
 function isFatal(note?: string): boolean {
   return !!note && /fatal/i.test(note) && !/non-fatal/i.test(note);
@@ -44,79 +44,6 @@ function heatRead(rings: PulseRing[]) {
   if (fresh14 >= 2 || (fresh14 >= 1 && near >= 1)) { label = "Running hot"; cls = "hot"; }
   else if (fresh30 >= 1 || rings.length >= 3) { label = "Simmering"; cls = "warm"; }
   return { label, cls, fresh14, fresh30, near, nearest, recentDays, pressure };
-}
-
-/* ---------------- the contagion radar ----------------
-   Campus at center (50,50). Guide circles at 0.25 and 0.5 mi. Each
-   incident sits at its real bearing/distance; fresh incidents pulse,
-   old ones sit faint — the heat cooling exactly as the research says. */
-function PulseRadar({ rings }: { rings: PulseRing[] }) {
-  const r025 = 0.25 * UNITS_PER_MI;
-  const r05 = 0.5 * UNITS_PER_MI;
-  // draw oldest first so fresh incidents sit on top
-  const ordered = [...rings].sort((a, b) => b.ageDays - a.ageDays);
-
-  return (
-    <div className="pradarwrap">
-      <svg viewBox="0 0 100 100" className="pradar" preserveAspectRatio="xMidYMid meet" role="img"
-        aria-label="Radar of confirmed gun violence around the campus over the last 125 days">
-        <defs>
-          <radialGradient id="pr-core" cx="50%" cy="50%" r="50%">
-            <stop offset="0" stopColor={EL} stopOpacity="0.30" />
-            <stop offset="1" stopColor={EL} stopOpacity="0" />
-          </radialGradient>
-          <linearGradient id="pr-sweep" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stopColor={EL} stopOpacity="0.22" />
-            <stop offset="1" stopColor={EL} stopOpacity="0" />
-          </linearGradient>
-        </defs>
-
-        {/* guide rings */}
-        <circle cx="50" cy="50" r={r05} className="pguide" />
-        <circle cx="50" cy="50" r={r025} className="pguide" />
-        <line x1="50" y1={50 - r05} x2="50" y2={50 + r05} className="pcross" />
-        <line x1={50 - r05} y1="50" x2={50 + r05} y2="50" className="pcross" />
-
-        {/* rotating sweep */}
-        <g className="psweep">
-          <polygon points={`50,50 50,${50 - r05 - 3} ${50 + 14},${50 - r05 + 4}`} fill="url(#pr-sweep)" />
-        </g>
-
-        {/* incidents */}
-        {ordered.map((r) => {
-          const cx = clamp(r.x), cy = clamp(r.y);
-          const col = isFatal(r.victimNote) ? RED : EL;
-          const hot = r.ageDays <= HOT_DAYS;
-          const coreR = 1.4 + 2.6 * r.decayFrac;
-          const delay = (r.ageDays / PULSE_WINDOW_DAYS) * 2.4; // stagger
-          return (
-            <g key={r.id}>
-              {hot && (
-                <circle cx={cx} cy={cy} r={coreR + 1.6} className="pring"
-                  fill="none" stroke={col} strokeWidth="0.8"
-                  style={{ transformOrigin: `${cx}px ${cy}px`, animationDelay: `${delay.toFixed(2)}s` }} />
-              )}
-              <circle cx={cx} cy={cy} r={coreR + 2.4} fill={col} fillOpacity={0.05 + 0.12 * r.decayFrac} />
-              <circle cx={cx} cy={cy} r={coreR} fill={col} fillOpacity={0.28 + 0.45 * r.decayFrac}
-                stroke={col} strokeOpacity={0.5 + 0.4 * r.decayFrac} strokeWidth="0.5" />
-            </g>
-          );
-        })}
-
-        {/* campus at center */}
-        <circle cx="50" cy="50" r="12" fill="url(#pr-core)" className="pcampusglow" />
-        <circle cx="50" cy="50" r="2.6" className="pcampus" />
-        <circle cx="50" cy="50" r="2.6" className="pcampusping" fill="none" />
-      </svg>
-
-      <div className="pradar-legend">
-        <span><i className="lg-campus" />Campus</span>
-        <span><i className="lg-hot" />Fresh · still hot</span>
-        <span><i className="lg-cool" />Cooling</span>
-        <span className="pradar-scale">inner ring 0.25 mi · outer {PULSE_RADIUS_MI} mi</span>
-      </div>
-    </div>
-  );
 }
 
 /* ---------------- leader altitude ---------------- */
@@ -143,7 +70,7 @@ function LeaderPulse({ data, campus }: { data: NetworkData; campus: Campus }) {
       </div>
 
       <div className="pulsewrap">
-        <div className="card psit" data-tour="pulse-graphic">
+        <div className="card psit">
           <div className="psit-top">
             <span className="psit-badgewrap">
               <span className="psit-plab">Pressure</span>
@@ -153,10 +80,6 @@ function LeaderPulse({ data, campus }: { data: NetworkData; campus: Campus }) {
               <b>{total}</b> in {PULSE_WINDOW_DAYS} days · <b>{hr.fresh14}</b> in the last two weeks{hr.nearest != null ? <> · closest <b>{hr.nearest} mi</b></> : null}
             </span>
           </div>
-
-          {total > 0 ? <PulseRadar rings={rings} /> : (
-            <div className="pradar-empty">No confirmed gun violence within a half-mile in the window. The radar is clear.</div>
-          )}
 
           <p className="psit-read">{read}</p>
           <div className="psit-foot">A read of recent pressure — not today&apos;s campus posture.</div>
@@ -177,27 +100,13 @@ function LeaderPulse({ data, campus }: { data: NetworkData; campus: Campus }) {
           </p>
         </div>
 
-        {total > 0 ? (
-          <div className="plist">
-            {rings.map((r) => (
-              <div className="prow" key={r.id}>
-                <div className="top">
-                  <span>{cap(incidentTypeWord({ kind: r.kind } as Incident))} · {placeOf({ headline: r.headline } as Incident)}</span>
-                  <span className="mono num" style={{ color: r.ageDays <= 7 ? EL : "var(--ink)" }}>{r.ageLabel}</span>
-                </div>
-                <div className="sub">
-                  {r.distanceMi} mi {r.bearing}
-                  {r.victimNote ? (
-                    <span style={isFatal(r.victimNote) ? { color: "var(--alert)", fontWeight: 600 } : undefined}>
-                      {" · "}{r.victimNote}
-                    </span>
-                  ) : null}
-                  {" · "}<span className="mono" style={{ color: "var(--faint)" }}>cools in ~{r.fadesInDays} d</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : null}
+        <div className="card pradarcard" data-tour="pulse-graphic">
+          {total > 0 ? (
+            <PulseRadar rings={rings} />
+          ) : (
+            <div className="pradar-empty">No confirmed gun violence within a half-mile in the window. The radar is clear.</div>
+          )}
+        </div>
       </div>
     </>
   );

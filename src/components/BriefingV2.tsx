@@ -26,6 +26,7 @@ import {
   type Seg,
 } from "@/lib/voice";
 import { pulseForCampus } from "@/lib/pulse";
+import HeatRibbon, { type RibbonDay } from "./briefing/HeatRibbon";
 
 type StoryRow = { time: string; text: string; cls?: "conf" | "elev" | "alert" };
 
@@ -70,13 +71,6 @@ const HOOD: Record<string, string> = {
 };
 
 /** 18-week histogram of ring ages → sparkline geometry (oldest left, newest right). */
-/** heat-ribbon cell color by how many confirmed incidents landed that day. */
-function cellColor(n: number): string {
-  if (n <= 0) return "var(--sr-cell)";
-  if (n === 1) return "rgba(232,161,58,.38)";
-  if (n === 2) return "var(--sr-amber)";
-  return "var(--sr-amber2)";
-}
 
 type TlRow = { tm?: string; text: string; ok?: boolean };
 
@@ -203,23 +197,31 @@ function CeoView({ data, base }: { data: NetworkData; base: string }) {
   const n = data.campuses.length;
   const rank: Record<string, number> = { ALERT: 0, ELEVATED: 1, MONITOR: 2, CLEAR: 3 };
 
+  // date label per ribbon cell (index 0 = 29 days ago … index 29 = today)
+  const dayFmt = new Intl.DateTimeFormat("en-US", { timeZone: "America/Chicago", weekday: "short", month: "short", day: "numeric" });
+  const dayLabels = Array.from({ length: 30 }, (_, i) => dayFmt.format(new Date(now.getTime() - (29 - i) * 86400000)));
+
   // per-campus violence stats from the real 125-day store (7d / 30d windows),
-  // plus a 30-day daily histogram for the heat ribbon (index 0 = 29 days ago,
-  // index 29 = today) — binned from the real incident dates.
+  // plus a 30-day daily heat ribbon (index 0 = 29 days ago, index 29 = today)
+  // with the actual incidents per day, binned from the real incident dates.
   const stats = data.campuses
     .map((c) => {
       const st = (data.statuses.find((s) => s.campusCode === c.code)?.status ?? "CLEAR") as Status;
       const rings = pulseForCampus(data.incidents, c, now);
-      const days30 = new Array(30).fill(0) as number[];
+      const ribbon: RibbonDay[] = dayLabels.map((label) => ({ n: 0, label, items: [] as { t: string; s: string }[] }));
       for (const r of rings) {
         if (r.ageDays < 30) {
           const idx = 29 - Math.min(29, Math.max(0, Math.floor(r.ageDays)));
-          days30[idx] += 1;
+          ribbon[idx].n += 1;
+          ribbon[idx].items.push({
+            t: `${cap(incidentTypeWord({ kind: r.kind } as Incident))} · ${placeOf({ headline: r.headline } as Incident)}`,
+            s: `${r.distanceMi} mi ${r.bearing} · ${r.ageLabel}`,
+          });
         }
       }
       return {
         c, st,
-        days30,
+        ribbon,
         total: rings.length, // last 125 days
         m: rings.filter((r) => r.ageDays <= 30).length,
         w: rings.filter((r) => r.ageDays <= 7).length,
@@ -343,18 +345,7 @@ function CeoView({ data, base }: { data: NetworkData; base: string }) {
                   <span className="sr-nm"><i style={{ background: SR_DOT[s.st] }} />{s.c.name}</span>
                   <span className="sr-hood">{hood ? `${hood} · ` : ""}{statusText}</span>
                 </span>
-                <span className="sr-ribbonw">
-                  <span className="sr-ribbon">
-                    {s.days30.map((cnt, d) => (
-                      <i
-                        key={d}
-                        className={`sr-cell${d === 29 ? " today" : ""}${cnt >= 3 ? " glow" : ""}`}
-                        style={{ background: cellColor(cnt), animationDelay: `${(i * 0.05 + d * 0.012).toFixed(3)}s` }}
-                      />
-                    ))}
-                  </span>
-                  <span className="sr-ribbonx"><span>30 days ago</span><span>today</span></span>
-                </span>
+                <HeatRibbon days={s.ribbon} />
                 <span className="sr-cnt">
                   <span className={`big${s.w === 0 ? " zero" : " warm"}`}>{s.w}</span><span className="u">this week</span>
                   {s.m ? <div className="r">{s.m} in 30 days</div> : <div className="r faint">quiet this month</div>}
