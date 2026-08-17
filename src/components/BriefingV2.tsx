@@ -185,8 +185,10 @@ function SourcesLine({ data }: { data: NetworkData }) {
   // Absence of health data is NOT full health — never fabricate an all-clear.
   const total = data.feeds.length;
   if (!total) return "Source health unavailable";
-  const current = data.feeds.filter((f) => f.state === "ok").length;
-  return current >= total ? `All ${total} sources current` : `${current} of ${total} sources current`;
+  // match the CEO vitals: "live" = connected and reporting (not dark), so the
+  // two views never show different source counts for the same feeds.
+  const live = data.feeds.filter((f) => f.state !== "late").length;
+  return live >= total ? `All ${total} sources live` : `${live} of ${total} sources live`;
 }
 
 /* ---------------- CEO ---------------- */

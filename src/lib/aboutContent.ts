@@ -45,4 +45,6 @@ And on the many mornings when Watch has nothing to report — that is not the pr
 
 I did not build Watch alone. My daughter, Erin, has been my partner in it from the first sketch. She is a high-school student herself — and that is not a footnote, it is a qualification. She knows what it is to be one of the young people a building like this exists to protect: how a school feels when it is welcoming and when it is not, what students actually notice, what makes them feel safe rather than merely surveilled. She is the student's voice with me through every step of development, and she keeps me honest about the thing that matters most — does this actually help the people in the building keep children safe, and does it treat those children, and their neighborhoods, with respect? Watch is sharper, and kinder, because her experience is in it. In the truest sense, it is a family's attempt to be useful.
 
+We are not alone in the work. Moon Lee, our founding product and technical partner, is the one who turns the idea into something a school can actually rely on — the engineering, the discipline, and the care that keep every claim in Watch honest. What began at a kitchen table is built to a standard because of him.
+
 — Mike Madden, Founder & Principal, Madden Education Advisory`;
