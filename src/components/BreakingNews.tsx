@@ -1,5 +1,15 @@
 import TierBadge from "./TierBadge";
+import { distanceMi, bearing } from "@/lib/geo";
 import type { BreakingItem, BreakingNews as BreakingNewsData } from "@/lib/breakingNews";
+
+/** A single-campus briefing scopes the news to that campus, not the network. */
+export interface NewsFocus {
+  code: string;
+  name: string;
+  lat: number;
+  lon: number;
+}
+const FOCUS_RADIUS_MI = 1.5;
 
 /* ============================================================
    "Breaking news near your campuses" — the answer-the-phone-call
@@ -17,17 +27,42 @@ import type { BreakingItem, BreakingNews as BreakingNewsData } from "@/lib/break
 export default function BreakingNews({
   data,
   live,
+  focus,
 }: {
   data: BreakingNewsData | null;
   live: boolean;
+  focus?: NewsFocus;
 }) {
-  const items = data?.items ?? [];
+  const allItems = data?.items ?? [];
+
+  // On a single campus, only show precise news genuinely near THAT campus,
+  // re-measured to it — not the whole network's news (which sits near other
+  // schools). Coarse / location-less items are network-scope, so they're
+  // dropped here; they still appear at the network altitude.
+  const items = focus
+    ? allItems
+        .filter((i) => i.geo === "block" && i.lat != null && i.lon != null)
+        .map((i) => {
+          const d = distanceMi({ lat: focus.lat, lon: focus.lon }, { lat: i.lat!, lon: i.lon! });
+          return {
+            ...i,
+            distanceMi: Math.round(d * 100) / 100,
+            bearing: bearing({ lat: focus.lat, lon: focus.lon }, { lat: i.lat!, lon: i.lon! }),
+            nearestCampusCode: focus.code,
+            nearestCampusName: focus.name,
+          } as BreakingItem;
+        })
+        .filter((i) => (i.distanceMi ?? 99) <= FOCUS_RADIUS_MI)
+        .sort((a, b) => (a.distanceMi ?? 99) - (b.distanceMi ?? 99))
+    : allItems;
+
   const near = items.filter((i) => i.geo === "block" && (i.distanceMi ?? 99) <= 1.5);
+  const title = focus ? `Breaking news near ${focus.name}` : "Breaking news near your campuses";
 
   return (
     <div className="card" style={{ padding: 16 }}>
       <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
-        <b style={{ fontSize: 14 }}>Breaking news near your campuses</b>
+        <b style={{ fontSize: 14 }}>{title}</b>
         <span className="micro">
           {live ? (
             <>
@@ -45,7 +80,7 @@ export default function BreakingNews({
         Sometimes the first thing a principal hears is a parent calling about
         something on the news. This is that call, structured: local outlets
         clustered by incident, scored by how many report it, and placed against
-        your campuses. <b>News is never “confirmed”</b> — and a headline that
+        {focus ? " this campus" : " your campuses"}. <b>News is never “confirmed”</b> — and a headline that
         only names a neighborhood is shown as approximate, never as a ring.
       </p>
 
@@ -61,12 +96,16 @@ export default function BreakingNews({
           }}
         >
           {live
-            ? "No violent-incident news matched near your campuses in the last 18 h. The monitor is running; this space fills only when something is actually reported."
+            ? `No violent-incident news was reported within ${FOCUS_RADIUS_MI} miles of ${
+                focus ? focus.name : "your campuses"
+              } in the last 18 h. The monitor is running; this space fills only when something is actually reported${
+                focus ? " near this campus" : ""
+              }.`
             : "The live news monitor is not connected in this view."}
         </div>
       ) : (
         <div style={{ marginTop: 12, display: "flex", flexDirection: "column", gap: 10 }}>
-          {near.length > 0 && (
+          {!focus && near.length > 0 && (
             <div className="micro" style={{ color: "var(--elevated)" }}>
               {near.length} near a campus (within 1.5 mi) · {items.length - near.length} more in the network
             </div>

@@ -35,6 +35,9 @@ export interface BreakingItem {
   bearing?: string;
   /** coarse-only: the neighborhood name lifted from the headline */
   placeLabel?: string;
+  /** block-level coordinates, so a single-campus view can re-measure to itself */
+  lat?: number;
+  lon?: number;
   firstSeen?: string;
   lastSeen?: string;
   note?: string;
@@ -94,6 +97,11 @@ export async function getBreakingNews(slug: string): Promise<BreakingNews | null
 
     const lat = r.lat != null ? Number(r.lat) : NaN;
     const lon = r.lon != null ? Number(r.lon) : NaN;
+
+    if (geo === "block" && !Number.isNaN(lat) && !Number.isNaN(lon)) {
+      item.lat = lat;
+      item.lon = lon;
+    }
 
     if (geo === "block" && !Number.isNaN(lat) && !Number.isNaN(lon) && campuses.length) {
       // precise: measure to the nearest campus

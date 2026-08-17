@@ -19,6 +19,9 @@ export default async function ChicagoBriefing({
     getBreakingNews("veritas-charter"),
   ]);
   if (!data) return <NotConnected />;
+  // Resolve the leader view's campus exactly as BriefingV2 does, so the
+  // breaking-news panel is scoped to the same school the briefing is showing.
+  const focusCampus = resolveLeaderCampus(data, sp.campus);
   return (
     <>
       <LiveLayer
@@ -29,11 +32,35 @@ export default async function ChicagoBriefing({
       <BriefingV2 data={data} base="/chicago" view={view} campus={sp.campus} />
       {view === "leader" ? (
         <div style={{ padding: "0 40px", maxWidth: 880, margin: "40px auto 0" }}>
-          <BreakingNews data={breaking} live={data.live} />
+          <BreakingNews
+            data={breaking}
+            live={data.live}
+            focus={
+              focusCampus
+                ? { code: focusCampus.code, name: focusCampus.name, lat: focusCampus.lat, lon: focusCampus.lon }
+                : undefined
+            }
+          />
         </div>
       ) : null}
     </>
   );
+}
+
+/** Mirror BriefingV2's leader-view campus pick: the URL campus, else the
+ *  worst-status campus. Returns the full campus record (with coords). */
+function resolveLeaderCampus(
+  data: NonNullable<Awaited<ReturnType<typeof getNetworkData>>>,
+  campusParam?: string
+) {
+  const rank: Record<string, number> = { ALERT: 0, ELEVATED: 1, MONITOR: 2, CLEAR: 3 };
+  const worst = [...data.campuses].sort((a, x) => {
+    const sa = data.statuses.find((s) => s.campusCode === a.code)?.status ?? "CLEAR";
+    const sx = data.statuses.find((s) => s.campusCode === x.code)?.status ?? "CLEAR";
+    return rank[sa] - rank[sx];
+  })[0];
+  const code = campusParam ?? worst?.code ?? "";
+  return data.campuses.find((c) => c.code === code) ?? data.campuses[0] ?? null;
 }
 
 function NotConnected() {
