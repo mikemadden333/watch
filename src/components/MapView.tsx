@@ -255,7 +255,7 @@ export default function MapView(props: MapViewProps = {}) {
     </div>
     <div className="wrap">
       {/* rail (left on map screen) */}
-      <div className="rail" style={{ width: 290 }}>
+      <div className="rail" data-tour="map-rail" style={{ width: 290 }}>
         <div className="card" style={{ padding: 16 }}>
           <div className="micro">Selected campus</div>
           <div style={{ fontSize: 17, fontWeight: 800, marginTop: 5 }}>{sel.name}</div>

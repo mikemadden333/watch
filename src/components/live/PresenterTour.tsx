@@ -23,6 +23,7 @@ interface Step {
   say: string;
   sayAfter?: string;
   intro?: boolean;
+  full?: boolean;         // no dim — reveal the whole screen, caption only
   fire?: boolean;
   actionLabel?: string;
   alert?: boolean;
@@ -40,8 +41,10 @@ const STEPS: Step[] = [
     sayAfter: "A shooting, 0.15 miles from campus. Confirmed. The text has been sent." },
   { tab: "briefing", view: "leader", campus: "GPA", target: "brief-answer", eyebrow: "What happened",
     say: "The incident: the block, the distance, the time, and the source that confirmed it." },
-  { tab: "map", view: "leader", campus: "GPA", target: "map-pop", eyebrow: "On the map",
-    say: "The incident, placed and timestamped. Only confirmed incidents appear on the map." },
+  { tab: "map", view: "leader", campus: "GPA", target: null, full: true, eyebrow: "On the map",
+    say: "Every campus on one map. The rings around Garfield Park Academy are its alert and elevated distances; the confirmed incident sits inside them, placed and timestamped." },
+  { tab: "map", view: "leader", campus: "GPA", target: "map-rail", eyebrow: "Reading the map",
+    say: "The sidebar: what each ring and marker means, the data layers Watch is drawing, and every campus's status." },
   { tab: "pulse", view: "leader", campus: "GPA", target: "pulse-graphic", eyebrow: "The pattern",
     say: "Pulse: every confirmed incident near the campus over the last 125 days, and how the risk decays across that window." },
   { tab: "action", view: "leader", campus: "GPA", target: "action-run", eyebrow: "The response",
@@ -105,7 +108,7 @@ export default function PresenterTour({ enabled, slug, base }: { enabled: boolea
   }, [base]);
 
   useEffect(() => {
-    if (!active || current?.intro) { setRect(null); return; }
+    if (!active || current?.intro || current?.full) { setRect(null); return; }
     let stop = false;
     const tick = () => {
       if (stop) return;
@@ -241,7 +244,7 @@ export default function PresenterTour({ enabled, slug, base }: { enabled: boolea
 
   return (
     <div className="tourroot" aria-live="polite">
-      {rect ? (
+      {current.full ? null : rect ? (
         <>
           <div className="tourdim" style={{ left: 0, top: 0, width: "100%", height: Math.max(0, rect.y - pad), background: dimBg }} />
           <div className="tourdim" style={{ left: 0, top: rect.y + rect.h + pad, width: "100%", bottom: 0, background: dimBg }} />
