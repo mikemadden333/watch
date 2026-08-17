@@ -29,10 +29,12 @@ interface Step {
 }
 
 const STEPS: Step[] = [
-  { tab: "briefing", view: "leader", campus: "GPA", target: null, intro: true, eyebrow: "What Watch is",
-    say: "Watch monitors violent crime within a mile of every campus, from public records today and Citizen soon. This school is Garfield Park Academy, led by Principal Victoria Parks." },
-  { tab: "briefing", view: "leader", campus: "GPA", target: "brief-answer", eyebrow: "The briefing",
-    say: "The morning briefing. Every campus is clear." },
+  { tab: "briefing", view: "ceo", campus: "GPA", target: null, intro: true, eyebrow: "What Watch is",
+    say: "Watch monitors violent crime within a mile of every campus, from public records today and Citizen soon. We'll start at the network office, then step into one school." },
+  { tab: "briefing", view: "ceo", campus: "GPA", target: "brief-answer", eyebrow: "The network",
+    say: "The network office. Every campus, around the clock, on one screen." },
+  { tab: "briefing", view: "leader", campus: "GPA", target: "brief-answer", eyebrow: "One school",
+    say: "Now one school: Garfield Park Academy, led by Principal Victoria Parks. The {tod} briefing — the campus is clear." },
   { tab: "briefing", view: "leader", campus: "GPA", target: "brief-answer", alert: true, fire: true, actionLabel: "Fire the incident", eyebrow: "An incident fires",
     say: "Fire the incident. A text goes to every leader's phone.",
     sayAfter: "A shooting, 0.15 miles from campus. Confirmed. The text has been sent." },
@@ -52,13 +54,19 @@ const STEPS: Step[] = [
     say: "A draft to families, built from the locked facts, in the school's voice. Nothing sends from Watch." },
   { tab: "record", view: "leader", campus: "GPA", target: "record-ledger", eyebrow: "The record",
     say: "Every action logged and scored against the official record. Nothing here can be edited." },
-  { tab: "briefing", view: "ceo", campus: "GPA", target: "brief-answer", eyebrow: "The network view",
-    say: "The network office sees every campus at once." },
   { tab: "about", target: "about-team", intro: true, eyebrow: "The ask",
     say: "Watch is built by former school leaders. Five hundred thousand dollars covers every charter student in Chicago for a year." },
 ];
 
 interface Rect { x: number; y: number; w: number; h: number; }
+
+/** Time-of-day word in Central time, to match the app's greeting on screen. */
+function todWord(): string {
+  try {
+    const h = parseInt(new Intl.DateTimeFormat("en-US", { hour: "numeric", hour12: false, timeZone: "America/Chicago" }).format(new Date()), 10);
+    return h < 12 ? "morning" : h < 17 ? "afternoon" : "evening";
+  } catch { return "morning"; }
+}
 
 export default function PresenterTour({ enabled, slug, base }: { enabled: boolean; slug: string; base: string }) {
   const router = useRouter();
@@ -212,7 +220,7 @@ export default function PresenterTour({ enabled, slug, base }: { enabled: boolea
   const first = step === 0;
   const last = step === STEPS.length - 1;
   const showFire = current.fire && !fired;
-  const sayText = current.fire && fired && current.sayAfter ? current.sayAfter : current.say;
+  const sayText = (current.fire && fired && current.sayAfter ? current.sayAfter : current.say).replace("{tod}", todWord());
 
   if (current.intro) {
     return (
