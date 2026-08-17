@@ -325,7 +325,7 @@ function CeoView({ data, base }: { data: NetworkData; base: string }) {
                   <b style={{ width: `${(s.m / maxTotal) * 100}%` }} />
                 </span>
                 <span className="sr-cnt">
-                  <span className="big">{s.total}</span><span className="u">125D</span>
+                  <span className="big">{s.total}</span><span className="u">in 125 days</span>
                   {s.m ? <div className="r">{s.m} in 30 days</div> : <div className="r faint">quiet lately</div>}
                 </span>
               </Link>
