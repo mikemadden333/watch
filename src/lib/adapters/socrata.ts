@@ -19,6 +19,20 @@ function appToken(): Record<string, string> {
   return t ? { "X-App-Token": t } : {};
 }
 
+/** Fetch a Socrata URL. An app token registered for one Socrata instance
+ *  (e.g. data.cityofchicago.org) is rejected by another (e.g.
+ *  www.dallasopendata.com) with 403 — which silently emptied the Dallas feed.
+ *  Queries work without a token (just lower rate limits), so on an auth
+ *  rejection we retry untokened. */
+async function socrataFetch(url: string): Promise<Response> {
+  const token = appToken();
+  const res = await fetch(url, { headers: { ...token }, cache: "no-store" });
+  if ((res.status === 403 || res.status === 401) && token["X-App-Token"]) {
+    return fetch(url, { cache: "no-store" });
+  }
+  return res;
+}
+
 /** Freshness probe — ordered DESC, limit 1. Returns the newest value of
  *  `dateField`, or null. NEVER aggregate. */
 export async function socrataFreshness(
@@ -29,7 +43,7 @@ export async function socrataFreshness(
     `https://${src.host}/resource/${src.dataset}.json` +
     `?$select=${encodeURIComponent(dateField)}` +
     `&$order=${encodeURIComponent(dateField)}%20DESC&$limit=1`;
-  const res = await fetch(url, { headers: { ...appToken() }, cache: "no-store" });
+  const res = await socrataFetch(url);
   if (!res.ok) throw new Error(`Socrata ${res.status} freshness ${src.dataset}`);
   const rows = (await res.json()) as Record<string, string>[];
   return rows.length ? rows[0][dateField] ?? null : null;
@@ -48,7 +62,7 @@ export async function socrataRecent(
   params.set("$limit", String(limit));
   if (where) params.set("$where", where);
   const url = `https://${src.host}/resource/${src.dataset}.json?${params.toString()}`;
-  const res = await fetch(url, { headers: { ...appToken() }, cache: "no-store" });
+  const res = await socrataFetch(url);
   if (!res.ok) throw new Error(`Socrata ${res.status} recent ${src.dataset}`);
   return (await res.json()) as Record<string, unknown>[];
 }

@@ -200,7 +200,7 @@ export default function ReportBuilder({ data, nowIso }: { data: NetworkData; now
         </section>
 
         <div className="rd-foot">
-          <div>Ranked by confirmed, block-level incidents from Chicago Police &amp; the medical examiner within each campus&apos;s half-mile ring. Coarse-geo reports never count. Pulse applies the Papachristos contagion window (125 days). Watch is decision support, not dispatch — protocol and police lead.</div>
+          <div>Ranked by confirmed, block-level incidents from {/dallas/i.test(data.city) ? "Dallas Police public incident records" : "Chicago Police & the medical examiner"} within each campus&apos;s half-mile ring. Coarse-geo reports never count. Pulse applies the Papachristos contagion window (125 days). Watch is decision support, not dispatch — protocol and police lead.</div>
           <div className="rd-fbrand">Watch · A product of Madden Education Advisory, LLC</div>
         </div>
       </div>

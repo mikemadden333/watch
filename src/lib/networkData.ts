@@ -59,15 +59,15 @@ async function _getNetworkData(slug: string): Promise<NetworkData | null> {
   if (!tenant) return null;
   const tid = tenant.id as string;
 
-  const [campusRes, statusRes, incidentRes, healthRes, auditRes, ledgerRes] = await Promise.all([
+  const [campusRes, statusRes, confirmedRes, otherRes, healthRes, auditRes, ledgerRes] = await Promise.all([
     sb.from("campuses").select("*").eq("tenant_id", tid),
     sb.from("campus_status").select("*").eq("tenant_id", tid),
-    sb
-      .from("incidents")
-      .select("*")
-      .eq("tenant_id", tid)
-      .order("occurred_at", { ascending: false })
-      .limit(1000),
+    // CONFIRMED incidents are the bounded, high-value layer (board / Pulse /
+    // dial / map). Pull them on their own so a high-volume REPORTED feed (e.g.
+    // Dallas active calls, thousands/week) can never truncate them out of a
+    // shared recency limit — the bug that made the Dallas board read empty.
+    sb.from("incidents").select("*").eq("tenant_id", tid).eq("tier", "CONFIRMED").order("occurred_at", { ascending: false }).limit(2000),
+    sb.from("incidents").select("*").eq("tenant_id", tid).neq("tier", "CONFIRMED").order("occurred_at", { ascending: false }).limit(1000),
     sb.from("source_health").select("*").eq("tenant_id", tid),
     sb.from("audit_events").select("*").eq("tenant_id", tid).order("occurred_at", { ascending: false }).limit(30),
     sb.from("accuracy_ledger").select("*").eq("tenant_id", tid),
@@ -75,7 +75,7 @@ async function _getNetworkData(slug: string): Promise<NetworkData | null> {
 
   const campuses: Campus[] = (campusRes.data ?? []).map(mapCampus);
   const statuses: CampusStatus[] = (statusRes.data ?? []).map((s) => mapStatus(s, campuses));
-  const incidents: Incident[] = (incidentRes.data ?? []).map((i) => mapIncident(i, campuses));
+  const incidents: Incident[] = [...(confirmedRes.data ?? []), ...(otherRes.data ?? [])].map((i) => mapIncident(i, campuses));
   const feeds: FeedHealth[] = (healthRes.data ?? []).map(mapFeed);
   const audit: AuditEvent[] = (auditRes.data ?? []).map(mapAudit);
   const ledger: LedgerMetric[] = (ledgerRes.data ?? []).map(mapLedger);
