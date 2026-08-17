@@ -139,7 +139,7 @@ function MiniPulse({ data, base, campus }: { data: NetworkData; base: string; ca
             return <circle key={r.id} cx={clamp(r.x)} cy={clamp(r.y)} r={2 + 3 * r.decayFrac}
               fill={col} fillOpacity={0.2 + 0.5 * r.decayFrac} />;
           })}
-          <circle cx="50" cy="50" r="4" fill="#f3f1ea" stroke="#0c1a3a" strokeWidth="1" />
+          <circle cx="50" cy="50" r="4" fill="#f3f1ea" stroke="#07142e" strokeWidth="1" />
         </svg>
         <div style={{ fontSize: 13, fontWeight: 700 }}>{campus.name}</div>
       </div>
