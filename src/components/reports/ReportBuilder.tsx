@@ -6,8 +6,8 @@
 
 import { useMemo, useState } from "react";
 import type { NetworkData } from "@/lib/networkData";
-import { pulseForCampus } from "@/lib/pulse";
-import { incidentTypeWord, placeOf } from "@/lib/voice";
+import { violentCrimeNear, violentCrimeWord } from "@/lib/violentCrime";
+import { placeOf } from "@/lib/voice";
 import type { Incident } from "@/lib/types";
 
 const WINDOWS = [
@@ -33,7 +33,7 @@ export default function ReportBuilder({ data, nowIso }: { data: NetworkData; now
   const rank: Record<string, number> = { ALERT: 0, ELEVATED: 1, MONITOR: 2, CLEAR: 3 };
 
   const stats = useMemo(() => data.campuses.map((c) => {
-    const rings = pulseForCampus(data.incidents, c, now);
+    const rings = violentCrimeNear(data.incidents, c, now);
     const status = (data.statuses.find((s) => s.campusCode === c.code)?.status ?? "CLEAR");
     const rows: Row[] = rings.map((r) => ({
       id: r.id, occurredAt: r.occurredAt, kind: r.kind, headline: r.headline,
@@ -71,7 +71,7 @@ export default function ReportBuilder({ data, nowIso }: { data: NetworkData; now
   const insight = (() => {
     if (!focus) return "";
     const total = focus.w125;
-    if (total === 0) return `No confirmed gun violence within a half-mile of ${focus.c.name} in the last 125 days.`;
+    if (total === 0) return `No confirmed violent crime within a mile of ${focus.c.name} in the last 125 days.`;
     const arrival = parseInt((focus.c.arrivalStart ?? "07:30").split(":")[0], 10) || 7;
     const dm = /^(\d{1,2}):(\d{2})/.exec(focus.c.dismissal ?? "");
     const dismissEnd = dm ? parseInt(dm[1], 10) + (parseInt(dm[2], 10) > 0 ? 1 : 0) : 15;
@@ -114,7 +114,7 @@ export default function ReportBuilder({ data, nowIso }: { data: NetworkData; now
         <div className="rd-title">
           <div className="rd-kick">{isNet ? "Network safety report" : "Campus safety report"}</div>
           <h1>{scopeName}</h1>
-          <div className="rd-sub">Confirmed gun violence within a half-mile of {isNet ? "each campus" : "the campus"} · {winLab} · generated {genLabel}</div>
+          <div className="rd-sub">Confirmed violent crime within one mile of {isNet ? "each campus" : "the campus"} · {winLab} · generated {genLabel}</div>
         </div>
 
         {isNet ? (
@@ -178,7 +178,7 @@ export default function ReportBuilder({ data, nowIso }: { data: NetworkData; now
         <section className="rd-sec">
           <h2>Incident log · {winLab}{isNet ? " · network" : ""}</h2>
           {log.length === 0 ? (
-            <p className="rd-empty">No confirmed gun violence within a half-mile {isNet ? "of any campus" : `of ${focus?.c.name}`} in this window.</p>
+            <p className="rd-empty">No confirmed violent crime within a mile {isNet ? "of any campus" : `of ${focus?.c.name}`} in this window.</p>
           ) : (
             <table className="rd-table">
               <thead><tr><th>Date</th><th>Time</th><th>Type</th><th>Block</th>{isNet ? <th>Nearest campus</th> : null}<th className="num">Distance</th></tr></thead>
@@ -187,7 +187,7 @@ export default function ReportBuilder({ data, nowIso }: { data: NetworkData; now
                   <tr key={r.id}>
                     <td>{centralFmt(r.occurredAt, { month: "short", day: "numeric" })}</td>
                     <td className="mut">{centralFmt(r.occurredAt, { hour: "numeric", minute: "2-digit" })}</td>
-                    <td>{cap(incidentTypeWord({ kind: r.kind } as Incident))}{r.fatal ? <span className="rd-fatal"> · fatal</span> : ""}</td>
+                    <td>{cap(violentCrimeWord({ kind: r.kind, headline: r.headline } as Incident))}{r.fatal ? <span className="rd-fatal"> · fatal</span> : ""}</td>
                     <td>{placeOf({ headline: r.headline } as Incident)}</td>
                     {isNet ? <td className="mut">{r.campus}</td> : null}
                     <td className="num">{r.distanceMi} mi {r.bearing}</td>
@@ -200,7 +200,7 @@ export default function ReportBuilder({ data, nowIso }: { data: NetworkData; now
         </section>
 
         <div className="rd-foot">
-          <div>Ranked by confirmed, block-level incidents from {/dallas/i.test(data.city) ? "Dallas Police public incident records" : "Chicago Police & the medical examiner"} within each campus&apos;s half-mile ring. Coarse-geo reports never count. Pulse applies the Papachristos contagion window (125 days). Watch is decision support, not dispatch — protocol and police lead.</div>
+          <div>Ranked by confirmed, block-level incidents from {/dallas/i.test(data.city) ? "Dallas Police public incident records" : "Chicago Police & the medical examiner"} within each campus&apos;s one-mile ring. Coarse-geo reports never count. Pulse applies the Papachristos gun-violence contagion window (125 days). Watch is decision support, not dispatch — protocol and police lead.</div>
           <div className="rd-fbrand">Watch · A product of Madden Education Advisory, LLC</div>
         </div>
       </div>

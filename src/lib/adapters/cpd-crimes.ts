@@ -49,8 +49,20 @@ export async function runCpdCrimesAdapter(
     errors.push(e instanceof Error ? e.message : String(e));
   }
   try {
-    const where = `primary_type in (${[...RELEVANT].map((t) => `'${t}'`).join(",")})`;
-    rows = (await socrataRecent(SRC, DATE_FIELD, limit, where)) as CrimeRow[];
+    // Query per campus, within one mile, over the 125-day window — so the
+    // board's "violent crime within a mile" is actually backed by a mile of
+    // data (the old citywide-recent query only ever reached ~0.5 mi).
+    const typeClause = `primary_type in (${[...RELEVANT].map((t) => `'${t}'`).join(",")})`;
+    const sinceIso = new Date(Date.now() - 130 * 86400000).toISOString().slice(0, 19);
+    const seen = new Set<string>();
+    for (const c of campuses) {
+      const where = `${typeClause} AND date >= '${sinceIso}' AND within_circle(location, ${c.lat}, ${c.lon}, 1700)`;
+      const part = (await socrataRecent(SRC, DATE_FIELD, Math.max(limit, 1500), where)) as CrimeRow[];
+      for (const row of part) {
+        const key = String(row.id || row.case_number || "");
+        if (key && !seen.has(key)) { seen.add(key); rows.push(row); }
+      }
+    }
   } catch (e) {
     errors.push(e instanceof Error ? e.message : String(e));
   }
@@ -61,14 +73,14 @@ export async function runCpdCrimesAdapter(
     const id = r.id || r.case_number;
     if (!id) continue;
     const pt = (r.primary_type || "").toUpperCase();
-    const armed = /GUN|FIREARM|ARMED|HANDGUN/.test((r.description || "").toUpperCase());
-    const kind =
-      pt === "HOMICIDE" ? "homicide" : armed ? "shooting" : pt.toLowerCase();
+    const desc = (r.description || "").toUpperCase();
+    const cls = classifyCrime(pt, desc);
+    if (!cls) continue; // low-level (simple battery/assault, etc.) — never surfaced
     incidents.push({
       source: "CPD Crimes ijzp-q8t2",
       sourceRecordId: `crime:${id}`,
-      headline: `${titleCase(pt)} · ${titleCase(r.block || "Chicago")}`,
-      kind,
+      headline: `${cls.label} · ${titleCase(r.block || "Chicago")}`,
+      kind: cls.kind,
       tier: "CONFIRMED",
       lat: num(r.latitude),
       lon: num(r.longitude),
@@ -93,6 +105,35 @@ export async function runCpdCrimesAdapter(
     },
     errors,
   };
+}
+
+/** Classify a CPD crime into a violent-crime kind, or null to drop it (simple
+ *  battery/assault and anything not genuinely violent). The description field
+ *  carries the aggravated/simple + weapon distinction that primary_type lacks. */
+function classifyCrime(pt: string, desc: string): { kind: string; label: string } | null {
+  const gun = /GUN|FIREARM|HANDGUN|SHOT|ARMED|WEAPON/.test(desc);
+  const knife = /KNIF|CUTTING|STAB/.test(desc);
+  const agg = /AGG|AGGRAVATED|GREAT BODILY|STRONG ?ARM/.test(desc);
+  const simple = /SIMPLE/.test(desc);
+
+  if (pt === "HOMICIDE") return { kind: "homicide", label: "Homicide" };
+  if (pt === "CRIMINAL SEXUAL ASSAULT") return { kind: "sexual assault", label: "Sexual assault" };
+  if (pt === "WEAPONS VIOLATION") return { kind: "weapons offense", label: "Weapons offense" };
+  if (pt === "ROBBERY") {
+    if (/VEHIC|HIJACK|CARJACK/.test(desc)) return { kind: "carjacking", label: "Carjacking" };
+    return gun ? { kind: "armed robbery", label: "Armed robbery" } : { kind: "robbery", label: "Robbery" };
+  }
+  if (pt === "BATTERY" || pt === "ASSAULT") {
+    // only the violent (aggravated / weapon) variants — simple is low-level
+    if (simple && !agg && !gun && !knife) return null;
+    if (knife) return { kind: "stabbing", label: "Stabbing" };
+    if (gun) return { kind: "shooting", label: pt === "BATTERY" ? "Shooting" : "Armed assault" };
+    if (agg) return pt === "BATTERY"
+      ? { kind: "aggravated battery", label: "Aggravated battery" }
+      : { kind: "aggravated assault", label: "Aggravated assault" };
+    return null; // plain battery/assault with no aggravating marker → drop
+  }
+  return null;
 }
 
 function isoOrUndef(s?: string): string | undefined {

@@ -23,22 +23,18 @@ export const VIOLENT_RADIUS_MI = 1.0;
 
 // low-level offenses we never surface, even when they ride in on a broad
 // crime feed. Matched against the incident's kind (and headline as backup).
-const EXCLUDE = /simple|theft|larceny|stolen|motor vehicle theft|burglary|narcot|drug|trespass|damage|deceptive|fraud|public peace|intox|liquor|gambl|prostitut|weather|advisory/i;
+const EXCLUDE = /theft|larceny|stolen|motor vehicle theft|burglary|narcot|drug|trespass|damage|deceptive|fraud|public peace|intox|liquor|gambl|prostitut|weather|advisory/i;
 
-// the violent set we DO surface. Matched against kind (and headline).
-const INCLUDE = /homicide|murder|shoot|shots|gun|firearm|armed|robber|carjack|hijack|sexual assault|agg[^a-z]*assault|aggravated|batter|assault|stab|knife|weapon|discharge/i;
+// the violent set we DO surface. Bare "battery"/"assault" is intentionally
+// NOT here — only its aggravated / weapon / stabbing variants (which the crime
+// adapter labels explicitly), so simple battery never counts.
+const INCLUDE = /homicide|murder|shoot|shots|gun|firearm|armed|robber|carjack|hijack|sexual assault|aggravated|stab|knife|weapon|discharge/i;
 
 /** Is this incident violent crime a school leader should see? */
 export function isViolentCrime(i: Pick<Incident, "kind" | "headline">): boolean {
   const hay = `${i.kind || ""} ${i.headline || ""}`;
-  if (EXCLUDE.test(hay)) {
-    // an aggravated/weapon battery is violent even though "battery" alone isn't;
-    // let an explicit aggravated/weapon marker override a generic exclude.
-    if (/aggravated|agg[^a-z]|weapon|gun|firearm|armed|knife|handgun/i.test(hay) && !/simple/i.test(hay)) {
-      return true;
-    }
-    return false;
-  }
+  if (/\bsimple\b/i.test(hay)) return false; // simple battery / assault
+  if (EXCLUDE.test(hay)) return false;
   return INCLUDE.test(hay);
 }
 

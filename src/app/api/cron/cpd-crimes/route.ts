@@ -22,8 +22,9 @@ export async function GET(req: Request) {
     const result = await runCpdCrimesAdapter(tenant.campuses);
     const geo = attachGeometry(result.incidents, tenant.campuses);
     const { ok, rejected } = validate(geo);
-    const maxRing = tenant.campuses.reduce((m, c) => Math.max(m, c.elevatedRingMi), 0.5);
-    const inScope = ok.filter((i) => i.distanceMi != null && i.distanceMi <= maxRing);
+    // violent crime is surfaced within one mile of a campus, so the crimes
+    // backfill layer persists out to a mile (wider than the 0.5-mi alert ring).
+    const inScope = ok.filter((i) => i.distanceMi != null && i.distanceMi <= 1.05);
     const persisted = await persistIncidents(tenant.id, inScope);
     await persistHealth(tenant.id, result.health);
     out.push({
