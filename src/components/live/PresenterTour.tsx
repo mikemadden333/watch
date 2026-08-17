@@ -214,12 +214,18 @@ export default function PresenterTour({ enabled, slug, base }: { enabled: boolea
       const t = e.target as HTMLElement | null;
       const tag = (t?.tagName || "").toLowerCase();
       if (tag === "input" || tag === "textarea" || tag === "select" || t?.isContentEditable) return;
-      if (e.key === " " || e.code === "Space" || e.key === "ArrowRight") { e.preventDefault(); goTo(step + 1); }
+      if (e.key === " " || e.code === "Space" || e.key === "ArrowRight") {
+        e.preventDefault();
+        // On the fire step, the first SPACE fires the incident (sends the real
+        // text); the next SPACE advances. This makes the thread un-skippable.
+        if (current?.fire && !fired) { doAction(); return; }
+        goTo(step + 1);
+      }
       else if (e.key === "ArrowLeft" || e.key === "Backspace") { e.preventDefault(); goTo(step - 1); }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [enabled, active, step, arm, exit, goTo]);
+  }, [enabled, active, step, arm, exit, goTo, current?.fire, fired, doAction]);
 
   if (!active) return null;
 

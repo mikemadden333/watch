@@ -139,13 +139,15 @@ function ceoTimeline(
   }
 
   const feedsTotal = data.feeds.length;
-  const feedsLive = data.feeds.filter((f) => f.state === "ok").length;
+  // "Live" = connected and reporting this cycle, not "newest record inside a tight
+  // window". Slow authoritative feeds still count — only a dark feed drops it.
+  const feedsLive = data.feeds.filter((f) => f.state !== "late").length;
   rows.push(
     feedsTotal === 0
       ? { tm: "now", text: "Source health is not reporting — treat this quiet with caution until feeds confirm." }
       : {
           tm: "all night",
-          text: `${feedsLive >= feedsTotal ? `All ${feedsTotal}` : `${feedsLive} of ${feedsTotal}`} sources current. The quiet was verified, not assumed.`,
+          text: `${feedsLive >= feedsTotal ? `All ${feedsTotal}` : `${feedsLive} of ${feedsTotal}`} sources connected and reporting. The quiet was verified, not assumed.`,
         }
   );
   return rows;
@@ -210,8 +212,12 @@ function CeoView({ data, base }: { data: NetworkData; base: string }) {
   const net30 = stats.reduce((k, s) => k + s.m, 0);
   const maxTotal = Math.max(1, ...stats.map((s) => s.total));
   // Honest source health — an empty feed table is "unknown", never "all good".
+  // "Live" = connected and reporting this cycle. Slow authoritative feeds (CPD's
+  // crime dataset publishes ~8 days behind by policy) are active and polling even
+  // with nothing new to pull, so they count. Only a dark feed ("late" / no data)
+  // drops the number. Per-source freshness detail lives on the Sources page.
   const feedsTotal = data.feeds.length;
-  const feedsLive = data.feeds.filter((f) => f.state === "ok").length;
+  const feedsLive = data.feeds.filter((f) => f.state !== "late").length;
   const feedsKnown = feedsTotal > 0;
   const feedsAllLive = feedsKnown && feedsLive >= feedsTotal;
   const isDallas = /dallas/i.test(data.city);
