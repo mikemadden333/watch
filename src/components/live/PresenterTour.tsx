@@ -182,7 +182,12 @@ export default function PresenterTour({ enabled, slug, base }: { enabled: boolea
   const exit = useCallback(() => {
     setActive(false); setRect(null); persist(false, 0); emit(false);
     try { localStorage.removeItem(`watch-runs-${slug}`); } catch { /* ignore */ }
-  }, [slug]);
+    // return the network to all-clear so a fired incident never lingers past the tour
+    try {
+      fetch("/api/demo/clear", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ slug }) })
+        .then(() => router.refresh()).catch(() => {});
+    } catch { /* ignore */ }
+  }, [slug, router]);
 
   const doAction = useCallback(async () => {
     if (!current?.fire) return;
