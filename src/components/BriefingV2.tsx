@@ -22,11 +22,13 @@ import {
   numWord,
   overnightWord,
   watchedWindow,
+  centralHour,
   type Briefing,
   type Seg,
 } from "@/lib/voice";
 import { pulseForCampus } from "@/lib/pulse";
 import HeatRibbon, { type RibbonDay } from "./briefing/HeatRibbon";
+import SafetyDial, { type DialInc } from "./briefing/SafetyDial";
 
 type StoryRow = { time: string; text: string; cls?: "conf" | "elev" | "alert" };
 
@@ -394,6 +396,20 @@ function LeaderView({ data, base, code }: { data: NetworkData; base: string; cod
   const dismissPretty = pretty12(campus.dismissal);
   const briefPretty = pretty12(minusMinutes(campus.dismissal, 30));
 
+  // the safety dial — confirmed gun violence near this campus, plotted by hour
+  // of day and recency, so a principal has a pattern to explore even when clear
+  const dialData: DialInc[] = pulseForCampus(data.incidents, campus, now).map((r) => ({
+    id: r.id,
+    hour: centralHour(new Date(r.occurredAt)),
+    ageDays: Math.max(0, Math.round(r.ageDays)),
+    fatal: /fatal/i.test(r.victimNote ?? "") && !/non-fatal/i.test(r.victimNote ?? ""),
+    title: `${cap(incidentTypeWord({ kind: r.kind } as Incident))} · ${placeOf({ headline: r.headline } as Incident)}`,
+    sub: `${r.distanceMi} mi ${r.bearing} · ${r.ageLabel}`,
+  }));
+  const schoolStart = parseInt((campus.arrivalStart ?? "07:30").split(":")[0], 10) || 7;
+  const dm = /^(\d{1,2}):(\d{2})/.exec(campus.dismissal ?? "");
+  const schoolEnd = dm ? parseInt(dm[1], 10) + (parseInt(dm[2], 10) > 0 ? 1 : 0) : 15;
+
   return (
     <>
       <div className="v2hero">
@@ -433,6 +449,8 @@ function LeaderView({ data, base, code }: { data: NetworkData; base: string; cod
           <div className="s">One line at {briefPretty} — conditions on your blocks in the half hour before your {dismissPretty} release.</div>
         </div>
       </div>
+
+      <SafetyDial incidents={dialData} campusName={campus.name} schoolStart={schoolStart} schoolEnd={schoolEnd} />
 
       {active && incident ? (
         <div className="evi">
