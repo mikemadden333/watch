@@ -181,7 +181,25 @@ export function ceoBriefing(data: NetworkData, now = new Date()): Briefing {
   const hasWeather = data.incidents.some((i) => /weather|advisory|nws/i.test(i.kind + " " + i.source));
   const weather = hasWeather ? "There is a weather advisory in effect — outdoor guidance applies" : "No weather concerns";
 
+  const monitorCount = data.statuses.filter((s) => s.status === "MONITOR").length;
   if (attention.length === 0) {
+    // No campus is ELEVATED/ALERT. But MONITOR is a soft watch posture — not
+    // "clear" — so the hero must not claim all-clear when campuses are on watch.
+    if (monitorCount > 0) {
+      const allMon = monitorCount >= n;
+      const monN = numWord(monitorCount);
+      return {
+        micro,
+        lead: `${greeting(now)}.`,
+        key: allMon ? `All ${numWord(n)} campuses are steady.` : `${cap(monN)} campus${monitorCount > 1 ? "es are" : " is"} on watch.`,
+        keyClass: "monitor",
+        para: [
+          { t: `No confirmed incident has crossed a line near any campus ${overnightWord(now)}. ` },
+          { t: `I'm keeping ${allMon ? "the network" : `${monN} campus${monitorCount > 1 ? "es" : ""}`} on watch — soft signals I'm tracking that haven't met an alert${hasWeather ? ", and a weather advisory is in effect" : ""}. ` },
+          { t: "Dismissal looks normal across the network.", b: true },
+        ],
+      };
+    }
     return {
       micro,
       lead: `${greeting(now)}.`,
