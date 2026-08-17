@@ -204,13 +204,14 @@ function CeoView({ data, base }: { data: NetworkData; base: string }) {
         w: rings.filter((r) => r.ageDays <= 7).length,
       };
     })
-    .sort((a, x) => rank[a.st] - rank[x.st] || x.total - a.total);
+    // rank by the actionable window: worst status first, then the last 30 days
+    // (not the 125-day store, which over-weights stale history)
+    .sort((a, x) => rank[a.st] - rank[x.st] || x.m - a.m || x.w - a.w);
 
   const clearCount = stats.filter((s) => s.st === "CLEAR").length;
   const hotCampus = stats.find((s) => s.st === "ELEVATED" || s.st === "ALERT");
   const net7 = stats.reduce((k, s) => k + s.w, 0);
   const net30 = stats.reduce((k, s) => k + s.m, 0);
-  const maxTotal = Math.max(1, ...stats.map((s) => s.total));
   // Honest source health — an empty feed table is "unknown", never "all good".
   // "Live" = connected and reporting this cycle. Slow authoritative feeds (CPD's
   // crime dataset publishes ~8 days behind by policy) are active and polling even
@@ -280,11 +281,11 @@ function CeoView({ data, base }: { data: NetworkData; base: string }) {
           </div>
           <div className="sr-v">
             <div className="sr-num">{net7}</div>
-            <div className="sr-lab">Confirmed shootings<br />near campuses · 7 days</div>
+            <div className="sr-lab">Confirmed gun violence<br />near campuses · 7 days</div>
           </div>
           <div className="sr-v">
             <div className="sr-num">{net30}</div>
-            <div className="sr-lab">Confirmed shootings<br />near campuses · 30 days</div>
+            <div className="sr-lab">Confirmed gun violence<br />near campuses · 30 days</div>
           </div>
           <div className={`sr-v${feedsAllLive ? " clr" : !feedsKnown ? " warnv" : ""}`}>
             <div className="sr-num">{feedsKnown ? feedsLive : "—"}{feedsKnown ? <small> / {feedsTotal}</small> : null}</div>
@@ -295,7 +296,7 @@ function CeoView({ data, base }: { data: NetworkData; base: string }) {
         <div className="sr-boardh">
           <div className="t">The blocks around your schools</div>
           <div className="s">
-            Confirmed gun violence · last 125 days · <span style={{ color: "var(--sr-amber2)" }}>▬</span> last 30
+            Confirmed gun violence · this week &amp; last 30 days
           </div>
         </div>
         <div className="sr-board">
@@ -320,13 +321,9 @@ function CeoView({ data, base }: { data: NetworkData; base: string }) {
                   <polyline points={sp.line} fill="none" stroke="rgba(232,161,58,.85)" strokeWidth="1.4" strokeLinejoin="round" />
                   <circle cx={sp.last[0].toFixed(1)} cy={sp.last[1].toFixed(1)} r="2.1" fill="#f4bf63" />
                 </svg>
-                <span className="sr-bar">
-                  <i style={{ width: `${(s.total / maxTotal) * 100}%` }} />
-                  <b style={{ width: `${(s.m / maxTotal) * 100}%` }} />
-                </span>
                 <span className="sr-cnt">
-                  <span className="big">{s.total}</span><span className="u">in 125 days</span>
-                  {s.m ? <div className="r">{s.m} in 30 days</div> : <div className="r faint">quiet lately</div>}
+                  <span className={`big${s.w === 0 ? " zero" : ""}`}>{s.w}</span><span className="u">this week</span>
+                  {s.m ? <div className="r">{s.m} in 30 days</div> : <div className="r faint">quiet this month</div>}
                 </span>
               </Link>
             );
