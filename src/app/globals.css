@@ -2481,6 +2481,53 @@ a {
 }
 .pguide { fill: none; stroke: var(--line2); stroke-width: 0.4; stroke-dasharray: 1.6 1.4; }
 .pcross { stroke: var(--line); stroke-width: 0.3; }
+
+/* ---------------- Pulse · real map under the radar ---------------- */
+.pmapblock { display: block; }
+.pmapwrap { max-width: 480px; margin: 6px auto 6px; }
+.pmap {
+  width: 100%; aspect-ratio: 1 / 1; display: block; border-radius: 14px;
+  border: 1px solid var(--line2);
+  /* navy fallback so a failed tile load still reads as a dark radar, never blank */
+  background:
+    radial-gradient(circle at 50% 46%, rgba(232,161,58,0.06), transparent 60%),
+    #0c1a3a;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.04), 0 10px 30px -14px rgba(0,0,0,0.6);
+  overflow: hidden;
+  z-index: 0; /* keep leaflet panes below the app chrome */
+}
+.pmap .leaflet-container { background: transparent; font-family: var(--mono); }
+.pmap-scale-note { text-align: center; color: var(--faint); font-size: 10px; letter-spacing: 0.4px; margin: 8px 0 2px; }
+
+/* incident + campus pins (leaflet divIcons) */
+.pm-iconwrap { background: none; border: none; }
+.pm-dot {
+  display: block; width: var(--pm-s); height: var(--pm-s); border-radius: 50%;
+  background: radial-gradient(circle at 50% 45%, color-mix(in srgb, var(--pm-c) 92%, #fff) 0%, var(--pm-c) 62%, transparent 100%);
+  opacity: var(--pm-o);
+  box-shadow: 0 0 8px -1px var(--pm-c), inset 0 0 0 1px color-mix(in srgb, var(--pm-c) 70%, #000);
+  transition: transform 0.15s ease;
+}
+.pm-dot:hover { transform: scale(1.18); }
+.pm-fresh { opacity: 1; }
+.pm-fresh::after {
+  content: ""; position: absolute; inset: 0; border-radius: 50%;
+  border: 1.5px solid var(--pm-c); opacity: 0.9;
+}
+.pm-sel { outline: 2px solid var(--ink); outline-offset: 2px; }
+@media (prefers-reduced-motion: no-preference) {
+  .pm-fresh::after { animation: pmPing 3.2s cubic-bezier(0.2, 0.6, 0.3, 1) infinite; }
+}
+@keyframes pmPing {
+  0%   { transform: scale(1);   opacity: 0.85; }
+  70%  { opacity: 0; }
+  100% { transform: scale(3.4); opacity: 0; }
+}
+.pm-campus {
+  display: block; width: 12px; height: 12px; border-radius: 50%;
+  background: var(--ink); border: 2px solid #0c1a3a;
+  box-shadow: 0 0 0 3px rgba(243,241,234,0.14), 0 0 14px 2px rgba(243,241,234,0.35);
+}
 .pcampus { fill: var(--ink); stroke: #0c1a3a; stroke-width: 0.7; }
 .pcampusglow { transform-box: view-box; transform-origin: 50% 50%; }
 .pcampusping { stroke: var(--amber2); stroke-width: 0.7; transform-box: view-box; transform-origin: 50% 50%; }

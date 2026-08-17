@@ -31,6 +31,9 @@ export interface PulseRing {
   fadesInDays: number;
   fillOpacity: number;
   strokeOpacity: number;
+  // real geography — for the live map basemap under the radar
+  lat: number;
+  lon: number;
   // schematic projection, viewBox 0..100, campus at (50,50), north = up
   x: number;
   y: number;
@@ -85,6 +88,8 @@ export function pulseForCampus(incidents: Incident[], campus: Campus, now = new 
       fadesInDays: Math.max(0, Math.round(PULSE_WINDOW_DAYS - ageDays)),
       fillOpacity,
       strokeOpacity,
+      lat: i.lat,
+      lon: i.lon,
       x: 50 + eastMi * unitsPerMi,
       y: 50 - northMi * unitsPerMi,
       rUnits: RING_VISUAL_MI * unitsPerMi,

@@ -29,6 +29,7 @@ import {
 import { pulseForCampus } from "@/lib/pulse";
 import HeatRibbon, { type RibbonDay } from "./briefing/HeatRibbon";
 import SafetyDial, { type DialInc } from "./briefing/SafetyDial";
+import PulseMap from "./pulse/PulseMap";
 
 type StoryRow = { time: string; text: string; cls?: "conf" | "elev" | "alert" };
 
@@ -398,7 +399,8 @@ function LeaderView({ data, base, code }: { data: NetworkData; base: string; cod
 
   // the safety dial — confirmed gun violence near this campus, plotted by hour
   // of day and recency, so a principal has a pattern to explore even when clear
-  const dialData: DialInc[] = pulseForCampus(data.incidents, campus, now).map((r) => ({
+  const pulseRings = pulseForCampus(data.incidents, campus, now);
+  const dialData: DialInc[] = pulseRings.map((r) => ({
     id: r.id,
     hour: centralHour(new Date(r.occurredAt)),
     ageDays: Math.max(0, Math.round(r.ageDays)),
@@ -449,6 +451,16 @@ function LeaderView({ data, base, code }: { data: NetworkData; base: string; cod
           <div className="s">One line at {briefPretty} — conditions on your blocks in the half hour before your {dismissPretty} release.</div>
         </div>
       </div>
+
+      {pulseRings.length > 0 ? (
+        <section className="sdpanel campusmap">
+          <div className="sdhead">
+            <div className="t">The blocks around {campus.name}</div>
+            <div className="s">Confirmed gun violence · last 125 days · pinned where it happened</div>
+          </div>
+          <PulseMap rings={pulseRings} campus={campus} compact />
+        </section>
+      ) : null}
 
       <SafetyDial incidents={dialData} campusName={campus.name} schoolStart={schoolStart} schoolEnd={schoolEnd} />
 

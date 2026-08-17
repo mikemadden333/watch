@@ -21,7 +21,7 @@ import {
   type PulseRing,
 } from "@/lib/pulse";
 import { numWord } from "@/lib/voice";
-import PulseRadar from "./pulse/PulseRadar";
+import PulseMap from "./pulse/PulseMap";
 import ContagionBanner from "./pulse/ContagionBanner";
 
 const EL = "#e8a13a"; // gun-violence signal color (amber, matches the CEO board)
@@ -113,7 +113,7 @@ function LeaderPulse({ data, campus }: { data: NetworkData; campus: Campus }) {
 
         <div className="card pradarcard" data-tour="pulse-graphic">
           {total > 0 ? (
-            <PulseRadar rings={rings} />
+            <PulseMap rings={rings} campus={campus} />
           ) : (
             <div className="pradar-empty">No confirmed gun violence within a half-mile in the window. The radar is clear.</div>
           )}
