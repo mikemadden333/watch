@@ -2439,3 +2439,57 @@ a {
   100% { transform: scale(7); opacity: 0; }
 }
 @keyframes pBreathe { 0%, 100% { opacity: 0.55; } 50% { opacity: 1; } }
+
+/* ---------------- Pulse · The Science (self-contained dark panel) ---------------- */
+.scienceband {
+  --s-ink: #f3f1ea; --s-ink2: #c3c8d6; --s-mut: #8b93ad; --s-faint: #59617e;
+  --s-line: #24304f; --s-panel: #101a30;
+  margin-top: 28px; padding: 34px 34px 30px; border-radius: 16px;
+  border: 1px solid var(--s-line);
+  background:
+    radial-gradient(120% 90% at 88% -10%, rgba(232,161,58,0.06), transparent 55%),
+    linear-gradient(180deg, #0e1730, #0b1224);
+  color: var(--s-ink2);
+}
+.sci-head { max-width: 68ch; }
+.sci-eyebrow { font-family: var(--mono); font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--s-mut); }
+.sci-title { font-family: var(--serif); font-weight: 600; font-size: 27px; letter-spacing: -0.01em; color: var(--s-ink); margin: 12px 0 10px; text-wrap: balance; }
+.sci-lead { font-size: 15px; line-height: 1.6; color: var(--s-ink2); margin: 0; }
+.sci-k { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--s-mut); margin-bottom: 12px; }
+
+.sci-grid { display: grid; grid-template-columns: 1fr 1.25fr; gap: 34px; margin-top: 30px; padding-top: 26px; border-top: 1px solid var(--s-line); }
+@media (max-width: 900px) { .sci-grid { grid-template-columns: 1fr; gap: 30px; } }
+.sci-found p { font-size: 13.5px; line-height: 1.68; color: var(--s-ink2); margin: 0 0 16px; }
+.sci-found p b { color: var(--s-ink); }
+.sci-quote {
+  margin: 0; padding: 14px 0 4px 18px; border-left: 2px solid var(--amber);
+  font-size: 13.5px; line-height: 1.6; color: var(--s-ink); font-style: normal;
+}
+
+/* phase timeline */
+.phaserow { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+@media (max-width: 620px) { .phaserow { grid-template-columns: 1fr 1fr; } }
+.phase { background: rgba(255,255,255,0.02); border: 1px solid var(--s-line); border-radius: 10px; padding: 12px 12px 14px; position: relative; }
+.phase .ph-bar { height: 3px; border-radius: 3px; margin-bottom: 11px; }
+.phase.p1 .ph-bar { background: linear-gradient(90deg, #e6864a, #e5564b); }
+.phase.p2 .ph-bar { background: #e5564b; box-shadow: 0 0 10px rgba(229,86,75,0.55); }
+.phase.p3 .ph-bar { background: linear-gradient(90deg, #e8a13a, #b98a45); }
+.phase.p4 .ph-bar { background: #4a5578; }
+.phase.peak { border-color: rgba(229,86,75,0.5); background: rgba(229,86,75,0.06); }
+.ph-tag { font-size: 13px; font-weight: 700; color: var(--s-ink); display: flex; align-items: center; gap: 7px; }
+.ph-tag em { font-style: normal; font-family: var(--mono); font-size: 8.5px; letter-spacing: 0.1em; text-transform: uppercase; color: #f0857c; border: 1px solid rgba(229,86,75,0.5); border-radius: 5px; padding: 1px 5px; }
+.ph-range { font-family: var(--mono); font-size: 10.5px; color: var(--amber2); margin: 4px 0 8px; letter-spacing: 0.02em; }
+.ph-body { font-size: 11.5px; line-height: 1.5; color: var(--s-mut); }
+.sci-note { margin-top: 14px; font-size: 12px; line-height: 1.55; color: var(--s-mut); }
+.sci-note::before { content: "◎ "; color: var(--amber); }
+
+.sci-cites { margin-top: 30px; padding-top: 26px; border-top: 1px solid var(--s-line); }
+.citelist { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
+@media (max-width: 900px) { .citelist { grid-template-columns: 1fr; gap: 18px; } }
+.cite-hd { font-size: 12px; color: var(--s-ink); }
+.cite-hd .cite-who { font-weight: 600; }
+.cite-hd .cite-yr { font-family: var(--mono); color: var(--amber2); }
+.cite-hd .cite-jrn { font-style: italic; color: var(--s-mut); }
+.cite-title { font-size: 12.5px; line-height: 1.45; color: var(--s-ink2); margin: 6px 0 6px; }
+.cite-note { font-size: 11px; line-height: 1.5; color: var(--s-mut); }
+.sci-cap { margin-top: 22px; font-family: var(--mono); font-size: 10px; letter-spacing: 0.03em; color: var(--s-faint); }

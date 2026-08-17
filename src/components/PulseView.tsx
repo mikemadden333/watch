@@ -231,6 +231,96 @@ function MiniPulse({ data, base, campus }: { data: NetworkData; base: string; ca
   );
 }
 
+/* ---------------- the science (academic depth) ---------------- */
+
+const PHASES = [
+  { tag: "Acute", range: "0 – 18 hrs", cls: "p1", peak: false,
+    body: "The immediate aftermath of a homicide. Chaos and grief dominate; organized retaliation is unlikely, but spontaneous violence is possible." },
+  { tag: "Active", range: "18 – 72 hrs", cls: "p2", peak: true,
+    body: "The peak retaliation window — the most dangerous period. Grief has hardened into intent. A campus within a half-mile of the triggering homicide sits at its highest risk." },
+  { tag: "Watch", range: "72 hrs – 7 d", cls: "p3", peak: false,
+    body: "Risk is elevated but declining. The immediate impulse fades; monitoring continues with heightened awareness." },
+  { tag: "Monitor", range: "7 – 21 d", cls: "p4", peak: false,
+    body: "Returning to baseline. The zone is still tracked but its weight diminishes, dissolving at 21 days unless a new event resets the clock." },
+];
+
+const CITES = [
+  { who: "Papachristos, Wildeman & Roberto", yr: "2015", jrn: "Social Science & Medicine",
+    title: "Tragic, but not random: the social contagion of nonfatal gunshot injuries.",
+    note: "Showed that gunshot victimization spreads through co-offending networks with the predictability of an infectious disease. Pulse’s primary foundation." },
+  { who: "Papachristos & Wildeman", yr: "2014", jrn: "American Journal of Public Health",
+    title: "Network exposure and homicide victimization in an African American community.",
+    note: "Network position — not neighborhood — is the primary predictor of victimization; 41% of gun homicides occurred within a network of 4% of the population." },
+  { who: "Papachristos", yr: "2009", jrn: "American Journal of Sociology",
+    title: "Murder by structure: dominance relations and the social structure of gang homicide.",
+    note: "The original study framing gang homicide as a network-contagion phenomenon in Chicago." },
+];
+
+function TheScience() {
+  return (
+    <section className="scienceband" aria-label="The science behind Pulse">
+      <div className="sci-head">
+        <span className="sci-eyebrow">03 — The Science</span>
+        <h2 className="sci-title">Violence spreads like a disease.</h2>
+        <p className="sci-lead">
+          Not a metaphor — peer-reviewed science. Pulse is built on the Papachristos contagion model, the
+          same framework Yale and the University of Chicago use to study urban gun violence.
+        </p>
+      </div>
+
+      <div className="sci-grid">
+        <div className="sci-found">
+          <div className="sci-k">The foundational research</div>
+          <p>
+            Dr. Andrew Papachristos showed that gunshot victimization moves through social networks the way an
+            infectious disease moves through a population. A homicide doesn’t end with one victim — it can set off
+            retaliatory violence that travels through connected communities in predictable patterns over the days that
+            follow. In his Chicago research, roughly <b>70% of shootings</b> occurred within co-offending networks
+            representing under <b>6% of the population</b>.
+          </p>
+          <blockquote className="sci-quote">
+            Pulse tracks homicides and weapons violations — not all crime — because these are the incidents that
+            create contagion. A battery three miles away doesn’t create retaliatory risk. A homicide half a mile away
+            does. That distinction is everything.
+          </blockquote>
+        </div>
+
+        <div className="sci-phases">
+          <div className="sci-k">The four contagion phases</div>
+          <div className="phaserow">
+            {PHASES.map((p) => (
+              <div key={p.tag} className={`phase ${p.cls}${p.peak ? " peak" : ""}`}>
+                <div className="ph-bar" />
+                <div className="ph-tag">{p.tag}{p.peak ? <em>Peak</em> : null}</div>
+                <div className="ph-range">{p.range}</div>
+                <div className="ph-body">{p.body}</div>
+              </div>
+            ))}
+          </div>
+          <div className="sci-note">
+            On the radar, pulsing rings are incidents still inside this window; faint dots have cooled but stay on the
+            record as the block returns to baseline.
+          </div>
+        </div>
+      </div>
+
+      <div className="sci-cites">
+        <div className="sci-k">Academic foundation</div>
+        <div className="citelist">
+          {CITES.map((c) => (
+            <div className="cite" key={c.yr}>
+              <div className="cite-hd"><span className="cite-who">{c.who}</span> <span className="cite-yr">{c.yr}</span> · <span className="cite-jrn">{c.jrn}</span></div>
+              <div className="cite-title">“{c.title}”</div>
+              <div className="cite-note">{c.note}</div>
+            </div>
+          ))}
+        </div>
+        <div className="sci-cap">Pulse describes what the public record shows and how the research reads it. It predicts nothing, and it is not a security system.</div>
+      </div>
+    </section>
+  );
+}
+
 /* ---------------- entry ---------------- */
 
 export default function PulseView({
@@ -254,7 +344,12 @@ export default function PulseView({
   if (view === "leader") {
     const c = data.campuses.find((x) => x.code === campus) ?? sorted[0];
     if (!c) return <div className="v2hero"><div className="sentence">No campuses configured.</div></div>;
-    return <LeaderPulse data={data} campus={c} />;
+    return (
+      <>
+        <LeaderPulse data={data} campus={c} />
+        <TheScience />
+      </>
+    );
   }
 
   const totalActive = sorted.reduce((n, c) => n + pulseForCampus(data.incidents, c).length, 0);
@@ -273,6 +368,7 @@ export default function PulseView({
           <MiniPulse key={c.code} data={data} base={base} campus={c} />
         ))}
       </div>
+      <TheScience />
     </>
   );
 }
