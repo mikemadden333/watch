@@ -1268,7 +1268,9 @@ a {
   min-width: 0;
   border-radius: 3px;
   background: var(--sr-cell);
-  transform-origin: bottom;
+  align-self: flex-end; /* bars grow from the baseline — height encodes count */
+  height: 100%;
+  transition: filter 0.15s;
 }
 .sr-ribbon i.today {
   box-shadow: inset 0 0 0 1px rgba(244, 191, 99, 0.5);
