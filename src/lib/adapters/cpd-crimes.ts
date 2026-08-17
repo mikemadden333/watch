@@ -12,7 +12,7 @@ import { centralWallToUtc } from "../time";
 
 const SRC = { host: "data.cityofchicago.org", dataset: "ijzp-q8t2" };
 const DATE_FIELD = "date";
-const EXPECTED_HOURS = 9 * 24; // ≤9d window
+const EXPECTED_HOURS = 12 * 24; // ≤12d — CPD's full crime dataset publishes ~8 days behind by policy, plus processing lag
 
 const RELEVANT = new Set([
   "HOMICIDE",

@@ -13,7 +13,7 @@ import { centralWallToUtc } from "../time";
 
 const SRC = { host: "data.cityofchicago.org", dataset: "gumc-mgzr" };
 const DATE_FIELD = "date";
-const EXPECTED_HOURS = 48; // ≤48h window
+const EXPECTED_HOURS = 72; // ≤72h — CPD's shooting record posts 13–37h behind on weekdays, longer across weekends; 3 days covers its true cadence
 
 interface VrRow {
   unique_id?: string;
