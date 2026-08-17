@@ -2388,5 +2388,54 @@ a {
 .psit-badge.clr { background: var(--clearbg); border-color: rgba(87,193,145,0.4); color: var(--clear); }
 .psit-nums { font-size: 12px; color: var(--mut); font-variant-numeric: tabular-nums; }
 .psit-nums b { color: var(--ink); font-weight: 700; }
-.psit-read { font-size: 14.5px; line-height: 1.55; color: var(--ink); margin: 0 0 6px; max-width: 60ch; }
-.pdecay { margin-top: 8px; }
+.psit-read { font-size: 14.5px; line-height: 1.55; color: var(--ink); margin: 12px 0 4px; max-width: 60ch; }
+.psit-badgewrap { display: inline-flex; align-items: center; gap: 8px; }
+.psit-plab { font-family: var(--mono); font-size: 9.5px; letter-spacing: 1.4px; text-transform: uppercase; color: var(--faint); }
+.psit-foot { font-family: var(--mono); font-size: 10px; letter-spacing: 0.4px; color: var(--faint); }
+
+/* ---------------- the contagion radar ---------------- */
+.pradarwrap { max-width: 440px; margin: 14px auto 6px; }
+.pradar {
+  width: 100%; aspect-ratio: 1 / 1; display: block;
+  background:
+    radial-gradient(circle at 50% 50%, rgba(232,161,58,0.05), transparent 62%),
+    #0c1428;
+  border-radius: 14px; border: 1px solid var(--line);
+}
+.pguide { fill: none; stroke: var(--line2); stroke-width: 0.4; stroke-dasharray: 1.6 1.4; }
+.pcross { stroke: var(--line); stroke-width: 0.3; }
+.pcampus { fill: var(--ink); stroke: #0b0f1c; stroke-width: 0.7; }
+.pcampusglow { transform-box: view-box; transform-origin: 50% 50%; }
+.pcampusping { stroke: var(--amber2); stroke-width: 0.7; transform-box: view-box; transform-origin: 50% 50%; }
+.psweep { transform-box: view-box; transform-origin: 50% 50%; }
+.pring { transform-box: fill-box; transform-origin: center; }
+
+.pradar-legend {
+  display: flex; flex-wrap: wrap; gap: 6px 16px; align-items: center; justify-content: center;
+  margin-top: 10px; font-family: var(--mono); font-size: 10px; letter-spacing: 0.4px; color: var(--mut);
+}
+.pradar-legend span { display: inline-flex; align-items: center; gap: 6px; }
+.pradar-legend i { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+.pradar-legend .lg-campus { background: var(--ink); }
+.pradar-legend .lg-hot { background: var(--amber2); box-shadow: 0 0 6px rgba(244,191,99,0.6); }
+.pradar-legend .lg-cool { background: rgba(232,161,58,0.32); }
+.pradar-legend .pradar-scale { color: var(--faint); }
+.pradar-empty { text-align: center; color: var(--mut); font-size: 13px; padding: 40px 16px; border: 1px dashed var(--line2); border-radius: 12px; margin: 12px 0; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .psweep { animation: pSweep 7s linear infinite; }
+  .pring { animation: pRing 3.4s cubic-bezier(0.2, 0.6, 0.3, 1) infinite; }
+  .pcampusping { animation: pPing 3.4s ease-out infinite; }
+  .pcampusglow { animation: pBreathe 4.5s ease-in-out infinite; }
+}
+@keyframes pSweep { to { transform: rotate(360deg); } }
+@keyframes pRing {
+  0% { transform: scale(0.5); opacity: 0.7; }
+  75% { opacity: 0; }
+  100% { transform: scale(2.9); opacity: 0; }
+}
+@keyframes pPing {
+  0% { transform: scale(1); opacity: 0.55; }
+  100% { transform: scale(7); opacity: 0; }
+}
+@keyframes pBreathe { 0%, 100% { opacity: 0.55; } 50% { opacity: 1; } }
